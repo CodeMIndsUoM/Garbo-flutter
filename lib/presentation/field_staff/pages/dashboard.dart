@@ -407,7 +407,7 @@ class _DashboardState extends State<Dashboard> {
                 value,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -418,7 +418,7 @@ class _DashboardState extends State<Dashboard> {
             label,
             style: TextStyle(
               color: Colors.white70,
-              fontSize: 11,
+              fontSize: 12,
             ),
           ),
         ],
@@ -434,7 +434,7 @@ class _DashboardState extends State<Dashboard> {
     IconData icon,
   ) {
     return Card(
-      elevation: 1,
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -445,15 +445,8 @@ class _DashboardState extends State<Dashboard> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: color, size: 18),
-                ),
-                SizedBox(width: 8),
+                Icon(icon, color: color, size: 18),
+                SizedBox(width: 4),
                 Text(
                   value,
                   style: TextStyle(
@@ -463,21 +456,19 @@ class _DashboardState extends State<Dashboard> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 6),
             Text(
               label,
               style: TextStyle(
-                color: Colors.grey[700],
-                fontSize: 12,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 4),
             Text(
               subtitle,
               style: TextStyle(
-                color: color,
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
               ),
             ),
           ],
