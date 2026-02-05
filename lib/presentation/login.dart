@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/FieldMentor/dashboard.dart';
-import 'package:garbo_swms/register.dart';
+import 'package:garbo_swms/presentation/field_staff/pages/dashboard.dart';
+import 'package:garbo_swms/presentation/forgotPassword.dart';
+import 'package:garbo_swms/presentation/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'forgotPassword.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -253,7 +253,7 @@ class _LoginState extends State<Login> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => CitizenRegister(),
+                                    builder: (_) => Register(),
                                   ),
                                 );
                               },

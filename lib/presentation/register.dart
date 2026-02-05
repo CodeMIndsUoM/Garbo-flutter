@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class CitizenRegister extends StatefulWidget {
+class Register extends StatefulWidget {
   @override
   _CitizenRegisterState createState() => _CitizenRegisterState();
 }
 
-class _CitizenRegisterState extends State<CitizenRegister> {
+class _CitizenRegisterState extends State<Register> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
