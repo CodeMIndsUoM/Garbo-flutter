@@ -316,18 +316,21 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
               title: 'Report Issue',
               subtitle: 'File a complaint',
               routeName: '/citizen/report',
+              hasGradient: true,
             ),
             _buildActionCard(
               icon: Icons.local_shipping_rounded,
               title: 'Request Pickup',
               subtitle: 'Schedule collection',
               routeName: '/citizen/request',
+              hasGradient: true,
             ),
             _buildActionCard(
               icon: Icons.event_rounded,
               title: 'Browse Events',
               subtitle: 'Join community',
               routeName: '/citizen/events',
+              hasGradient: true,
             ),
             _buildActionCard(
               icon: Icons.bar_chart_rounded,
