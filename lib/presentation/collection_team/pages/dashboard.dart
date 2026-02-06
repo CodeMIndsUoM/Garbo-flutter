@@ -711,7 +711,16 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               final isSelected = i == _selectedNavIndex;
               return Expanded(
                 child: InkWell(
-                  onTap: () => setState(() => _selectedNavIndex = i),
+                  onTap: () {
+                    if (i == 1) {
+                      // Navigate to Routes
+                      Navigator.of(
+                        context,
+                      ).pushReplacementNamed('/collector/routes');
+                    } else {
+                      setState(() => _selectedNavIndex = i);
+                    }
+                  },
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
