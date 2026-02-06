@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/presentation/login.dart';
+import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -7,11 +8,13 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Login(),
-        ),
-      ),
+      title: 'Garbo SWMS',
+      theme: ThemeData(primarySwatch: Colors.green, fontFamily: 'Arimo'),
+      initialRoute: '/citizen-home', // Temporary for testing
+      routes: {
+        '/login': (context) => Login(),
+        '/citizen-home': (context) => CitizenHomePage(),
+      },
     );
   }
 }
