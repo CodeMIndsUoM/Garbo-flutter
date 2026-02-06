@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
+import 'package:garbo_swms/presentation/collection_team/widgets/professional_bottom_navigation.dart';
 
 class CollectionTeamRoutes extends StatefulWidget {
   const CollectionTeamRoutes({super.key});
@@ -473,74 +475,27 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   // ── Bottom Navigation ─────────────────────────────────────────
   Widget _buildBottomNavigation() {
     final items = [
-      _NavItem(Icons.dashboard_rounded, 'Dashboard'),
-      _NavItem(Icons.route_rounded, 'Routes'),
-      _NavItem(Icons.map_rounded, 'Map'),
-      _NavItem(Icons.person_rounded, 'Profile'),
+      const NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+      const NavItem(icon: Icons.route_rounded, label: 'Routes'),
+      const NavItem(icon: Icons.map_rounded, label: 'Map'),
+      const NavItem(icon: Icons.person_rounded, label: 'Profile'),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: grey200, width: 1)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 68,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final isSelected = i == _selectedNavIndex;
-              return Expanded(
-                child: InkWell(
-                  onTap: () {
-                    if (i == 0) {
-                      // Navigate to Dashboard
-                      Navigator.of(
-                        context,
-                      ).pushReplacementNamed('/collector/dashboard');
-                    } else {
-                      setState(() => _selectedNavIndex = i);
-                    }
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        items[i].icon,
-                        color: isSelected ? green700 : grey500,
-                        size: 24,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        items[i].label,
-                        style: TextStyle(
-                          color: isSelected ? green700 : grey500,
-                          fontSize: 11,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Active indicator dot
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: isSelected ? 4 : 0,
-                        height: isSelected ? 4 : 0,
-                        decoration: BoxDecoration(
-                          color: isSelected ? green700 : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
+    return ProfessionalBottomNavigation(
+      currentIndex: _selectedNavIndex,
+      items: items,
+      activeColor: green700,
+      inactiveColor: grey500,
+      onTap: (index) {
+        if (index == 0) {
+          // Navigate to Dashboard
+          Navigator.of(context).pushReplacement(
+            SmoothPageRoute(page: const CollectionTeamDashboard()),
+          );
+        } else {
+          setState(() => _selectedNavIndex = index);
+        }
+      },
     );
   }
 }
@@ -568,11 +523,4 @@ class RouteData {
     required this.totalBins,
     required this.status,
   });
-}
-
-// Helper class for nav items
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem(this.icon, this.label);
 }
