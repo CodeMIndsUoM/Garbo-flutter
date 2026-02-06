@@ -305,15 +305,17 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             color: grey900,
             fontSize: 16,
             fontWeight: FontWeight.w700,
+            height: 1.0,
           ),
         ),
-        const SizedBox(height: 0),
+        const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           childAspectRatio: 1.62,
           shrinkWrap: true,
+          padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _buildPerformanceCard(
