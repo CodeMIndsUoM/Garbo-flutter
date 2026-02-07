@@ -16,9 +16,10 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   // Primary green
   static const Color green700 = Color(0xFF03824B);
 
-  // Accent colors
-  static const Color emerald50 = Color(0xFFF0FDF4);
-  static const Color emeraldTeal = Color(0xFFF0FDFA);
+  // High priority colors
+  static const Color red100 = Color(0xFFFFC9C9);
+  static const Color red50 = Color(0xFFFEF2F2);
+  static const Color orange50 = Color(0xFFFFF7ED);
 
   // Neutrals
   static const Color grey50 = Color(0xFFF9FAFB);
@@ -37,9 +38,9 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       bins: 5,
       distance: 8.5,
       duration: 45,
-      progress: 5,
+      progress: 0,
       totalBins: 5,
-      status: RouteStatus.inProgress,
+      status: RouteStatus.highPriority,
     ),
     RouteData(
       id: 'ROUTE-002',
@@ -231,24 +232,27 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
   // ── Route Card ────────────────────────────────────────────────
   Widget _buildRouteCard(RouteData route) {
-    final bool isInProgress = route.status == RouteStatus.inProgress;
+    final bool isHighPriority = route.status == RouteStatus.highPriority;
     final double progressPercent = route.totalBins > 0
         ? route.progress / route.totalBins
         : 0;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 22, 24, 12),
+      padding: const EdgeInsets.fromLTRB(20, 21, 20, 12),
       decoration: BoxDecoration(
-        gradient: isInProgress
+        gradient: isHighPriority
             ? const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [emerald50, emeraldTeal],
+                colors: [red50, orange50],
               )
             : null,
-        color: isInProgress ? null : Colors.white,
+        color: isHighPriority ? null : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isInProgress ? green700 : grey200, width: 2),
+        border: Border.all(
+          color: isHighPriority ? red100 : grey200,
+          width: 1.275,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,8 +366,8 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
               ],
             ),
           ),
-          // Start Route button (only for pending routes)
-          if (route.status == RouteStatus.pending) ...[
+          // Start Route button (for pending and high priority routes)
+          if (route.status != RouteStatus.completed) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
@@ -409,29 +413,25 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   Widget _buildStatusBadge(RouteStatus status) {
-    final bool isInProgress = status == RouteStatus.inProgress;
+    final bool isHighPriority = status == RouteStatus.highPriority;
+
+    if (isHighPriority) {
+      return const _HighPriorityBadge();
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isInProgress ? green700 : grey200,
+        color: grey200,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isInProgress) ...[
-            const Icon(Icons.play_arrow, color: Colors.white, size: 12),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            isInProgress ? 'IN PROGRESS' : 'PENDING',
-            style: TextStyle(
-              color: isInProgress ? Colors.white : grey700,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+      child: const Text(
+        'PENDING',
+        style: TextStyle(
+          color: grey700,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -501,7 +501,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 }
 
 // ── Data Models ─────────────────────────────────────────────────
-enum RouteStatus { inProgress, pending, completed }
+enum RouteStatus { highPriority, pending, completed }
 
 class RouteData {
   final String id;
@@ -523,4 +523,86 @@ class RouteData {
     required this.totalBins,
     required this.status,
   });
+}
+
+// ── Animated High Priority Badge ────────────────────────────────
+class _HighPriorityBadge extends StatefulWidget {
+  const _HighPriorityBadge();
+
+  @override
+  State<_HighPriorityBadge> createState() => _HighPriorityBadgeState();
+}
+
+class _HighPriorityBadgeState extends State<_HighPriorityBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+
+  static const Color red500 = Color(0xFFFB2C36);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    // Smooth pulse opacity: 0.6 -> 1.0 -> 0.6
+    _opacityAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.6,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.6,
+        ).chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 50,
+      ),
+    ]).animate(_controller);
+
+    _controller.repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: red500.withValues(alpha: _opacityAnimation.value),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: red500.withValues(alpha: _opacityAnimation.value * 0.4),
+                blurRadius: 8 * _opacityAnimation.value,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Text(
+            'HIGH PRIORITY',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
