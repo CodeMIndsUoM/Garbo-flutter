@@ -12,6 +12,9 @@ class CollectionTeamRoutes extends StatefulWidget {
 class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   int _selectedNavIndex = 1; // Routes tab is selected
 
+  // Track expanded state for each route card
+  final Map<String, bool> _expandedRoutes = {};
+
   // ── Design tokens ──────────────────────────────────────────────
   // Primary green
   static const Color green700 = Color(0xFF03824B);
@@ -233,6 +236,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   // ── Route Card ────────────────────────────────────────────────
   Widget _buildRouteCard(RouteData route) {
     final bool isHighPriority = route.status == RouteStatus.highPriority;
+    final bool isExpanded = _expandedRoutes[route.id] ?? false;
     final double progressPercent = route.totalBins > 0
         ? route.progress / route.totalBins
         : 0;
@@ -307,17 +311,29 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                 ),
               ),
               // Expand button
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: grey600,
-                  size: 20,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _expandedRoutes[route.id] = !isExpanded;
+                  });
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeInOut,
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: grey600,
+                      size: 20,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -364,6 +380,23 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                   ),
                 ),
               ],
+            ),
+          ),
+          // Expandable Route Details section - Dissolve animation
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: isExpanded
+                  ? AnimatedOpacity(
+                      opacity: 1.0,
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeInOut,
+                      child: _buildRouteDetailsSection(route),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ),
           // Start Route button (for pending and high priority routes)
@@ -472,6 +505,321 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
+  // ── Route Details Section ─────────────────────────────────────
+  Widget _buildRouteDetailsSection(RouteData route) {
+    // Sample bin data for the route (in production, this would come from route.bins)
+    final List<BinData> bins = _getSampleBinsForRoute(route);
+    final int urgentCount = bins.where((b) => b.isUrgent).length;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: "Route Details" with urgent count
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Route Details',
+                style: TextStyle(
+                  color: grey900,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (urgentCount > 0)
+                Text(
+                  '$urgentCount urgent',
+                  style: const TextStyle(
+                    color: Color(0xFFFB2C36),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Bin list
+          ...bins.asMap().entries.map((entry) {
+            final index = entry.key;
+            final bin = entry.value;
+            final isLast = index == bins.length - 1;
+            return _buildBinItem(bin, index + 1, isLast);
+          }),
+        ],
+      ),
+    );
+  }
+
+  List<BinData> _getSampleBinsForRoute(RouteData route) {
+    // Generate sample bin data based on route
+    if (route.status == RouteStatus.highPriority) {
+      return [
+        BinData(
+          id: 'BIN-101',
+          name: 'Main Street Plaza',
+          address: '123 Main St',
+          distance: 0.5,
+          duration: 3,
+          fillStatus: BinFillStatus.full,
+          isUrgent: true,
+          nextDistance: 1.2,
+          nextEta: 5,
+        ),
+        BinData(
+          id: 'BIN-102',
+          name: 'City Park North',
+          address: '45 Park Avenue',
+          distance: 1.2,
+          duration: 5,
+          fillStatus: BinFillStatus.full,
+          isUrgent: true,
+          nextDistance: 0.8,
+          nextEta: 4,
+        ),
+        BinData(
+          id: 'BIN-103',
+          name: 'Downtown Mall',
+          address: '789 Commerce Blvd',
+          distance: 0.8,
+          duration: 4,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: 1.5,
+          nextEta: 6,
+        ),
+        BinData(
+          id: 'BIN-104',
+          name: 'Central Library',
+          address: '321 Book Lane',
+          distance: 1.5,
+          duration: 6,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: 2.0,
+          nextEta: 8,
+        ),
+        BinData(
+          id: 'BIN-105',
+          name: 'Tech Hub Center',
+          address: '555 Innovation Dr',
+          distance: 2.0,
+          duration: 8,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: null,
+          nextEta: null,
+        ),
+      ];
+    } else {
+      return [
+        BinData(
+          id: 'BIN-201',
+          name: 'Residential Block A',
+          address: '10 Oak Street',
+          distance: 0.3,
+          duration: 2,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: 0.5,
+          nextEta: 3,
+        ),
+        BinData(
+          id: 'BIN-202',
+          name: 'Maple Gardens',
+          address: '25 Garden Way',
+          distance: 0.5,
+          duration: 3,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: 0.7,
+          nextEta: 4,
+        ),
+        BinData(
+          id: 'BIN-203',
+          name: 'Sunset Apartments',
+          address: '88 Sunset Blvd',
+          distance: 0.7,
+          duration: 4,
+          fillStatus: BinFillStatus.half,
+          isUrgent: false,
+          nextDistance: null,
+          nextEta: null,
+        ),
+      ];
+    }
+  }
+
+  Widget _buildBinItem(BinData bin, int index, bool isLast) {
+    return Container(
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bin.isUrgent ? red50 : grey50,
+        borderRadius: BorderRadius.circular(12),
+        border: bin.isUrgent
+            ? Border.all(color: red100.withValues(alpha: 0.5), width: 1)
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: index badge, urgent/bin tag, fill status
+          Row(
+            children: [
+              // Index number badge
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: bin.isUrgent ? const Color(0xFFFB2C36) : grey200,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$index',
+                  style: TextStyle(
+                    color: bin.isUrgent ? Colors.white : grey700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Urgent badge or Bin ID
+              if (bin.isUrgent)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFB2C36),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'URGENT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: grey200,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    bin.id,
+                    style: const TextStyle(
+                      color: grey600,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              const Spacer(),
+              // Fill status badge
+              _buildFillStatusBadge(bin.fillStatus),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Bin name
+          Text(
+            bin.name,
+            style: const TextStyle(
+              color: grey900,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 2),
+          // Address
+          Text(
+            bin.address,
+            style: const TextStyle(
+              color: grey500,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Bottom row: distance, time, next info
+          Row(
+            children: [
+              Icon(Icons.location_on_outlined, size: 12, color: grey500),
+              const SizedBox(width: 4),
+              Text(
+                '${bin.distance} km',
+                style: const TextStyle(
+                  color: grey600,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.access_time, size: 12, color: grey500),
+              const SizedBox(width: 4),
+              Text(
+                '${bin.duration} mins',
+                style: const TextStyle(
+                  color: grey600,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              // Next distance and ETA
+              if (bin.nextDistance != null && bin.nextEta != null)
+                Text(
+                  'Next: ${bin.nextDistance} km • ETA ${bin.nextEta} min',
+                  style: const TextStyle(
+                    color: grey500,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFillStatusBadge(BinFillStatus status) {
+    final bool isFull = status == BinFillStatus.full;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isFull
+            ? const Color(0xFFFB2C36).withValues(alpha: 0.1)
+            : grey100,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        isFull ? 'FULL' : 'HALF',
+        style: TextStyle(
+          color: isFull ? const Color(0xFFFB2C36) : grey600,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   // ── Bottom Navigation ─────────────────────────────────────────
   Widget _buildBottomNavigation() {
     final items = [
@@ -522,6 +870,32 @@ class RouteData {
     required this.progress,
     required this.totalBins,
     required this.status,
+  });
+}
+
+enum BinFillStatus { full, half }
+
+class BinData {
+  final String id;
+  final String name;
+  final String address;
+  final double distance;
+  final int duration;
+  final BinFillStatus fillStatus;
+  final bool isUrgent;
+  final double? nextDistance;
+  final int? nextEta;
+
+  BinData({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.distance,
+    required this.duration,
+    required this.fillStatus,
+    required this.isUrgent,
+    this.nextDistance,
+    this.nextEta,
   });
 }
 
