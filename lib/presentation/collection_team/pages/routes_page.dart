@@ -43,8 +43,6 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     ),
   ];
 
-  bool get _isAnyRouteExpanded => _expandedRoutes.values.any((v) => v);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,18 +80,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
           ),
         ],
       ),
-      bottomNavigationBar: AnimatedSize(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-        child: AnimatedOpacity(
-          opacity: _isAnyRouteExpanded ? 0.0 : 1.0,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-          child: _isAnyRouteExpanded
-              ? const SizedBox.shrink()
-              : _buildBottomNavigation(),
-        ),
-      ),
+      bottomNavigationBar: _buildBottomNavigation(),
     );
   }
 
