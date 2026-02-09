@@ -3,6 +3,7 @@ import '../constants/design_tokens.dart';
 import '../models/route_models.dart';
 import '../widgets/route_card.dart';
 import '../widgets/routes_header.dart';
+import '../widgets/collecting_bin_sheet.dart';
 import 'dashboard.dart';
 import '../widgets/professional_bottom_navigation.dart';
 
@@ -19,9 +20,20 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   /// Track expanded state per route card.
   final Map<String, bool> _expandedRoutes = {};
 
+  /// Track which routes have been started.
+  final Set<String> _startedRoutes = {};
+
+  /// Track per-bin collection status for each route.
+  /// Key: route ID, Value: list of BinCollectionStatus (one per bin).
+  final Map<String, List<BinCollectionStatus>> _binStatuses = {};
+
+  /// Track collection timestamps for each bin in each route.
+  /// Key: route ID, Value: Map<binIndex, timestamp>.
+  final Map<String, Map<int, DateTime>> _collectedTimestamps = {};
+
   // ── Sample data (replace with real data source) ───────────────
-  final List<RouteData> _routes = const [
-    RouteData(
+  final List<RouteData> _routes = [
+    const RouteData(
       id: 'ROUTE-001',
       name: 'Downtown Circuit',
       bins: 5,
@@ -31,7 +43,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       totalBins: 5,
       status: RouteStatus.highPriority,
     ),
-    RouteData(
+    const RouteData(
       id: 'ROUTE-002',
       name: 'Residential North',
       bins: 3,
@@ -65,11 +77,19 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                       child: RouteCard(
                         route: route,
                         isExpanded: _expandedRoutes[route.id] ?? false,
+                        isStarted: _startedRoutes.contains(route.id),
                         bins: _getSampleBinsForRoute(route),
+                        binStatuses: _binStatuses[route.id],
+                        collectedTimestamps: _collectedTimestamps[route.id],
                         onToggleExpand: () => setState(() {
                           _expandedRoutes[route.id] =
                               !(_expandedRoutes[route.id] ?? false);
                         }),
+                        onStartRoute: () => _handleStartRoute(route),
+                        onNavigate: () => _handleNavigate(route),
+                        onCollectNext: () => _handleCollectNext(route),
+                        onSkipBin: () => _handleSkipBin(route),
+                        onUndoBin: () => _handleUndoBin(route),
                       ),
                     ),
                   ),
@@ -82,6 +102,197 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       ),
       bottomNavigationBar: _buildBottomNavigation(),
     );
+  }
+
+  // ── Route action handlers ──────────────────────────────────
+
+  void _handleStartRoute(RouteData route) {
+    final bins = _getSampleBinsForRoute(route);
+    setState(() {
+      _startedRoutes.add(route.id);
+      // Auto-expand the card when started
+      _expandedRoutes[route.id] = true;
+      // Initialize bin statuses: first bin = collecting, rest = pending
+      _binStatuses[route.id] = List.generate(
+        bins.length,
+        (i) => i == 0
+            ? BinCollectionStatus.collecting
+            : BinCollectionStatus.pending,
+      );
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Route ${route.name} started!'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: DesignTokens.green700,
+      ),
+    );
+  }
+
+  void _handleNavigate(RouteData route) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navigating to ${route.name}...'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: DesignTokens.green700,
+      ),
+    );
+  }
+
+  void _handleSkipBin(RouteData route) {
+    final statuses = _binStatuses[route.id];
+    if (statuses == null) return;
+
+    final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
+    if (collectingIndex == -1) return;
+
+    setState(() {
+      // Mark current collecting bin as skipped
+      statuses[collectingIndex] = BinCollectionStatus.skipped;
+      // Record skip timestamp
+      _collectedTimestamps[route.id] ??= {};
+      _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
+      // Advance to next bin if available
+      final nextIndex = collectingIndex + 1;
+      if (nextIndex < statuses.length) {
+        statuses[nextIndex] = BinCollectionStatus.collecting;
+      }
+
+      // Note: Skipped bins do NOT increment progress
+      // Progress only increases when bins are actually collected
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bin skipped'),
+          duration: Duration(seconds: 1),
+          backgroundColor: DesignTokens.grey600,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleCollectNext(RouteData route) async {
+    final bins = _getSampleBinsForRoute(route);
+    final statuses = _binStatuses[route.id];
+    if (statuses == null) return;
+
+    // Find the currently collecting bin
+    final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
+    if (collectingIndex == -1) return; // No bin currently collecting
+
+    final currentBin = bins[collectingIndex];
+
+    final collected = await CollectingBinSheet.show(
+      context,
+      bin: currentBin,
+      locationName: route.name,
+    );
+
+    if (collected == true && mounted) {
+      setState(() {
+        // Mark current bin as collected
+        statuses[collectingIndex] = BinCollectionStatus.collected;
+
+        // Record collection timestamp
+        _collectedTimestamps[route.id] ??= {};
+        _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
+
+        // Advance to next bin if available
+        final nextIndex = collectingIndex + 1;
+        if (nextIndex < statuses.length) {
+          statuses[nextIndex] = BinCollectionStatus.collecting;
+        }
+
+        // Increment route progress
+        final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+        if (routeIndex != -1) {
+          final current = _routes[routeIndex];
+          final newProgress = (current.progress + 1).clamp(
+            0,
+            current.totalBins,
+          );
+          _routes[routeIndex] = current.copyWith(
+            progress: newProgress,
+            status: newProgress >= current.totalBins
+                ? RouteStatus.completed
+                : current.status,
+          );
+        }
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${currentBin.name} marked as collected!'),
+            duration: const Duration(seconds: 1),
+            backgroundColor: DesignTokens.green700,
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleUndoBin(RouteData route) {
+    final statuses = _binStatuses[route.id];
+    if (statuses == null) return;
+
+    // Find the last collected or skipped bin
+    int lastCompletedIndex = -1;
+    BinCollectionStatus? lastCompletedStatus;
+    for (int i = statuses.length - 1; i >= 0; i--) {
+      if (statuses[i] == BinCollectionStatus.collected ||
+          statuses[i] == BinCollectionStatus.skipped) {
+        lastCompletedIndex = i;
+        lastCompletedStatus = statuses[i];
+        break;
+      }
+    }
+
+    if (lastCompletedIndex == -1) return;
+
+    // Find current collecting index
+    final currentCollectingIndex = statuses.indexOf(
+      BinCollectionStatus.collecting,
+    );
+
+    setState(() {
+      // Mark the last completed/skipped bin back to collecting
+      statuses[lastCompletedIndex] = BinCollectionStatus.collecting;
+
+      // If there was a collecting bin, set it back to pending
+      if (currentCollectingIndex != -1) {
+        statuses[currentCollectingIndex] = BinCollectionStatus.pending;
+      }
+
+      // Remove timestamp
+      _collectedTimestamps[route.id]?.remove(lastCompletedIndex);
+
+      // Only decrement progress if the bin was actually collected (not skipped)
+      if (lastCompletedStatus == BinCollectionStatus.collected) {
+        final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+        if (routeIndex != -1) {
+          final current = _routes[routeIndex];
+          final newProgress = (current.progress - 1).clamp(
+            0,
+            current.totalBins,
+          );
+          _routes[routeIndex] = current.copyWith(
+            progress: newProgress,
+            status: RouteStatus.highPriority,
+          );
+        }
+      }
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Collection undone'),
+          duration: Duration(seconds: 1),
+          backgroundColor: DesignTokens.grey600,
+        ),
+      );
+    }
   }
 
   // ── Section title ─────────────────────────────────────────────

@@ -4,6 +4,9 @@ enum RouteStatus { highPriority, pending, completed }
 
 enum BinFillStatus { full, half }
 
+/// Collection status for each individual bin within a route.
+enum BinCollectionStatus { pending, collecting, collected, skipped }
+
 class RouteData {
   final String id;
   final String name;
@@ -24,6 +27,29 @@ class RouteData {
     required this.totalBins,
     required this.status,
   });
+
+  /// Create a copy with updated fields.
+  RouteData copyWith({
+    String? id,
+    String? name,
+    int? bins,
+    double? distance,
+    int? duration,
+    int? progress,
+    int? totalBins,
+    RouteStatus? status,
+  }) {
+    return RouteData(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      bins: bins ?? this.bins,
+      distance: distance ?? this.distance,
+      duration: duration ?? this.duration,
+      progress: progress ?? this.progress,
+      totalBins: totalBins ?? this.totalBins,
+      status: status ?? this.status,
+    );
+  }
 }
 
 class BinData {

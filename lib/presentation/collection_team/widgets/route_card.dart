@@ -8,15 +8,31 @@ import 'high_priority_badge.dart';
 class RouteCard extends StatelessWidget {
   final RouteData route;
   final bool isExpanded;
+  final bool isStarted;
   final VoidCallback onToggleExpand;
+  final VoidCallback onStartRoute;
+  final VoidCallback onNavigate;
+  final VoidCallback onCollectNext;
+  final VoidCallback? onSkipBin;
+  final VoidCallback? onUndoBin;
   final List<BinData> bins;
+  final List<BinCollectionStatus>? binStatuses;
+  final Map<int, DateTime>? collectedTimestamps;
 
   const RouteCard({
     super.key,
     required this.route,
     required this.isExpanded,
+    this.isStarted = false,
     required this.onToggleExpand,
+    required this.onStartRoute,
+    required this.onNavigate,
+    required this.onCollectNext,
+    this.onSkipBin,
+    this.onUndoBin,
     required this.bins,
+    this.binStatuses,
+    this.collectedTimestamps,
   });
 
   @override
@@ -27,21 +43,12 @@ class RouteCard extends StatelessWidget {
         : 0;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 21, 20, 12),
+      clipBehavior: Clip.hardEdge,
+      padding: const EdgeInsets.fromLTRB(16, 21, 16, 12),
       decoration: BoxDecoration(
-        gradient: isHighPriority
-            ? const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [DesignTokens.red50, DesignTokens.orange50],
-              )
-            : null,
-        color: isHighPriority ? null : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isHighPriority ? DesignTokens.red100 : DesignTokens.grey200,
-          width: 1.275,
-        ),
+        border: Border.all(color: DesignTokens.grey200, width: 1.275),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,17 +62,13 @@ class RouteCard extends StatelessWidget {
           _ProgressSection(route: route, progressPercent: progressPercent),
           if (route.status != RouteStatus.completed) ...[
             const SizedBox(height: 12),
-            _StartRouteButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Starting route...'),
-                    duration: Duration(seconds: 1),
-                    backgroundColor: DesignTokens.green700,
-                  ),
-                );
-              },
-            ),
+            if (isStarted)
+              _NavigateCollectButtons(
+                onNavigate: onNavigate,
+                onCollectNext: onCollectNext,
+              )
+            else
+              _StartRouteButton(onPressed: onStartRoute),
           ],
           // Expandable Route Details — dissolve animation
           ClipRRect(
@@ -83,7 +86,14 @@ class RouteCard extends StatelessWidget {
                         children: [
                           const SizedBox(height: 12),
                           Container(height: 1, color: DesignTokens.grey200),
-                          _RouteDetailsSection(bins: bins),
+                          _RouteDetailsSection(
+                            bins: bins,
+                            binStatuses: binStatuses,
+                            onCollectNext: onCollectNext,
+                            onSkipBin: onSkipBin,
+                            onUndoBin: onUndoBin,
+                            collectedTimestamps: collectedTimestamps,
+                          ),
                         ],
                       ),
                     )
@@ -330,7 +340,7 @@ class _StartRouteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 44,
+      height: 49,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -357,11 +367,105 @@ class _StartRouteButton extends StatelessWidget {
   }
 }
 
+// ── Navigate + Collect Next buttons (shown after route started) ─
+
+class _NavigateCollectButtons extends StatelessWidget {
+  final VoidCallback onNavigate;
+  final VoidCallback onCollectNext;
+
+  const _NavigateCollectButtons({
+    required this.onNavigate,
+    required this.onCollectNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Navigate button — filled green
+        Expanded(
+          child: SizedBox(
+            height: 49,
+            child: ElevatedButton(
+              onPressed: onNavigate,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DesignTokens.green700,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.navigation_rounded, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Navigate',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Collect Next button — outlined green
+        Expanded(
+          child: SizedBox(
+            height: 49,
+            child: OutlinedButton(
+              onPressed: onCollectNext,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: DesignTokens.green700,
+                backgroundColor: Colors.white,
+                elevation: 0,
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                side: const BorderSide(color: DesignTokens.green700, width: 2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle_outline, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Collect Next',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Route Details (bin list) ────────────────────────────────────
 
 class _RouteDetailsSection extends StatelessWidget {
   final List<BinData> bins;
-  const _RouteDetailsSection({required this.bins});
+  final List<BinCollectionStatus>? binStatuses;
+  final VoidCallback? onCollectNext;
+  final VoidCallback? onSkipBin;
+  final VoidCallback? onUndoBin;
+  final Map<int, DateTime>? collectedTimestamps;
+  const _RouteDetailsSection({
+    required this.bins,
+    this.binStatuses,
+    this.onCollectNext,
+    this.onSkipBin,
+    this.onUndoBin,
+    this.collectedTimestamps,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -396,10 +500,26 @@ class _RouteDetailsSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...bins.asMap().entries.map((entry) {
+            final collectionStatus =
+                binStatuses != null && entry.key < binStatuses!.length
+                ? binStatuses![entry.key]
+                : BinCollectionStatus.pending;
+            final isCollecting =
+                collectionStatus == BinCollectionStatus.collecting;
+            final isCollected =
+                collectionStatus == BinCollectionStatus.collected;
+            final isSkipped = collectionStatus == BinCollectionStatus.skipped;
             return BinItemWidget(
               bin: entry.value,
               index: entry.key + 1,
               isLast: entry.key == bins.length - 1,
+              collectionStatus: collectionStatus,
+              onSkip: isCollecting ? onSkipBin : null,
+              onUndo: (isCollected || isSkipped) ? onUndoBin : null,
+              collectedAt:
+                  (isCollected || isSkipped) && collectedTimestamps != null
+                  ? collectedTimestamps![entry.key]
+                  : null,
             );
           }),
         ],
