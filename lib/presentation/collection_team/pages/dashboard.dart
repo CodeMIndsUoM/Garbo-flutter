@@ -383,25 +383,26 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(10),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 16),
                 ),
-                child: Icon(icon, color: iconColor, size: 16),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
+                const SizedBox(width: 8),
+                Text(
                   value,
                   style: const TextStyle(
                     color: grey900,
@@ -410,34 +411,34 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: grey600,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: grey600,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtext,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: subtextColor,
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
+            const SizedBox(height: 4),
+            Text(
+              subtext,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: subtextColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
