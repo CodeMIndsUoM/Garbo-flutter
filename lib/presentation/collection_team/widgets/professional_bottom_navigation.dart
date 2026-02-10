@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// A professional, animated bottom navigation bar with smooth transitions.
+/// A professional, animated bottom navigation bar matching Figma design.
 ///
 /// Features:
-/// - Sliding indicator with smooth horizontal movement
+/// - 68px navigation height with SafeArea
+/// - 4×4px green active dot indicator below icon
 /// - Opacity transitions (100% ↔ 60%) for labels
 /// - Subtle scale effect on active tab
 /// - Staggered animations for natural motion
-/// - Enterprise-grade visual polish
 class ProfessionalBottomNavigation extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -36,10 +36,7 @@ class ProfessionalBottomNavigation extends StatefulWidget {
 class _ProfessionalBottomNavigationState
     extends State<ProfessionalBottomNavigation>
     with TickerProviderStateMixin {
-  late int _previousIndex;
-  late AnimationController _indicatorController;
   late AnimationController _scaleController;
-  late Animation<double> _indicatorAnimation;
   late Animation<double> _scaleAnimation;
 
   // Custom ease-out cubic curve (0.22, 1, 0.36, 1)
@@ -48,27 +45,12 @@ class _ProfessionalBottomNavigationState
   @override
   void initState() {
     super.initState();
-    _previousIndex = widget.currentIndex;
-
-    // Indicator slide animation: 250ms
-    _indicatorController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
 
     // Scale animation: 150ms
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-
-    _indicatorAnimation =
-        Tween<double>(
-          begin: widget.currentIndex.toDouble(),
-          end: widget.currentIndex.toDouble(),
-        ).animate(
-          CurvedAnimation(parent: _indicatorController, curve: _easeOutCubic),
-        );
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
@@ -97,29 +79,16 @@ class _ProfessionalBottomNavigationState
   }
 
   void _animateToIndex(int newIndex) {
-    _indicatorAnimation =
-        Tween<double>(
-          begin: _previousIndex.toDouble(),
-          end: newIndex.toDouble(),
-        ).animate(
-          CurvedAnimation(parent: _indicatorController, curve: _easeOutCubic),
-        );
-
-    _indicatorController.forward(from: 0);
-
     // Start scale animation with 60ms delay
     Future.delayed(const Duration(milliseconds: 60), () {
       if (mounted) {
         _scaleController.forward(from: 0);
       }
     });
-
-    _previousIndex = newIndex;
   }
 
   @override
   void dispose() {
-    _indicatorController.dispose();
     _scaleController.dispose();
     super.dispose();
   }
@@ -141,7 +110,7 @@ class _ProfessionalBottomNavigationState
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 72,
+          height: 68,
           child: Row(
             children: List.generate(widget.items.length, (index) {
               return Expanded(
@@ -249,6 +218,7 @@ class _NavItemWidgetState extends State<_NavItemWidget>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Icon — 24×24
                 Opacity(
                   opacity: widget.isSelected
                       ? opacity
@@ -261,7 +231,28 @@ class _NavItemWidgetState extends State<_NavItemWidget>
                     size: 24,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
+                // Active dot indicator — 4×4px, green700
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  curve: const Cubic(0.22, 1, 0.36, 1),
+                  opacity: widget.isSelected ? 1.0 : 0.0,
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 200),
+                    curve: const Cubic(0.22, 1, 0.36, 1),
+                    scale: widget.isSelected ? 1.0 : 0.0,
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: widget.activeColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // Label — 11px
                 Opacity(
                   opacity: widget.isSelected
                       ? opacity
@@ -280,7 +271,6 @@ class _NavItemWidgetState extends State<_NavItemWidget>
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
               ],
             ),
           );
