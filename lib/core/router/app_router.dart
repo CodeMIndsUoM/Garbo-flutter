@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/presentation/login.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
-import 'package:garbo_swms/presentation/field_staff/pages/dashboard.dart';
+import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/home.dart';
 
 class AppRouter {
