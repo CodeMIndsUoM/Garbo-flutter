@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -17,12 +18,12 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.grey100,
       body: Column(
         children: [
           // Header
           Container(
-            color: Colors.green[700],
+            color: AppColors.green700,
             child: SafeArea(
               bottom: false,
               child: Padding(
@@ -48,7 +49,7 @@ class _DashboardState extends State<Dashboard> {
                             Text(
                               'Hello, John!',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: AppColors.white70,
                                 fontSize: 14,
                               ),
                             ),
@@ -64,16 +65,22 @@ class _DashboardState extends State<Dashboard> {
                     // Stat Cards
                     Row(
                       children: [
+                        Expanded(child: _buildStatCard('2', 'To Check')),
+                        SizedBox(width: 12),
                         Expanded(
-                          child: _buildStatCard('2', 'To Check'),
+                          child: _buildStatCard(
+                            '1847',
+                            'Points',
+                            icon: Icons.arrow_upward,
+                          ),
                         ),
                         SizedBox(width: 12),
                         Expanded(
-                          child: _buildStatCard('1847', 'Points', icon: Icons.arrow_upward),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard('18', 'Day Streak', icon: Icons.local_fire_department),
+                          child: _buildStatCard(
+                            '18',
+                            'Day Streak',
+                            icon: Icons.local_fire_department,
+                          ),
                         ),
                       ],
                     ),
@@ -103,10 +110,14 @@ class _DashboardState extends State<Dashboard> {
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.purple[100],
+                              color: AppColors.purple100,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(Icons.emoji_events, color: Colors.purple, size: 30),
+                            child: Icon(
+                              Icons.emoji_events,
+                              color: AppColors.purple600,
+                              size: 30,
+                            ),
                           ),
                           SizedBox(width: 16),
                           Expanded(
@@ -114,7 +125,8 @@ class _DashboardState extends State<Dashboard> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Level 8',
@@ -126,7 +138,7 @@ class _DashboardState extends State<Dashboard> {
                                     Text(
                                       '1847 pts',
                                       style: TextStyle(
-                                        color: Colors.purple,
+                                        color: AppColors.purple600,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -136,7 +148,7 @@ class _DashboardState extends State<Dashboard> {
                                 Text(
                                   'Master Expert',
                                   style: TextStyle(
-                                    color: Colors.grey[600],
+                                    color: AppColors.grey600,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -145,8 +157,10 @@ class _DashboardState extends State<Dashboard> {
                                   borderRadius: BorderRadius.circular(4),
                                   child: LinearProgressIndicator(
                                     value: 0.7,
-                                    backgroundColor: Colors.grey[200],
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                    backgroundColor: AppColors.grey200,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.blue500,
+                                    ),
                                     minHeight: 6,
                                   ),
                                 ),
@@ -154,7 +168,7 @@ class _DashboardState extends State<Dashboard> {
                                 Text(
                                   '153 to Level 9',
                                   style: TextStyle(
-                                    color: Colors.grey[500],
+                                    color: AppColors.grey500,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -169,10 +183,7 @@ class _DashboardState extends State<Dashboard> {
                   // Today's Performance
                   Text(
                     'Today\'s Performance',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 12),
                   Row(
@@ -182,7 +193,7 @@ class _DashboardState extends State<Dashboard> {
                           '6',
                           'Bins Reported',
                           '2 remaining',
-                          Colors.green,
+                          AppColors.green700,
                           Icons.check_circle,
                         ),
                       ),
@@ -192,7 +203,7 @@ class _DashboardState extends State<Dashboard> {
                           '8',
                           'Assigned Bins',
                           'in your zone',
-                          Colors.blue,
+                          AppColors.blue500,
                           Icons.info,
                         ),
                       ),
@@ -206,7 +217,7 @@ class _DashboardState extends State<Dashboard> {
                           '4 mins',
                           'Avg Response',
                           'Very quick 🔥',
-                          Colors.orange,
+                          AppColors.orange500,
                           Icons.access_time,
                         ),
                       ),
@@ -216,7 +227,7 @@ class _DashboardState extends State<Dashboard> {
                           '+145',
                           'Points Today',
                           'Keep it up! 🔥',
-                          Colors.purple,
+                          AppColors.purple600,
                           Icons.star,
                         ),
                       ),
@@ -241,15 +252,18 @@ class _DashboardState extends State<Dashboard> {
                         ],
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: AppColors.blue50,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           '3 PENDING',
                           style: TextStyle(
-                            color: Colors.blue[700],
+                            color: AppColors.blue700,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -274,10 +288,14 @@ class _DashboardState extends State<Dashboard> {
                               Container(
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue[50],
+                                  color: AppColors.blue50,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(Icons.location_on, color: Colors.blue, size: 20),
+                                child: Icon(
+                                  Icons.location_on,
+                                  color: AppColors.blue500,
+                                  size: 20,
+                                ),
                               ),
                               SizedBox(width: 12),
                               Expanded(
@@ -285,7 +303,8 @@ class _DashboardState extends State<Dashboard> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           'Main Street Plaza',
@@ -295,15 +314,20 @@ class _DashboardState extends State<Dashboard> {
                                           ),
                                         ),
                                         Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: Colors.blue[50],
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: AppColors.blue50,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Text(
                                             'SOFT OVERLOAD',
                                             style: TextStyle(
-                                              color: Colors.blue[700],
+                                              color: AppColors.blue700,
                                               fontSize: 10,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -315,7 +339,7 @@ class _DashboardState extends State<Dashboard> {
                                     Text(
                                       '123 Main St',
                                       style: TextStyle(
-                                        color: Colors.grey[600],
+                                        color: AppColors.grey600,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -330,7 +354,7 @@ class _DashboardState extends State<Dashboard> {
                             child: ElevatedButton(
                               onPressed: () {},
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green[700],
+                                backgroundColor: AppColors.green700,
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
@@ -367,8 +391,8 @@ class _DashboardState extends State<Dashboard> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: Colors.green[700],
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: AppColors.green700,
+        unselectedItemColor: AppColors.grey500,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -391,7 +415,7 @@ class _DashboardState extends State<Dashboard> {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: AppColors.white20,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -414,13 +438,7 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
           SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
-          ),
+          Text(label, style: TextStyle(color: AppColors.white70, fontSize: 12)),
         ],
       ),
     );
@@ -435,9 +453,7 @@ class _DashboardState extends State<Dashboard> {
   ) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -449,27 +465,18 @@ class _DashboardState extends State<Dashboard> {
                 SizedBox(width: 4),
                 Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 11, color: AppColors.grey600),
             ),
           ],
         ),
