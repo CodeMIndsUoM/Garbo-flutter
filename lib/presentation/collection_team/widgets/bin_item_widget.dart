@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import '../models/route_models.dart';
 
 /// A single bin item row displayed inside the route details section.

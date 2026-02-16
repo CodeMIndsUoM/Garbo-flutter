@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes_page.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/professional_bottom_navigation.dart';
 
@@ -13,43 +14,10 @@ class CollectionTeamDashboard extends StatefulWidget {
 class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   int _selectedNavIndex = 0;
 
-  // ── Design tokens ──────────────────────────────────────────────
-  // Primary green (darker than citizen emerald)
-  static const Color green700 = Color(0xFF03824B);
-  static const Color green800 = Color(0xFF026639);
-
-  // Accent colors
-  static const Color blue50 = Color(0xFFEFF6FF);
-  static const Color blue100 = Color(0xFFDBEAFE);
-  static const Color blue500 = Color(0xFF2B7FFF);
-  static const Color blue600 = Color(0xFF155DFC);
-
-  static const Color red50 = Color(0xFFFEF2F2);
-  static const Color red500 = Color(0xFFFB2C36);
-  static const Color orange50 = Color(0xFFFFF7ED);
-  static const Color orange500 = Color(0xFFF54900);
-
-  static const Color emeraldLight = Color(0xFFDCFCE7);
-  static const Color emerald600 = Color(0xFF00A63E);
-
-  static const Color purple50 = Color(0xFFF3E8FF);
-  static const Color purple600 = Color(0xFF9810FA);
-
-  static const Color yellow = Color(0xFFFEF9C2);
-  static const Color yellowOrange = Color(0xFFFFEDD4);
-
-  // Neutrals
-  static const Color grey50 = Color(0xFFF9FAFB);
-  static const Color grey100 = Color(0xFFF3F4F6);
-  static const Color grey200 = Color(0xFFE5E7EB);
-  static const Color grey500 = Color(0xFF6A7282);
-  static const Color grey600 = Color(0xFF4A5565);
-  static const Color grey900 = Color(0xFF101828);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: grey50,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           _buildHeader(),
@@ -83,7 +51,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
       decoration: BoxDecoration(
-        color: green700,
+        color: AppColors.green700,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -117,7 +85,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     Text(
                       'Hello, Thanoj!',
                       style: TextStyle(
-                        color: Color(0xE6FFFFFF), // white 90%
+                        color: AppColors.white90,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
@@ -206,10 +174,10 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [blue50, Color(0xFFEEF2FF)],
+          colors: [AppColors.blue50, AppColors.indigo50],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBEDBFF), width: 1.27),
+        border: Border.all(color: AppColors.blue200, width: 1.27),
       ),
       child: Column(
         children: [
@@ -222,7 +190,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: blue500,
+                      color: AppColors.blue500,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -238,7 +206,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                       Text(
                         'Level 12',
                         style: TextStyle(
-                          color: grey900,
+                          color: AppColors.grey900,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
@@ -246,7 +214,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                       Text(
                         'Elite Collector',
                         style: TextStyle(
-                          color: grey600,
+                          color: AppColors.grey600,
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
@@ -261,7 +229,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Text(
                     '2340 pts',
                     style: TextStyle(
-                      color: blue600,
+                      color: AppColors.blue600,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -269,7 +237,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Text(
                     '160 to Level 13',
                     style: TextStyle(
-                      color: grey500,
+                      color: AppColors.grey500,
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
                     ),
@@ -285,7 +253,9 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             child: LinearProgressIndicator(
               value: 0.87,
               backgroundColor: Colors.white.withOpacity(0.6),
-              valueColor: const AlwaysStoppedAnimation<Color>(blue500),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.blue500,
+              ),
               minHeight: 12,
             ),
           ),
@@ -302,7 +272,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         const Text(
           "Today's Performance",
           style: TextStyle(
-            color: grey900,
+            color: AppColors.grey900,
             fontSize: 16,
             fontWeight: FontWeight.w700,
             height: 1.0,
@@ -323,36 +293,36 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               value: '0',
               label: 'Bins Collected',
               subtext: '8 total today',
-              iconBg: emeraldLight,
-              iconColor: emerald600,
-              subtextColor: emerald600,
+              iconBg: AppColors.emeraldLight,
+              iconColor: AppColors.emerald600,
+              subtextColor: AppColors.emerald600,
             ),
             _buildPerformanceCard(
               icon: Icons.route_rounded,
               value: '0',
               label: 'Routes Done',
               subtext: '2 total routes',
-              iconBg: blue100,
-              iconColor: blue600,
-              subtextColor: blue600,
+              iconBg: AppColors.blue100,
+              iconColor: AppColors.blue600,
+              subtextColor: AppColors.blue600,
             ),
             _buildPerformanceCard(
               icon: Icons.trending_up_rounded,
               value: '96%',
               label: 'Efficiency',
               subtext: 'Excellent',
-              iconBg: purple50,
-              iconColor: purple600,
-              subtextColor: purple600,
+              iconBg: AppColors.purple50,
+              iconColor: AppColors.purple600,
+              subtextColor: AppColors.purple600,
             ),
             _buildPerformanceCard(
               icon: Icons.bolt_rounded,
               value: '+340',
               label: 'Points Today',
               subtext: 'Keep going!',
-              iconBg: orange50,
-              iconColor: orange500,
-              subtextColor: orange500,
+              iconBg: AppColors.orange50,
+              iconColor: AppColors.orange500,
+              subtextColor: AppColors.orange500,
             ),
           ],
         ),
@@ -374,7 +344,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: grey100, width: 1.27),
+        border: Border.all(color: AppColors.grey100, width: 1.27),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -405,7 +375,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 Text(
                   value,
                   style: const TextStyle(
-                    color: grey900,
+                    color: AppColors.grey900,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
@@ -420,7 +390,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: grey600,
+                color: AppColors.grey600,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
               ),
@@ -450,12 +420,12 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       children: [
         Row(
           children: const [
-            Icon(Icons.route_rounded, size: 20, color: grey900),
+            Icon(Icons.route_rounded, size: 20, color: AppColors.grey900),
             SizedBox(width: 4),
             Text(
               "Today's Routes",
               style: TextStyle(
-                color: grey900,
+                color: AppColors.grey900,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -465,17 +435,17 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         const SizedBox(height: 12),
         _buildRouteCard(
           priority: 'HIGH PRIORITY',
-          priorityColor: red500,
-          priorityBg: const Color(0xFFFFC9C9),
+          priorityColor: AppColors.red500,
+          priorityBg: AppColors.red100,
           title: 'Downtown Circuit',
           details: '5 bins • 8.5 km • 45 mins',
-          gradientColors: const [red50, Color(0xFFFFF7ED)],
+          gradientColors: const [AppColors.red50, AppColors.orange50],
         ),
         const SizedBox(height: 12),
         _buildRouteCard(
           priority: 'PENDING',
-          priorityColor: const Color(0xFF364153),
-          priorityBg: grey200,
+          priorityColor: AppColors.grey700,
+          priorityBg: AppColors.grey200,
           title: 'Residential North',
           details: '3 bins • 6.2 km • 30 mins',
           gradientColors: null,
@@ -505,7 +475,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         color: gradientColors == null ? Colors.white : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: gradientColors != null ? priorityBg : grey200,
+          color: gradientColors != null ? priorityBg : AppColors.grey200,
           width: 1.27,
         ),
       ),
@@ -532,7 +502,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           Text(
             title,
             style: const TextStyle(
-              color: grey900,
+              color: AppColors.grey900,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -541,7 +511,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           Text(
             details,
             style: const TextStyle(
-              color: grey600,
+              color: AppColors.grey600,
               fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
@@ -557,12 +527,12 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   const SnackBar(
                     content: Text('Route navigation — coming soon'),
                     duration: Duration(seconds: 1),
-                    backgroundColor: green700,
+                    backgroundColor: AppColors.green700,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: green700,
+                backgroundColor: AppColors.green700,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -594,12 +564,16 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       children: [
         Row(
           children: const [
-            Icon(Icons.emoji_events_rounded, size: 20, color: grey900),
+            Icon(
+              Icons.emoji_events_rounded,
+              size: 20,
+              color: AppColors.grey900,
+            ),
             SizedBox(width: 4),
             Text(
               'Recent Achievements',
               style: TextStyle(
-                color: grey900,
+                color: AppColors.grey900,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -638,7 +612,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: grey100, width: 1.27),
+        border: Border.all(color: AppColors.grey100, width: 1.27),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -656,11 +630,11 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [yellow, yellowOrange],
+                colors: [AppColors.yellow, AppColors.yellowOrange],
               ),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: orange500, size: 24),
+            child: Icon(icon, color: AppColors.orange500, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -670,7 +644,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: grey900,
+                    color: AppColors.grey900,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
@@ -679,7 +653,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 Text(
                   timeAgo,
                   style: const TextStyle(
-                    color: grey500,
+                    color: AppColors.grey500,
                     fontSize: 11,
                     fontWeight: FontWeight.w400,
                   ),
@@ -687,7 +661,11 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: grey500, size: 20),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.grey500,
+            size: 20,
+          ),
         ],
       ),
     );
@@ -705,8 +683,8 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     return ProfessionalBottomNavigation(
       currentIndex: _selectedNavIndex,
       items: items,
-      activeColor: green700,
-      inactiveColor: grey500,
+      activeColor: AppColors.green700,
+      inactiveColor: AppColors.grey500,
       onTap: (index) {
         if (index == 1) {
           // Navigate to Routes
