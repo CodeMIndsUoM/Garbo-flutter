@@ -698,10 +698,3 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 }
-
-// Helper class for nav items
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem(this.icon, this.label);
-}

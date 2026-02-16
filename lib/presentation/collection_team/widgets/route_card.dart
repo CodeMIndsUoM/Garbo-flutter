@@ -37,7 +37,6 @@ class RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isHighPriority = route.status == RouteStatus.highPriority;
     final double progressPercent = route.totalBins > 0
         ? route.progress / route.totalBins
         : 0;

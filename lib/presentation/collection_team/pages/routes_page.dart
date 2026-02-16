@@ -173,59 +173,72 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   Future<void> _handleCollectNext(RouteData route) async {
-    final bins = _getSampleBinsForRoute(route);
-    final statuses = _binStatuses[route.id];
-    if (statuses == null) return;
+    try {
+      final bins = _getSampleBinsForRoute(route);
+      final statuses = _binStatuses[route.id];
+      if (statuses == null) return;
 
-    // Find the currently collecting bin
-    final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
-    if (collectingIndex == -1) return; // No bin currently collecting
+      // Find the currently collecting bin
+      final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
+      if (collectingIndex == -1) return; // No bin currently collecting
 
-    final currentBin = bins[collectingIndex];
+      final currentBin = bins[collectingIndex];
 
-    final collected = await CollectingBinSheet.show(
-      context,
-      bin: currentBin,
-      locationName: route.name,
-    );
+      final collected = await CollectingBinSheet.show(
+        context,
+        bin: currentBin,
+        locationName: route.name,
+      );
 
-    if (collected == true && mounted) {
-      setState(() {
-        // Mark current bin as collected
-        statuses[collectingIndex] = BinCollectionStatus.collected;
+      if (collected == true && mounted) {
+        setState(() {
+          // Mark current bin as collected
+          statuses[collectingIndex] = BinCollectionStatus.collected;
 
-        // Record collection timestamp
-        _collectedTimestamps[route.id] ??= {};
-        _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
+          // Record collection timestamp
+          _collectedTimestamps[route.id] ??= {};
+          _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
 
-        // Advance to next bin if available
-        final nextIndex = collectingIndex + 1;
-        if (nextIndex < statuses.length) {
-          statuses[nextIndex] = BinCollectionStatus.collecting;
-        }
+          // Advance to next bin if available
+          final nextIndex = collectingIndex + 1;
+          if (nextIndex < statuses.length) {
+            statuses[nextIndex] = BinCollectionStatus.collecting;
+          }
 
-        // Increment route progress
-        final routeIndex = _routes.indexWhere((r) => r.id == route.id);
-        if (routeIndex != -1) {
-          final current = _routes[routeIndex];
-          final newProgress = (current.progress + 1).clamp(
-            0,
-            current.totalBins,
+          // Increment route progress
+          final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+          if (routeIndex != -1) {
+            final current = _routes[routeIndex];
+            final newProgress = (current.progress + 1).clamp(
+              0,
+              current.totalBins,
+            );
+            _routes[routeIndex] = current.copyWith(
+              progress: newProgress,
+              status: newProgress >= current.totalBins
+                  ? RouteStatus.completed
+                  : current.status,
+            );
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${currentBin.name} marked as collected!'),
+              duration: const Duration(seconds: 1),
+              backgroundColor: AppColors.green700,
+            ),
           );
-          _routes[routeIndex] = current.copyWith(
-            progress: newProgress,
-            status: newProgress >= current.totalBins
-                ? RouteStatus.completed
-                : current.status,
-          );
         }
-      });
+      }
+    } catch (e) {
+      // Handle errors gracefully without crashing the app
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${currentBin.name} marked as collected!'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: AppColors.green700,
+            content: Text('Failed to process collection. Please try again.'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: AppColors.red500,
           ),
         );
       }
