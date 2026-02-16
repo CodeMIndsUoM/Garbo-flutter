@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
-/// A professional, animated bottom navigation bar matching Figma design.
-///
-/// Features:
-/// - 68px navigation height with SafeArea
-/// - 4×4px green active dot indicator below icon
-/// - Opacity transitions (100% ↔ 60%) for labels
-/// - Subtle scale effect on active tab
-/// - Staggered animations for natural motion
 class ProfessionalBottomNavigation extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -22,10 +15,10 @@ class ProfessionalBottomNavigation extends StatefulWidget {
     required this.currentIndex,
     required this.onTap,
     required this.items,
-    this.activeColor = const Color(0xFF03824B),
-    this.inactiveColor = const Color(0xFF6A7282),
+    this.activeColor = AppColors.green700,
+    this.inactiveColor = AppColors.grey500,
     this.backgroundColor = Colors.white,
-    this.borderColor = const Color(0xFFE5E7EB),
+    this.borderColor = AppColors.grey200,
   });
 
   @override
