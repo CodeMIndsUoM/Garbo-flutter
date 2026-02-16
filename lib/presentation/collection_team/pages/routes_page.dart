@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import '../models/route_models.dart';
 import '../widgets/route_card.dart';
 import '../widgets/routes_header.dart';
@@ -58,7 +58,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DesignTokens.grey50,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           const RoutesHeader(),
@@ -124,7 +124,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       SnackBar(
         content: Text('Route ${route.name} started!'),
         duration: const Duration(seconds: 1),
-        backgroundColor: DesignTokens.green700,
+        backgroundColor: AppColors.green700,
       ),
     );
   }
@@ -134,7 +134,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       SnackBar(
         content: Text('Navigating to ${route.name}...'),
         duration: const Duration(seconds: 1),
-        backgroundColor: DesignTokens.green700,
+        backgroundColor: AppColors.green700,
       ),
     );
   }
@@ -166,66 +166,79 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         const SnackBar(
           content: Text('Bin skipped'),
           duration: Duration(seconds: 1),
-          backgroundColor: DesignTokens.grey600,
+          backgroundColor: AppColors.grey600,
         ),
       );
     }
   }
 
   Future<void> _handleCollectNext(RouteData route) async {
-    final bins = _getSampleBinsForRoute(route);
-    final statuses = _binStatuses[route.id];
-    if (statuses == null) return;
+    try {
+      final bins = _getSampleBinsForRoute(route);
+      final statuses = _binStatuses[route.id];
+      if (statuses == null) return;
 
-    // Find the currently collecting bin
-    final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
-    if (collectingIndex == -1) return; // No bin currently collecting
+      // Find the currently collecting bin
+      final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
+      if (collectingIndex == -1) return; // No bin currently collecting
 
-    final currentBin = bins[collectingIndex];
+      final currentBin = bins[collectingIndex];
 
-    final collected = await CollectingBinSheet.show(
-      context,
-      bin: currentBin,
-      locationName: route.name,
-    );
+      final collected = await CollectingBinSheet.show(
+        context,
+        bin: currentBin,
+        locationName: route.name,
+      );
 
-    if (collected == true && mounted) {
-      setState(() {
-        // Mark current bin as collected
-        statuses[collectingIndex] = BinCollectionStatus.collected;
+      if (collected == true && mounted) {
+        setState(() {
+          // Mark current bin as collected
+          statuses[collectingIndex] = BinCollectionStatus.collected;
 
-        // Record collection timestamp
-        _collectedTimestamps[route.id] ??= {};
-        _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
+          // Record collection timestamp
+          _collectedTimestamps[route.id] ??= {};
+          _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
 
-        // Advance to next bin if available
-        final nextIndex = collectingIndex + 1;
-        if (nextIndex < statuses.length) {
-          statuses[nextIndex] = BinCollectionStatus.collecting;
-        }
+          // Advance to next bin if available
+          final nextIndex = collectingIndex + 1;
+          if (nextIndex < statuses.length) {
+            statuses[nextIndex] = BinCollectionStatus.collecting;
+          }
 
-        // Increment route progress
-        final routeIndex = _routes.indexWhere((r) => r.id == route.id);
-        if (routeIndex != -1) {
-          final current = _routes[routeIndex];
-          final newProgress = (current.progress + 1).clamp(
-            0,
-            current.totalBins,
+          // Increment route progress
+          final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+          if (routeIndex != -1) {
+            final current = _routes[routeIndex];
+            final newProgress = (current.progress + 1).clamp(
+              0,
+              current.totalBins,
+            );
+            _routes[routeIndex] = current.copyWith(
+              progress: newProgress,
+              status: newProgress >= current.totalBins
+                  ? RouteStatus.completed
+                  : current.status,
+            );
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${currentBin.name} marked as collected!'),
+              duration: const Duration(seconds: 1),
+              backgroundColor: AppColors.green700,
+            ),
           );
-          _routes[routeIndex] = current.copyWith(
-            progress: newProgress,
-            status: newProgress >= current.totalBins
-                ? RouteStatus.completed
-                : current.status,
-          );
         }
-      });
+      }
+    } catch (e) {
+      // Handle errors gracefully without crashing the app
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${currentBin.name} marked as collected!'),
-            duration: const Duration(seconds: 1),
-            backgroundColor: DesignTokens.green700,
+            content: Text('Failed to process collection. Please try again.'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: AppColors.red500,
           ),
         );
       }
@@ -289,7 +302,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         const SnackBar(
           content: Text('Collection undone'),
           duration: Duration(seconds: 1),
-          backgroundColor: DesignTokens.grey600,
+          backgroundColor: AppColors.grey600,
         ),
       );
     }
@@ -300,7 +313,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     return Text(
       'All Routes (${_routes.length})',
       style: const TextStyle(
-        color: DesignTokens.grey900,
+        color: AppColors.grey900,
         fontSize: 16,
         fontWeight: FontWeight.w700,
       ),
@@ -319,8 +332,8 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     return ProfessionalBottomNavigation(
       currentIndex: _selectedNavIndex,
       items: items,
-      activeColor: DesignTokens.green700,
-      inactiveColor: DesignTokens.grey500,
+      activeColor: AppColors.green700,
+      inactiveColor: AppColors.grey500,
       onTap: (index) {
         if (index == 0) {
           Navigator.of(context).pushReplacement(

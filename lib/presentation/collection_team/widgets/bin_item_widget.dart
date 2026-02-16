@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import '../models/route_models.dart';
 
 /// A single bin item row displayed inside the route details section.
@@ -142,7 +142,6 @@ class _IndexBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCollecting = collectionStatus == BinCollectionStatus.collecting;
     final isCollected = collectionStatus == BinCollectionStatus.collected;
     final isSkipped = collectionStatus == BinCollectionStatus.skipped;
 
@@ -427,86 +426,6 @@ class _NextEtaRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// ── Collect / Skip action buttons (shown on pending bins) ───────
-
-class _BinActionButtons extends StatelessWidget {
-  final VoidCallback onCollect;
-  final VoidCallback? onSkip;
-
-  const _BinActionButtons({required this.onCollect, this.onSkip});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Collect button — green filled
-        SizedBox(
-          width: 77,
-          height: 32,
-          child: ElevatedButton(
-            onPressed: onCollect,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: DesignTokens.green700,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.check_rounded, size: 12),
-                SizedBox(width: 4),
-                Text(
-                  'Collect',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        // Skip button — outlined
-        SizedBox(
-          width: 77,
-          height: 32,
-          child: OutlinedButton(
-            onPressed: onSkip,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: DesignTokens.grey600,
-              backgroundColor: Colors.white,
-              elevation: 0,
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              side: const BorderSide(color: DesignTokens.grey300, width: 1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.skip_next_rounded, size: 12),
-                SizedBox(width: 4),
-                Text(
-                  'Skip',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

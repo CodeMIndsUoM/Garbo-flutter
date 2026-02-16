@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/login.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
@@ -12,8 +13,11 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Garbo SWMS',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.green, fontFamily: 'Arimo'),
-      initialRoute: '/collector/routes', // Temporary for testing routes page
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
+        fontFamily: 'Arimo',
+      ),
+      initialRoute: '/collector/dashboard',
       routes: {
         '/login': (context) => Login(),
         '/citizen-home': (context) => CitizenHomePage(),

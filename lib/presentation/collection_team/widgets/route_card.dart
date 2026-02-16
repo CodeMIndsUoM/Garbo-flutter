@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import '../models/route_models.dart';
 import 'bin_item_widget.dart';
 import 'high_priority_badge.dart';
@@ -37,7 +37,6 @@ class RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isHighPriority = route.status == RouteStatus.highPriority;
     final double progressPercent = route.totalBins > 0
         ? route.progress / route.totalBins
         : 0;
