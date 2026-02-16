@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 /// Animated pulsing "HIGH PRIORITY" badge.
 class HighPriorityBadge extends StatefulWidget {

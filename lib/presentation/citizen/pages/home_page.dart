@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 class CitizenHomePage extends StatefulWidget {
   const CitizenHomePage({super.key});
@@ -10,27 +11,10 @@ class CitizenHomePage extends StatefulWidget {
 class _CitizenHomePageState extends State<CitizenHomePage> {
   int _selectedNavIndex = 0;
 
-  // ── Design tokens ──────────────────────────────────────────────
-  // Emerald palette (Tailwind CSS)
-  static const Color emerald50 = Color(0xFFECFDF5);
-  static const Color emerald100 = Color(0xFFD1FAE5);
-  static const Color emerald200 = Color(0xFFA7F3D0);
-  static const Color emerald600 = Color(0xFF059669);
-  static const Color emerald700 = Color(0xFF047857);
-  static const Color emerald800 = Color(0xFF065F46);
-  static const Color emerald900 = Color(0xFF064E3B);
-  static const Color teal50 = Color(0xFFF0FDFA);
-
-  // Neutrals
-  static const Color grey50 = Color(0xFFF9FAFB);
-  static const Color grey500 = Color(0xFF6B7280);
-  static const Color grey600 = Color(0xFF4B5563);
-  static const Color grey900 = Color(0xFF111827);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: grey50,
+      backgroundColor: AppColors.grey50,
       body: SafeArea(
         child: Column(
           children: [
@@ -67,7 +51,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       decoration: BoxDecoration(
-        color: emerald700,
+        color: AppColors.emerald700,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -95,7 +79,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
               Text(
                 'Good morning',
                 style: TextStyle(
-                  color: Color(0xCCFFFFFF), // white 80%
+                  color: AppColors.white80,
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                 ),
@@ -122,11 +106,11 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: emerald700,
+        color: AppColors.emerald700,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: emerald700.withOpacity(0.3),
+            color: AppColors.emerald700.withOpacity(0.3),
             offset: const Offset(0, 8),
             blurRadius: 16,
             spreadRadius: -4,
@@ -272,7 +256,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                         Text(
                           'pts',
                           style: TextStyle(
-                            color: Color(0xB3FFFFFF), // white 70%
+                            color: AppColors.white70,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -297,7 +281,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
         const Text(
           'Quick Actions',
           style: TextStyle(
-            color: grey900,
+            color: AppColors.citizenGrey900,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -363,7 +347,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
               SnackBar(
                 content: Text('$title — coming soon'),
                 duration: const Duration(seconds: 1),
-                backgroundColor: emerald700,
+                backgroundColor: AppColors.emerald700,
               ),
             );
           }
@@ -374,7 +358,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 ? const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [emerald50, teal50],
+                    colors: [AppColors.emerald50, AppColors.teal50],
                   )
                 : null,
             color: hasGradient ? null : Colors.white,
@@ -398,11 +382,11 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: emerald700,
+                    color: AppColors.emerald700,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: emerald700.withOpacity(0.25),
+                        color: AppColors.emerald700.withOpacity(0.25),
                         offset: const Offset(0, 4),
                         blurRadius: 8,
                         spreadRadius: -2,
@@ -416,7 +400,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                   title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: grey900,
+                    color: AppColors.citizenGrey900,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -426,7 +410,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: grey500,
+                    color: AppColors.citizenGrey500,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -447,7 +431,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
         const Text(
           'Recent Activity',
           style: TextStyle(
-            color: grey900,
+            color: AppColors.citizenGrey900,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -505,10 +489,10 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: emerald50,
+              color: AppColors.emerald50,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: emerald600, size: 22),
+            child: Icon(icon, color: AppColors.emerald600, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -518,7 +502,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: grey900,
+                    color: AppColors.citizenGrey900,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -528,7 +512,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: grey600,
+                    color: AppColors.citizenGrey600,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     height: 1.3,
@@ -538,7 +522,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   time,
                   style: const TextStyle(
-                    color: grey500,
+                    color: AppColors.citizenGrey500,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -560,10 +544,10 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [emerald50, teal50],
+          colors: [AppColors.emerald50, AppColors.teal50],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: emerald200, width: 1),
+        border: Border.all(color: AppColors.emerald200, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -580,7 +564,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: emerald700,
+              color: AppColors.emerald700,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -597,7 +581,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Waste Management Tip',
                   style: TextStyle(
-                    color: emerald900,
+                    color: AppColors.emerald900,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -607,7 +591,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Separate your recyclables from general waste to help reduce landfill impact and promote sustainability.',
                   style: TextStyle(
-                    color: emerald800,
+                    color: AppColors.emerald800,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     height: 1.4,
@@ -661,21 +645,27 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                         width: isSelected ? 32 : 0,
                         height: 3,
                         decoration: BoxDecoration(
-                          color: isSelected ? emerald700 : Colors.transparent,
+                          color: isSelected
+                              ? AppColors.emerald700
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Icon(
                         items[i].icon,
-                        color: isSelected ? emerald700 : grey500,
+                        color: isSelected
+                            ? AppColors.emerald700
+                            : AppColors.citizenGrey500,
                         size: 22,
                       ),
                       const SizedBox(height: 3),
                       Text(
                         items[i].label,
                         style: TextStyle(
-                          color: isSelected ? emerald700 : grey500,
+                          color: isSelected
+                              ? AppColors.emerald700
+                              : AppColors.citizenGrey500,
                           fontSize: 11,
                           fontWeight: isSelected
                               ? FontWeight.w600
