@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/presentation/field_staff/pages/dashboard.dart';
+import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dart';
 import 'package:garbo_swms/presentation/forgotPassword.dart';
 import 'package:garbo_swms/presentation/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
