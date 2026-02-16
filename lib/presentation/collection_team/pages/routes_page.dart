@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/design_tokens.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import '../models/route_models.dart';
 import '../widgets/route_card.dart';
 import '../widgets/routes_header.dart';
@@ -58,7 +58,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: DesignTokens.grey50,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           const RoutesHeader(),
@@ -124,7 +124,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       SnackBar(
         content: Text('Route ${route.name} started!'),
         duration: const Duration(seconds: 1),
-        backgroundColor: DesignTokens.green700,
+        backgroundColor: AppColors.green700,
       ),
     );
   }
@@ -134,7 +134,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       SnackBar(
         content: Text('Navigating to ${route.name}...'),
         duration: const Duration(seconds: 1),
-        backgroundColor: DesignTokens.green700,
+        backgroundColor: AppColors.green700,
       ),
     );
   }
@@ -166,7 +166,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         const SnackBar(
           content: Text('Bin skipped'),
           duration: Duration(seconds: 1),
-          backgroundColor: DesignTokens.grey600,
+          backgroundColor: AppColors.grey600,
         ),
       );
     }
@@ -225,7 +225,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
           SnackBar(
             content: Text('${currentBin.name} marked as collected!'),
             duration: const Duration(seconds: 1),
-            backgroundColor: DesignTokens.green700,
+            backgroundColor: AppColors.green700,
           ),
         );
       }
@@ -289,7 +289,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         const SnackBar(
           content: Text('Collection undone'),
           duration: Duration(seconds: 1),
-          backgroundColor: DesignTokens.grey600,
+          backgroundColor: AppColors.grey600,
         ),
       );
     }
@@ -300,7 +300,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     return Text(
       'All Routes (${_routes.length})',
       style: const TextStyle(
-        color: DesignTokens.grey900,
+        color: AppColors.grey900,
         fontSize: 16,
         fontWeight: FontWeight.w700,
       ),
@@ -319,8 +319,8 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     return ProfessionalBottomNavigation(
       currentIndex: _selectedNavIndex,
       items: items,
-      activeColor: DesignTokens.green700,
-      inactiveColor: DesignTokens.grey500,
+      activeColor: AppColors.green700,
+      inactiveColor: AppColors.grey500,
       onTap: (index) {
         if (index == 0) {
           Navigator.of(context).pushReplacement(
