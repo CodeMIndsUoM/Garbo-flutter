@@ -46,12 +46,16 @@ lib/
 │       └── submit_feedback.dart # Citizen reporting logic [cite: 220]
 │
 ├── presentation/             # UI LAYER (Organized by User Roles) [cite: 218]
+│   ├── auth/                 # Screens for Authentication
+│   │   ├── pages/            # LoginPage, RegisterPage, ForgotPasswordPage
+│   │   └── state/            # Auth state management logic
 │   ├── field_staff/          # Screens for Bin Monitoring [cite: 218]
 │   │   ├── pages/            # BinCapturePage, StaffDashboard
 │   │   └── state/            # BLoC/Riverpod logic for staff tasks
 │   ├── collection_team/      # Screens for Route Execution [cite: 219]
 │   │   ├── pages/            # MapNavigationPage, TaskCompletePage
-│   │   └── state/            # Map/GPS state management logic
+│   │   ├── state/            # Map/GPS state management logic
+│   │   └── widgets/          # Collection-team-specific widgets (RouteCard, BinItem, etc.)
 │   ├── citizen/              # Screens for Feedback Portal [cite: 220]
 │   │   ├── pages/            # ComplaintFormPage, StatusTrackerPage
 │   │   └── state/            # Feedback submission state
