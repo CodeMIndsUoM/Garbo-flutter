@@ -35,6 +35,7 @@ abstract final class AppColors {
 
   // Oranges
   static const Color orange50 = Color(0xFFFFF7ED);
+  static const Color orange200 = Color(0xFFFFAF76);
   static const Color orange500 = Color(0xFFF54900);
   static const Color orange600 = Color(0xFFFF6900);
 
