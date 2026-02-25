@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 
+import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+
 class BinListSection extends StatelessWidget {
-  const BinListSection({super.key});
+  final List<BinModel> bins;
+
+  const BinListSection({super.key, required this.bins});
 
   @override
   Widget build(BuildContext context) {
+    // Filter for bins that need checking (notChecked) and take top 3
+    final pendingBins = bins.where((b) => b.status == BinStatus.notChecked).take(3).toList();
+
+    if (pendingBins.isEmpty) {
+      return const SizedBox.shrink(); 
+    }
+
     return Column(
       children: [
         Row(
@@ -32,9 +43,9 @@ class BinListSection extends StatelessWidget {
                 color: AppColors.blue50,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Text(
-                '2 PENDING',
-                style: TextStyle(
+              child: Text(
+                '${pendingBins.length} PENDING',
+                style: const TextStyle(
                   fontFamily: 'Arimo',
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -45,23 +56,16 @@ class BinListSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        _buildBinItem(
-          id: 'BIN-001',
-          location: 'Main Street Plaza',
-          address: '123 Main St',
-        ),
+        ...pendingBins.map((bin) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildBinItem(bin),
+        )).toList(),
         const SizedBox(height: 12),
-        _buildBinItem(
-          id: 'BIN-007',
-          location: 'Hospital',
-          address: '200 Health Ave',
-        ),
-        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildBinItem({required String id, required String location, required String address}) {
+  Widget _buildBinItem(BinModel bin) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -88,7 +92,7 @@ class BinListSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  id,
+                  bin.id,
                   style: const TextStyle(
                     fontFamily: 'Arimo',
                     fontSize: 10,
@@ -104,9 +108,9 @@ class BinListSection extends StatelessWidget {
                   color: AppColors.blue50,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'NOT CHECKED',
-                  style: TextStyle(
+                child: Text(
+                  bin.status.label.toUpperCase(),
+                  style: const TextStyle(
                     fontFamily: 'Arimo',
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -118,7 +122,7 @@ class BinListSection extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            location,
+            bin.location,
             style: const TextStyle(
               fontFamily: 'Arimo',
               fontSize: 16,
@@ -127,7 +131,7 @@ class BinListSection extends StatelessWidget {
             ),
           ),
           Text(
-            address,
+            bin.address,
             style: const TextStyle(
               fontFamily: 'Arimo',
               fontSize: 12,
