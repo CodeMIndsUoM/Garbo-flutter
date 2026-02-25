@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 
 class PerformanceGrid extends StatelessWidget {
-  const PerformanceGrid({super.key});
+  final int totalBins;
+  final int pendingBins;
+
+  const PerformanceGrid({
+    super.key,
+    required this.totalBins,
+    required this.pendingBins,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final int completedBins = totalBins - pendingBins;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,16 +34,16 @@ class PerformanceGrid extends StatelessWidget {
           runSpacing: 12,
           children: [
             _buildGridItem(
-              title: '6',
-              subtitle: 'Bins Reported',
-              status: '2 remaining',
+              title: '$completedBins',
+              subtitle: 'Bins Checked',
+              status: '$pendingBins remaining',
               statusColor: AppColors.green700,
               icon: Icons.check_circle_outline,
               themeColor: AppColors.green700,
               bgColor: AppColors.emerald50,
             ),
             _buildGridItem(
-              title: '8',
+              title: '$totalBins',
               subtitle: 'Assigned Bins',
               status: 'In your zone',
               statusColor: AppColors.blue600,

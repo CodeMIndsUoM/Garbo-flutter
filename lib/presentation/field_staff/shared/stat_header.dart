@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 
 class StatHeader extends StatelessWidget {
-  const StatHeader({super.key});
+  final String userName;
+
+  const StatHeader({
+    super.key,
+    this.userName = 'Field Staff',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +45,7 @@ class StatHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Hello, John!',
+                    'Hello, $userName!',
                     style: TextStyle(
                       fontFamily: 'Arimo',
                       fontSize: 14,
