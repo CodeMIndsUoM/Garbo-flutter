@@ -13,11 +13,13 @@ import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 class BinCard extends StatelessWidget {
   final BinModel bin;
   final VoidCallback? onReport;
+  final VoidCallback? onUndo;
 
   const BinCard({
     super.key,
     required this.bin,
     this.onReport,
+    this.onUndo,
   });
 
   @override
@@ -82,6 +84,9 @@ class BinCard extends StatelessWidget {
             if (bin.status == BinStatus.notChecked) ...[
               const SizedBox(height: 12),
               _buildReportButton(),
+            ] else ...[
+              const SizedBox(height: 12),
+              _buildUndoButton(),
             ],
           ],
         ),
@@ -96,7 +101,7 @@ class BinCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.grey100,
+            color: AppColors.grey200,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
@@ -105,16 +110,16 @@ class BinCard extends StatelessWidget {
               fontFamily: 'Arimo',
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: AppColors.grey600,
+              color: AppColors.grey700,
             ),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         // Category badge
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.grey700,
+            color: AppColors.grey600,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
@@ -128,14 +133,22 @@ class BinCard extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        // Status label
-        Text(
-          bin.status.label,
-          style: TextStyle(
-            fontFamily: 'Arimo',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: _statusTextColor,
+        // Status label pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200),
+          ),
+          child: Text(
+            bin.status.label,
+            style: TextStyle(
+              fontFamily: 'Arimo',
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: _statusTextColor,
+            ),
           ),
         ),
       ],
@@ -171,6 +184,45 @@ class BinCard extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
+                height: 1.43,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUndoButton() {
+    return GestureDetector(
+      onTap: onUndo,
+      child: Container(
+        width: double.infinity,
+        height: 44,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.undo, color: AppColors.grey700, size: 16),
+            SizedBox(width: 8),
+            Text(
+              'Undo Report',
+              style: TextStyle(
+                fontFamily: 'Arimo',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.grey700,
                 height: 1.43,
               ),
             ),

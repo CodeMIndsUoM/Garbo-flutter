@@ -23,25 +23,35 @@ class BinModel {
 
   /// Factory for parsing API JSON responses.
   /// Uncomment and adapt when backend is ready.
-  // factory BinModel.fromJson(Map<String, dynamic> json) {
-  //   return BinModel(
-  //     id: json['id'] as String,
-  //     location: json['location'] as String,
-  //     address: json['address'] as String,
-  //     category: BinCategory.values.firstWhere(
-  //       (e) => e.name == json['category'],
-  //       orElse: () => BinCategory.public,
-  //     ),
-  //     status: BinStatus.values.firstWhere(
-  //       (e) => e.name == json['status'],
-  //       orElse: () => BinStatus.notChecked,
-  //     ),
-  //     fillLevel: json['fillLevel'] as int?,
-  //     lastChecked: json['lastChecked'] != null
-  //         ? DateTime.parse(json['lastChecked'] as String)
-  //         : null,
-  //   );
-  // }
+  factory BinModel.fromJson(Map<String, dynamic> json) {
+    return BinModel(
+      id: json['id'] as String,
+      location: json['location'] as String,
+      address: json['address'] as String,
+      category: _parseCategory(json['category'] as String?),
+      status: _parseStatus(json['status'] as String?),
+      fillLevel: json['fillLevel'] as int?,
+      lastChecked: json['lastChecked'] != null
+          ? DateTime.parse(json['lastChecked'] as String)
+          : null,
+    );
+  }
+
+  static BinCategory _parseCategory(String? category) {
+    if (category == null) return BinCategory.public;
+    return BinCategory.values.firstWhere(
+      (e) => e.name.toLowerCase() == category.toLowerCase(),
+      orElse: () => BinCategory.public,
+    );
+  }
+
+  static BinStatus _parseStatus(String? status) {
+    if (status == null) return BinStatus.notChecked;
+    return BinStatus.values.firstWhere(
+      (e) => e.name.toLowerCase() == status.toLowerCase(),
+      orElse: () => BinStatus.notChecked,
+    );
+  }
 
   /// Time-ago string for display.
   String get timeAgo {
@@ -55,79 +65,8 @@ class BinModel {
   }
 
   // ──────────────────────────────────────────────
-  // DEMO DATA — Remove this block when connecting
-  // to the backend API.
+  // DEMO DATA REMOVED
   // ──────────────────────────────────────────────
-  static final List<BinModel> demoData = [
-    const BinModel(
-      id: 'BIN-001',
-      location: 'Main Street Plaza',
-      address: '123 Main St',
-      category: BinCategory.public,
-      status: BinStatus.notChecked,
-    ),
-    BinModel(
-      id: 'BIN-002',
-      location: 'Central Park',
-      address: '45 Park Ave',
-      category: BinCategory.park,
-      status: BinStatus.full,
-      fillLevel: 100,
-      lastChecked: DateTime.now().subtract(const Duration(minutes: 10)),
-    ),
-    BinModel(
-      id: 'BIN-003',
-      location: 'Market Square',
-      address: '78 Market Rd',
-      category: BinCategory.commercial,
-      status: BinStatus.half,
-      fillLevel: 50,
-      lastChecked: DateTime.now().subtract(const Duration(hours: 1)),
-    ),
-    BinModel(
-      id: 'BIN-004',
-      location: 'Shopping Mall',
-      address: '90 Shop Ln',
-      category: BinCategory.commercial,
-      status: BinStatus.half,
-      fillLevel: 45,
-      lastChecked: DateTime.now().subtract(const Duration(hours: 3)),
-    ),
-    BinModel(
-      id: 'BIN-006',
-      location: 'Library',
-      address: '15 Book St',
-      category: BinCategory.public,
-      status: BinStatus.empty,
-      fillLevel: 5,
-      lastChecked: DateTime.now().subtract(const Duration(hours: 4)),
-    ),
-    const BinModel(
-      id: 'BIN-007',
-      location: 'Hospital',
-      address: '200 Health Ave',
-      category: BinCategory.medical,
-      status: BinStatus.notChecked,
-    ),
-    BinModel(
-      id: 'BIN-008',
-      location: 'School Zone',
-      address: '50 Education Rd',
-      category: BinCategory.education,
-      status: BinStatus.half,
-      fillLevel: 55,
-      lastChecked: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    BinModel(
-      id: 'BIN-005',
-      location: 'Bus Terminal',
-      address: '300 Transit Ave',
-      category: BinCategory.public,
-      status: BinStatus.full,
-      fillLevel: 90,
-      lastChecked: DateTime.now().subtract(const Duration(hours: 1)),
-    ),
-  ];
 }
 
 enum BinStatus { notChecked, full, half, empty }

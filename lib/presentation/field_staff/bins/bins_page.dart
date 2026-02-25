@@ -3,6 +3,8 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_card.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_filter_chips.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 
 /// Bins page shown when the "Bins" tab is selected.
 ///
@@ -17,22 +19,43 @@ class BinsPage extends StatefulWidget {
   State<BinsPage> createState() => _BinsPageState();
 }
 
+
+
 class _BinsPageState extends State<BinsPage> {
   String _selectedFilter = 'All';
   String _searchQuery = '';
+  final ApiService _apiService = ApiService();
+  bool _isLoading = true;
+  String? _error;
 
-  // ──────────────────────────────────────────────
-  // DEMO DATA — Replace with API call when backend
-  // is ready. Example:
-  //
-  //   Future<void> _fetchBins() async {
-  //     final response = await apiService.getBins();
-  //     setState(() {
-  //       _bins = response.map(BinModel.fromJson).toList();
-  //     });
-  //   }
-  // ──────────────────────────────────────────────
-  final List<BinModel> _bins = BinModel.demoData;
+  // Use empty list initially
+  List<BinModel> _bins = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBins();
+  }
+
+  Future<void> _fetchBins() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      // Hardcoded empId for demo (Sasindu)
+      final bins = await _apiService.getAssignedBins("3");
+      setState(() {
+        _bins = bins;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   List<BinModel> get _filteredBins {
     var bins = _bins;
@@ -62,6 +85,17 @@ class _BinsPageState extends State<BinsPage> {
           b.address.toLowerCase().contains(q)).toList();
     }
 
+    // Sort so 'Not Checked' bins appear at the top
+    bins.sort((a, b) {
+      if (a.status == BinStatus.notChecked && b.status != BinStatus.notChecked) {
+        return -1;
+      }
+      if (a.status != BinStatus.notChecked && b.status == BinStatus.notChecked) {
+        return 1;
+      }
+      return 0; // Maintain natural ordering for the rest
+    });
+
     return bins;
   }
 
@@ -87,58 +121,99 @@ class _BinsPageState extends State<BinsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Search bar
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
-          child: _buildSearchBar(),
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error loading bins: $_error', style: const TextStyle(color: Colors.red)),
+            ElevatedButton(onPressed: _fetchBins, child: const Text('Retry')),
+          ],
         ),
-        // Filter chips
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: BinFilterChips(
-            filters: _filterItems,
-            selectedFilter: _selectedFilter,
-            onFilterChanged: (filter) {
-              setState(() => _selectedFilter = filter);
-            },
+      );
+    }
+
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _fetchBins,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Search bar
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                          child: _buildSearchBar(),
+                        ),
+                        // Filter chips
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: BinFilterChips(
+                            filters: _filterItems,
+                            selectedFilter: _selectedFilter,
+                            onFilterChanged: (filter) {
+                              setState(() => _selectedFilter = filter);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                  _filteredBins.isEmpty
+                      ? SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyState(),
+                        )
+                      : SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final bin = _filteredBins[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: BinCard(
+                                    bin: bin,
+                                    onReport: () => _handleReport(bin),
+                                    onUndo: () => _handleUndo(bin),
+                                  ),
+                                );
+                              },
+                              childCount: _filteredBins.length,
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        // Bin list
-        Expanded(
-          child: _filteredBins.isEmpty
-              ? _buildEmptyState()
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  itemCount: _filteredBins.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final bin = _filteredBins[index];
-                    return BinCard(
-                      bin: bin,
-                      onReport: () => _handleReport(bin),
-                    );
-                  },
-                ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildSearchBar() {
     return Container(
-      height: 44,
+      height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Icon(Icons.search, color: AppColors.grey500, size: 20),
           const SizedBox(width: 8),
           Expanded(
@@ -156,10 +231,10 @@ class _BinsPageState extends State<BinsPage> {
                 hintStyle: TextStyle(
                   fontFamily: 'Arimo',
                   fontSize: 14,
-                  color: AppColors.grey500,
+                  color: Colors.black38,
                 ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.only(bottom: 6),
                 isDense: true,
               ),
             ),
@@ -191,15 +266,81 @@ class _BinsPageState extends State<BinsPage> {
     );
   }
 
-  void _handleReport(BinModel bin) {
-    // TODO: Navigate to report screen or show report dialog.
-    // When backend is ready, this will call the API to submit a report.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Reporting fill level for ${bin.id} - ${bin.location}'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.green700,
+  Future<void> _handleReport(BinModel bin) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ReportBinPage(
+          bin: bin,
+          empId: "3", // Hardcoded for demo
+        ),
       ),
     );
+
+    if (result == true) {
+      _fetchBins(); // Refresh list if report was submitted
+    }
+  }
+
+  Future<void> _handleUndo(BinModel bin) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Undo Report?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: const Text(
+          'This will reset the bin status to Not Checked. You can then report it again safely.',
+          style: TextStyle(fontFamily: 'Arimo', fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.grey600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.green700,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Undo', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final success = await _apiService.undoBinReport("3", bin.id);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report for ${bin.id} undone.'),
+            backgroundColor: AppColors.green700,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to undo report.'),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to undo: $e'),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        _fetchBins();
+      }
+    }
   }
 }
