@@ -5,8 +5,13 @@ import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class BinListSection extends StatelessWidget {
   final List<BinModel> bins;
+  final Function(BinModel) onReport;
 
-  const BinListSection({super.key, required this.bins});
+  const BinListSection({
+    super.key,
+    required this.bins,
+    required this.onReport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -140,35 +145,38 @@ class BinListSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.green700,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x19000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.send_outlined, color: Colors.white, size: 16),
-                const SizedBox(width: 8),
-                const Text(
-                  'Report Fill Level',
-                  style: TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+          GestureDetector(
+            onTap: () => onReport(bin),
+            child: Container(
+              width: double.infinity,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.green700,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x19000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.send_outlined, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Report Fill Level',
+                    style: TextStyle(
+                      fontFamily: 'Arimo',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

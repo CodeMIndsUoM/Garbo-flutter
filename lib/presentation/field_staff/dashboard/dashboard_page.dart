@@ -6,6 +6,8 @@ import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/bin_list_s
 import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/achievement_list_section.dart';
 import 'package:garbo_swms/presentation/field_staff/shared/field_bottom_navigation.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/bins_page.dart';
+import 'package:garbo_swms/presentation/field_staff/profile/profile_page.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
 
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -54,9 +56,27 @@ class _DashboardState extends State<Dashboard> {
   }
 
   void _onItemTapped(int index) {
+    if (index == 0 && _selectedIndex != 0) {
+      _fetchDashboardData();
+    }
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _handleReport(BinModel bin) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ReportBinPage(
+          bin: bin,
+          empId: "3", // Hardcoded for demo
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _fetchDashboardData(); // Refresh list if report was submitted
+    }
   }
 
   @override
@@ -86,18 +106,7 @@ class _DashboardState extends State<Dashboard> {
       case 1:
         return const BinsPage();
       case 2:
-        // TODO: Replace with ProfilePage when implemented
-        return const Center(
-          child: Text(
-            'Profile',
-            style: TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
-            ),
-          ),
-        );
+        return const ProfilePage();
       default:
         return _buildDashboardContent();
     }
@@ -121,7 +130,10 @@ class _DashboardState extends State<Dashboard> {
             pendingBins: pendingBins,
           ),
           const SizedBox(height: 24),
-          BinListSection(bins: _bins),
+          BinListSection(
+            bins: _bins,
+            onReport: _handleReport,
+          ),
           const AchievementListSection(),
           const SizedBox(height: 80),
         ],
