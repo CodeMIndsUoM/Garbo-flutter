@@ -11,6 +11,7 @@ abstract final class AppColors {
   static const Color emerald100 = Color(0xFFD1FAE5);
   static const Color emerald200 = Color(0xFFA7F3D0);
   static const Color emeraldLight = Color(0xFFDCFCE7);
+  static const Color emerald500 = Color(0xFF10B981);
   static const Color emerald600 = Color(0xFF059669);
   static const Color emerald700 = Color(0xFF047857);
   static const Color emerald800 = Color(0xFF065F46);
@@ -69,6 +70,7 @@ abstract final class AppColors {
   static const Color white80 = Color(0xCCFFFFFF);
   static const Color white70 = Color(0xB3FFFFFF);
   static const Color white20 = Color(0x33FFFFFF);
+  static const Color white10 = Color(0x1AFFFFFF);
 }
 
 typedef DesignTokens = AppColors;
