@@ -71,11 +71,12 @@ class StatHeader extends StatelessWidget {
 
           // Stats Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('2', 'To Check'),
-              _buildStatItem('1847', 'Points', icon: Icons.bolt),
-              _buildStatItem('18', 'Day Streak', icon: Icons.local_fire_department_outlined),
+              Expanded(child: _buildStatItem('2', 'To Check')),
+              const SizedBox(width: 8),
+              Expanded(child: _buildStatItem('1847', 'Points', icon: Icons.bolt)),
+              const SizedBox(width: 8),
+              Expanded(child: _buildStatItem('18', 'Day Streak', icon: Icons.local_fire_department_outlined)),
             ],
           ),
         ],
@@ -85,9 +86,8 @@ class StatHeader extends StatelessWidget {
 
   Widget _buildStatItem(String value, String label, {IconData? icon}) {
     return Container(
-      width: 112,
       height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.white20,
         borderRadius: BorderRadius.circular(16),

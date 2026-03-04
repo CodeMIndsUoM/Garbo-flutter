@@ -29,45 +29,62 @@ class PerformanceGrid extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        Column(
           children: [
-            _buildGridItem(
-              title: '$completedBins',
-              subtitle: 'Bins Checked',
-              status: '$pendingBins remaining',
-              statusColor: AppColors.green700,
-              icon: Icons.check_circle_outline,
-              themeColor: AppColors.green700,
-              bgColor: AppColors.emerald50,
+            Row(
+              children: [
+                Expanded(
+                  child: _buildGridItem(
+                    title: '$completedBins',
+                    subtitle: 'Bins Checked',
+                    status: '$pendingBins remaining',
+                    statusColor: AppColors.green700,
+                    icon: Icons.check_circle_outline,
+                    themeColor: AppColors.green700,
+                    bgColor: AppColors.emerald50,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildGridItem(
+                    title: '$totalBins',
+                    subtitle: 'Assigned Bins',
+                    status: 'In your zone',
+                    statusColor: AppColors.blue600,
+                    icon: Icons.map_outlined,
+                    themeColor: AppColors.blue600,
+                    bgColor: AppColors.blue50,
+                  ),
+                ),
+              ],
             ),
-            _buildGridItem(
-              title: '$totalBins',
-              subtitle: 'Assigned Bins',
-              status: 'In your zone',
-              statusColor: AppColors.blue600,
-              icon: Icons.map_outlined,
-              themeColor: AppColors.blue600,
-              bgColor: AppColors.blue50,
-            ),
-            _buildGridItem(
-              title: '4 mins',
-              subtitle: 'Avg Response',
-              status: 'Very quick!',
-              statusColor: AppColors.green700,
-              icon: Icons.timer_outlined,
-              themeColor: AppColors.orange600,
-              bgColor: AppColors.orange50,
-            ),
-            _buildGridItem(
-              title: '+145',
-              subtitle: 'Points Today',
-              status: 'Keep it up!',
-              statusColor: AppColors.purple600,
-              icon: Icons.bolt,
-              themeColor: AppColors.purple600,
-              bgColor: AppColors.purple50,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildGridItem(
+                    title: '4 mins',
+                    subtitle: 'Avg Response',
+                    status: 'Very quick!',
+                    statusColor: AppColors.green700,
+                    icon: Icons.timer_outlined,
+                    themeColor: AppColors.orange600,
+                    bgColor: AppColors.orange50,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildGridItem(
+                    title: '+145',
+                    subtitle: 'Points Today',
+                    status: 'Keep it up!',
+                    statusColor: AppColors.purple600,
+                    icon: Icons.bolt,
+                    themeColor: AppColors.purple600,
+                    bgColor: AppColors.purple50,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -84,12 +101,10 @@ class PerformanceGrid extends StatelessWidget {
     required Color themeColor,
     required Color bgColor,
   }) {
-    // Approx width for 2 items with padding on 396px screen: (396 - 48 - 12) / 2 = 168
-    // Using flexible sizing in parent instead of fixed width
+    // Width is flexible and handled by the Expanded parent
     return Container(
-      width: 168,
       height: 142,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
