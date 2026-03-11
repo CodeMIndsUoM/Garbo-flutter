@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 class ProfileAchievementList extends StatelessWidget {
   const ProfileAchievementList({super.key});
@@ -72,16 +73,17 @@ class ProfileAchievementList extends StatelessWidget {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: ShapeDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFDFBE8), Color(0xFFFFF7EC)],
-        ),
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1.27, color: Color(0xFFFEEF85)),
-          borderRadius: BorderRadius.circular(14),
-        ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(width: 1.27, color: AppColors.grey100),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x19000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,17 +91,13 @@ class ProfileAchievementList extends StatelessWidget {
           Container(
             width: 56,
             height: 56,
-            decoration: ShapeDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFFEF9C1), Color(0xFFFFECD4)],
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
+            decoration: BoxDecoration(
+              color: AppColors.emerald50,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: const Color(0xFFA65F00), size: 28),
+            child: Center(
+              child: Icon(icon, color: AppColors.green700, size: 28),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -118,7 +116,7 @@ class ProfileAchievementList extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const Icon(Icons.check_circle, color: Color(0xFF00A63E), size: 20),
+                    const Icon(Icons.check_circle, color: AppColors.green700, size: 20),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -134,12 +132,12 @@ class ProfileAchievementList extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.star, color: Color(0xFF00A63E), size: 14),
+                    const Icon(Icons.star, color: AppColors.green700, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       earnedText,
                       style: const TextStyle(
-                        color: Color(0xFF00A63E),
+                        color: AppColors.green700,
                         fontSize: 11,
                         fontFamily: 'Arimo',
                         fontWeight: FontWeight.w400,

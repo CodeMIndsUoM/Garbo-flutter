@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 class ProfilePerformanceGrid extends StatelessWidget {
   const ProfilePerformanceGrid({super.key});
@@ -30,7 +31,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
               child: _buildStatCard(
                 value: '67',
                 label: 'Bins Reported',
-                valueColor: const Color(0xFF00BC7D),
+                valueColor: AppColors.green700,
               ),
             ),
             const SizedBox(width: 12),
@@ -38,7 +39,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
               child: _buildStatCard(
                 value: '6',
                 label: 'Reports Today',
-                valueColor: const Color(0xFFF54900),
+                valueColor: AppColors.green700,
               ),
             ),
           ],
@@ -50,7 +51,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
               child: _buildStatCard(
                 value: '4 mins',
                 label: 'Avg Response',
-                valueColor: const Color(0xFF155CFB),
+                valueColor: AppColors.green700,
               ),
             ),
             const SizedBox(width: 12),
@@ -58,7 +59,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
               child: _buildStatCard(
                 value: '#12',
                 label: 'Team Rank',
-                valueColor: const Color(0xFF9810FA),
+                valueColor: AppColors.green700,
               ),
             ),
           ],

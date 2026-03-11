@@ -29,21 +29,18 @@ class AchievementListSection extends StatelessWidget {
           title: 'Early Bird',
           subtitle: 'Earned 2 days ago',
           icon: Icons.wb_sunny_outlined,
-          gradientColors: [AppColors.yellow, AppColors.orange50],
         ),
         const SizedBox(height: 12),
         _buildAchievementItem(
           title: 'Perfect Week',
           subtitle: 'Earned 1 week ago',
           icon: Icons.star_border,
-          gradientColors: [AppColors.yellow, AppColors.yellowOrange],
         ),
         const SizedBox(height: 12),
         _buildAchievementItem(
           title: 'Quick Reporter',
           subtitle: 'Earned 3 days ago',
           icon: Icons.bolt,
-          gradientColors: [AppColors.yellow, AppColors.yellowOrange],
         ),
         const SizedBox(height: 24),
       ],
@@ -54,7 +51,6 @@ class AchievementListSection extends StatelessWidget {
     required String title,
     required String subtitle,
     required IconData icon,
-    required List<Color> gradientColors,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -76,11 +72,7 @@ class AchievementListSection extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: gradientColors,
-              ),
+              color: AppColors.emerald50,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(

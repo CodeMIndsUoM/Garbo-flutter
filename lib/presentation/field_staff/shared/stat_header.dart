@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/field_staff/shared/widgets/settings_overlay.dart';
 
 class StatHeader extends StatelessWidget {
   final String userName;
@@ -56,14 +57,24 @@ class StatHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.white20,
-                  borderRadius: BorderRadius.circular(16),
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const SettingsOverlay(),
+                  );
+                },
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.white20,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.menu, color: Colors.white),
                 ),
-                child: const Icon(Icons.menu, color: Colors.white),
               ),
             ],
           ),
