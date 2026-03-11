@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_details_overlay.dart';
 
 /// A single bin card matching the Figma design.
 ///
@@ -24,8 +25,17 @@ class BinCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => BinDetailsOverlay(bin: bin),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
         color: _cardBgColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(width: 1, color: _borderColor),
@@ -90,6 +100,7 @@ class BinCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }
