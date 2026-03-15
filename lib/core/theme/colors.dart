@@ -35,6 +35,7 @@ abstract final class AppColors {
 
   // Oranges
   static const Color orange50 = Color(0xFFFFF7ED);
+  static const Color orange200 = Color(0xFFFFAF76);
   static const Color orange500 = Color(0xFFF54900);
   static const Color orange600 = Color(0xFFFF6900);
 
@@ -52,6 +53,7 @@ abstract final class AppColors {
   static const Color grey100 = Color(0xFFF3F4F6);
   static const Color grey200 = Color(0xFFE5E7EB);
   static const Color grey300 = Color(0xFFD1D5DC);
+  static const Color grey400 = Color(0xFF9CA3AF);
   static const Color grey500 = Color(0xFF6A7282);
   static const Color grey600 = Color(0xFF4A5565);
   static const Color grey700 = Color(0xFF364153);

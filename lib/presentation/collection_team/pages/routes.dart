@@ -1,38 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import '../models/route_models.dart';
+import 'package:garbo_swms/data/models/route_model.dart';
+import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import '../widgets/route_card.dart';
-import '../widgets/routes_header.dart';
 import '../widgets/collecting_bin_sheet.dart';
-import 'dashboard.dart';
-import '../widgets/professional_bottom_navigation.dart';
+import '../widgets/bottom_navigation.dart';
 
 class CollectionTeamRoutes extends StatefulWidget {
   const CollectionTeamRoutes({super.key});
 
   @override
-  State<CollectionTeamRoutes> createState() => _CollectionTeamRoutesState();
+  State<CollectionTeamRoutes> createState() => CollectionTeamRoutesState();
 }
 
-class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
-  int _selectedNavIndex = 1; // Routes tab
+class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
-  /// Track expanded state per route card.
-  final Map<String, bool> _expandedRoutes = {};
+  final Map<String, bool> expandedRoutes = {};
 
-  /// Track which routes have been started.
-  final Set<String> _startedRoutes = {};
+  final Set<String> startedRoutes = {};
 
-  /// Track per-bin collection status for each route.
-  /// Key: route ID, Value: list of BinCollectionStatus (one per bin).
-  final Map<String, List<BinCollectionStatus>> _binStatuses = {};
+  final Map<String, List<BinCollectionStatus>> binStatuses = {};
 
-  /// Track collection timestamps for each bin in each route.
-  /// Key: route ID, Value: Map<binIndex, timestamp>.
-  final Map<String, Map<int, DateTime>> _collectedTimestamps = {};
+  final Map<String, Map<int, DateTime>> collectedTimestamps = {};
 
-  // ── Sample data (replace with real data source) ───────────────
-  final List<RouteData> _routes = [
+  final List<RouteData> routes = [
     const RouteData(
       id: 'ROUTE-001',
       name: 'Downtown Circuit',
@@ -61,7 +52,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          const RoutesHeader(),
+          const HeaderReduced(),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -69,27 +60,27 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  _buildSectionTitle(),
+                  buildSectionTitle(),
                   const SizedBox(height: 12),
-                  ..._routes.map(
+                  ...routes.map(
                     (route) => Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: RouteCard(
                         route: route,
-                        isExpanded: _expandedRoutes[route.id] ?? false,
-                        isStarted: _startedRoutes.contains(route.id),
-                        bins: _getSampleBinsForRoute(route),
-                        binStatuses: _binStatuses[route.id],
-                        collectedTimestamps: _collectedTimestamps[route.id],
+                        isExpanded: expandedRoutes[route.id] ?? false,
+                        isStarted: startedRoutes.contains(route.id),
+                        bins: getSampleBinsForRoute(route),
+                        binStatuses: binStatuses[route.id],
+                        collectedTimestamps: collectedTimestamps[route.id],
                         onToggleExpand: () => setState(() {
-                          _expandedRoutes[route.id] =
-                              !(_expandedRoutes[route.id] ?? false);
+                          expandedRoutes[route.id] =
+                              !(expandedRoutes[route.id] ?? false);
                         }),
-                        onStartRoute: () => _handleStartRoute(route),
-                        onNavigate: () => _handleNavigate(route),
-                        onCollectNext: () => _handleCollectNext(route),
-                        onSkipBin: () => _handleSkipBin(route),
-                        onUndoBin: () => _handleUndoBin(route),
+                        onStartRoute: () => handleStartRoute(route),
+                        onNavigate: () => handleNavigate(route),
+                        onCollectNext: () => handleCollectNext(route),
+                        onSkipBin: () => handleSkipBin(route),
+                        onUndoBin: () => handleUndoBin(route),
                       ),
                     ),
                   ),
@@ -100,20 +91,16 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: const CollectionTeamBottomNav(currentIndex: 1),
     );
   }
 
-  // ── Route action handlers ──────────────────────────────────
-
-  void _handleStartRoute(RouteData route) {
-    final bins = _getSampleBinsForRoute(route);
+  void handleStartRoute(RouteData route) {
+    final bins = getSampleBinsForRoute(route);
     setState(() {
-      _startedRoutes.add(route.id);
-      // Auto-expand the card when started
-      _expandedRoutes[route.id] = true;
-      // Initialize bin statuses: first bin = collecting, rest = pending
-      _binStatuses[route.id] = List.generate(
+      startedRoutes.add(route.id);
+      expandedRoutes[route.id] = true;
+      binStatuses[route.id] = List.generate(
         bins.length,
         (i) => i == 0
             ? BinCollectionStatus.collecting
@@ -129,7 +116,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  void _handleNavigate(RouteData route) {
+  void handleNavigate(RouteData route) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Navigating to ${route.name}...'),
@@ -139,27 +126,21 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  void _handleSkipBin(RouteData route) {
-    final statuses = _binStatuses[route.id];
+  void handleSkipBin(RouteData route) {
+    final statuses = binStatuses[route.id];
     if (statuses == null) return;
 
     final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
     if (collectingIndex == -1) return;
 
     setState(() {
-      // Mark current collecting bin as skipped
       statuses[collectingIndex] = BinCollectionStatus.skipped;
-      // Record skip timestamp
-      _collectedTimestamps[route.id] ??= {};
-      _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
-      // Advance to next bin if available
+      collectedTimestamps[route.id] ??= {};
+      collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
       final nextIndex = collectingIndex + 1;
       if (nextIndex < statuses.length) {
         statuses[nextIndex] = BinCollectionStatus.collecting;
       }
-
-      // Note: Skipped bins do NOT increment progress
-      // Progress only increases when bins are actually collected
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -172,15 +153,14 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
   }
 
-  Future<void> _handleCollectNext(RouteData route) async {
+  Future<void> handleCollectNext(RouteData route) async {
     try {
-      final bins = _getSampleBinsForRoute(route);
-      final statuses = _binStatuses[route.id];
+      final bins = getSampleBinsForRoute(route);
+      final statuses = binStatuses[route.id];
       if (statuses == null) return;
 
-      // Find the currently collecting bin
       final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
-      if (collectingIndex == -1) return; // No bin currently collecting
+      if (collectingIndex == -1) return; 
 
       final currentBin = bins[collectingIndex];
 
@@ -192,28 +172,24 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
       if (collected == true && mounted) {
         setState(() {
-          // Mark current bin as collected
           statuses[collectingIndex] = BinCollectionStatus.collected;
 
-          // Record collection timestamp
-          _collectedTimestamps[route.id] ??= {};
-          _collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
+          collectedTimestamps[route.id] ??= {};
+          collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
 
-          // Advance to next bin if available
           final nextIndex = collectingIndex + 1;
           if (nextIndex < statuses.length) {
             statuses[nextIndex] = BinCollectionStatus.collecting;
           }
 
-          // Increment route progress
-          final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+          final routeIndex = routes.indexWhere((r) => r.id == route.id);
           if (routeIndex != -1) {
-            final current = _routes[routeIndex];
+            final current = routes[routeIndex];
             final newProgress = (current.progress + 1).clamp(
               0,
               current.totalBins,
             );
-            _routes[routeIndex] = current.copyWith(
+            routes[routeIndex] = current.copyWith(
               progress: newProgress,
               status: newProgress >= current.totalBins
                   ? RouteStatus.completed
@@ -232,7 +208,6 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         }
       }
     } catch (e) {
-      // Handle errors gracefully without crashing the app
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -245,11 +220,10 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
   }
 
-  void _handleUndoBin(RouteData route) {
-    final statuses = _binStatuses[route.id];
+  void handleUndoBin(RouteData route) {
+    final statuses = binStatuses[route.id];
     if (statuses == null) return;
 
-    // Find the last collected or skipped bin
     int lastCompletedIndex = -1;
     BinCollectionStatus? lastCompletedStatus;
     for (int i = statuses.length - 1; i >= 0; i--) {
@@ -263,33 +237,28 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
     if (lastCompletedIndex == -1) return;
 
-    // Find current collecting index
     final currentCollectingIndex = statuses.indexOf(
       BinCollectionStatus.collecting,
     );
 
     setState(() {
-      // Mark the last completed/skipped bin back to collecting
       statuses[lastCompletedIndex] = BinCollectionStatus.collecting;
 
-      // If there was a collecting bin, set it back to pending
       if (currentCollectingIndex != -1) {
         statuses[currentCollectingIndex] = BinCollectionStatus.pending;
       }
 
-      // Remove timestamp
-      _collectedTimestamps[route.id]?.remove(lastCompletedIndex);
+      collectedTimestamps[route.id]?.remove(lastCompletedIndex);
 
-      // Only decrement progress if the bin was actually collected (not skipped)
       if (lastCompletedStatus == BinCollectionStatus.collected) {
-        final routeIndex = _routes.indexWhere((r) => r.id == route.id);
+        final routeIndex = routes.indexWhere((r) => r.id == route.id);
         if (routeIndex != -1) {
-          final current = _routes[routeIndex];
+          final current = routes[routeIndex];
           final newProgress = (current.progress - 1).clamp(
             0,
             current.totalBins,
           );
-          _routes[routeIndex] = current.copyWith(
+          routes[routeIndex] = current.copyWith(
             progress: newProgress,
             status: RouteStatus.highPriority,
           );
@@ -308,10 +277,9 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
   }
 
-  // ── Section title ─────────────────────────────────────────────
-  Widget _buildSectionTitle() {
+  Widget buildSectionTitle() {
     return Text(
-      'All Routes (${_routes.length})',
+      'All Routes (${routes.length})',
       style: const TextStyle(
         color: AppColors.grey900,
         fontSize: 16,
@@ -320,34 +288,7 @@ class _CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  // ── Bottom Navigation ─────────────────────────────────────────
-  Widget _buildBottomNavigation() {
-    final items = [
-      const NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-      const NavItem(icon: Icons.route_rounded, label: 'Routes'),
-      const NavItem(icon: Icons.map_rounded, label: 'Map'),
-      const NavItem(icon: Icons.person_rounded, label: 'Profile'),
-    ];
-
-    return ProfessionalBottomNavigation(
-      currentIndex: _selectedNavIndex,
-      items: items,
-      activeColor: AppColors.green700,
-      inactiveColor: AppColors.grey500,
-      onTap: (index) {
-        if (index == 0) {
-          Navigator.of(context).pushReplacement(
-            SmoothPageRoute(page: const CollectionTeamDashboard()),
-          );
-        } else {
-          setState(() => _selectedNavIndex = index);
-        }
-      },
-    );
-  }
-
-  // ── Sample bin data (move to repository/service in production) ─
-  List<BinData> _getSampleBinsForRoute(RouteData route) {
+  List<BinData> getSampleBinsForRoute(RouteData route) {
     if (route.status == RouteStatus.highPriority) {
       return const [
         BinData(

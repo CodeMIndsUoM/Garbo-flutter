@@ -1,112 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 
 class CitizenHomePage extends StatefulWidget {
   const CitizenHomePage({super.key});
 
   @override
-  State<CitizenHomePage> createState() => _CitizenHomePageState();
+  State<CitizenHomePage> createState() => CitizenHomePageState();
 }
 
-class _CitizenHomePageState extends State<CitizenHomePage> {
-  int _selectedNavIndex = 0;
-
+class CitizenHomePageState extends State<CitizenHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildWelcomeCard(),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(),
-                    const SizedBox(height: 24),
-                    _buildRecentActivity(),
-                    const SizedBox(height: 24),
-                    _buildTipCard(),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigation(),
-    );
-  }
-
-  // ── Header ────────────────────────────────────────────────────
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
-      decoration: BoxDecoration(
-        color: AppColors.emerald700,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Column(
         children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Home',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
+          CitizenHeader(name: 'Home'),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  buildWelcomeCard(),
+                  const SizedBox(height: 24),
+                  buildQuickActions(),
+                  const SizedBox(height: 24),
+                  buildRecentActivity(),
+                  const SizedBox(height: 24),
+                  buildTipCard(),
+                  const SizedBox(height: 24),
+                ],
               ),
-              SizedBox(height: 2),
-              Text(
-                'Good morning',
-                style: TextStyle(
-                  color: AppColors.white80,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-          // Hamburger menu icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.menu, color: Colors.white, size: 22),
           ),
         ],
       ),
+      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 0),
     );
   }
 
-  // ── Welcome Card ──────────────────────────────────────────────
-  Widget _buildWelcomeCard() {
+  Widget buildWelcomeCard() {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.emerald700,
+        color: AppColors.emerald600,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -120,7 +61,6 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Decorative circles
           Positioned(
             right: -50,
             top: -50,
@@ -145,16 +85,13 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
               ),
             ),
           ),
-          // Content – NO fixed height, let it size naturally
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // User info row
                 Row(
                   children: [
-                    // Avatar
                     Container(
                       width: 56,
                       height: 56,
@@ -168,7 +105,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                       ),
                       child: const Center(
                         child: Text(
-                          'S',
+                          'M',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 22,
@@ -186,7 +123,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                             children: const [
                               Flexible(
                                 child: Text(
-                                  'Hello, Sasindu',
+                                  'Hello, Micheal',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 22,
@@ -215,10 +152,8 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Divider
                 Container(height: 1, color: Colors.white.withOpacity(0.2)),
                 const SizedBox(height: 14),
-                // Eco Points row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -273,8 +208,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 
-  // ── Quick Actions ─────────────────────────────────────────────
-  Widget _buildQuickActions() {
+  Widget buildQuickActions() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -286,7 +220,6 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 14),
         GridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
@@ -295,32 +228,32 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            _buildActionCard(
+            buildActionCard(
               icon: Icons.report_problem_rounded,
               title: 'Report Issue',
               subtitle: 'File a complaint',
               routeName: '/citizen/report',
               hasGradient: true,
             ),
-            _buildActionCard(
+            buildActionCard(
               icon: Icons.local_shipping_rounded,
               title: 'Request Pickup',
               subtitle: 'Schedule collection',
               routeName: '/citizen/request',
               hasGradient: true,
             ),
-            _buildActionCard(
+            buildActionCard(
               icon: Icons.event_rounded,
               title: 'Browse Events',
               subtitle: 'Join community',
               routeName: '/citizen/events',
               hasGradient: true,
             ),
-            _buildActionCard(
+            buildActionCard(
               icon: Icons.bar_chart_rounded,
               title: 'My Activity',
               subtitle: 'Track progress',
-              routeName: '/citizen/activity',
+              routeName: '/citizen/profile',
               hasGradient: true,
             ),
           ],
@@ -329,7 +262,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 
-  Widget _buildActionCard({
+  Widget buildActionCard({
     required IconData icon,
     required String title,
     required String subtitle,
@@ -339,17 +272,10 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         onTap: () {
-          // Navigate when the route exists; otherwise show a snackbar
           if (ModalRoute.of(context)?.settings.name != routeName) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$title — coming soon'),
-                duration: const Duration(seconds: 1),
-                backgroundColor: AppColors.emerald700,
-              ),
-            );
+            Navigator.pushNamed(context, routeName);
           }
         },
         child: Ink(
@@ -358,7 +284,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
                 ? const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [AppColors.emerald50, AppColors.teal50],
+                    colors: [AppColors.emerald50, AppColors.emerald200],
                   )
                 : null,
             color: hasGradient ? null : Colors.white,
@@ -373,20 +299,19 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon container
                 Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.emerald700,
+                    color: AppColors.emerald600,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.emerald700.withOpacity(0.25),
+                        color: AppColors.emerald700.withOpacity(0.4),
                         offset: const Offset(0, 4),
                         blurRadius: 8,
                         spreadRadius: -2,
@@ -423,8 +348,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 
-  // ── Recent Activity ───────────────────────────────────────────
-  Widget _buildRecentActivity() {
+  Widget buildRecentActivity() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -437,21 +361,21 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
           ),
         ),
         const SizedBox(height: 14),
-        _buildActivityItem(
+        buildActivityItem(
           icon: Icons.check_circle_rounded,
           title: 'Collection completed',
           subtitle: 'Recyclable materials — 10 bags picked up',
           time: '2 hours ago',
         ),
         const SizedBox(height: 10),
-        _buildActivityItem(
+        buildActivityItem(
           icon: Icons.event_available_rounded,
           title: 'Event enrolled',
           subtitle: 'Community Cleanup Drive on Nov 25',
           time: '1 day ago',
         ),
         const SizedBox(height: 10),
-        _buildActivityItem(
+        buildActivityItem(
           icon: Icons.task_alt_rounded,
           title: 'Report resolved',
           subtitle: 'Overflowing bin at Main Street fixed',
@@ -461,14 +385,13 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 
-  Widget _buildActivityItem({
+  Widget buildActivityItem({
     required IconData icon,
     required String title,
     required String subtitle,
     required String time,
   }) {
     return Container(
-      // ❌ removed fixed height — let content size naturally
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -484,7 +407,6 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
       ),
       child: Row(
         children: [
-          // Icon bubble
           Container(
             width: 42,
             height: 42,
@@ -535,16 +457,14 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 
-  // ── Tip Card ──────────────────────────────────────────────────
-  Widget _buildTipCard() {
+  Widget buildTipCard() {
     return Container(
-      // ❌ removed fixed height — let content size naturally
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.emerald50, AppColors.teal50],
+          colors: [AppColors.emerald200, AppColors.emerald100],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.emerald200, width: 1),
@@ -564,7 +484,7 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.emerald700,
+              color: AppColors.emerald600,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -604,89 +524,4 @@ class _CitizenHomePageState extends State<CitizenHomePage> {
       ),
     );
   }
-
-  // ── Bottom Navigation ─────────────────────────────────────────
-  Widget _buildBottomNavigation() {
-    final items = [
-      _NavItem(Icons.home_rounded, 'Home'),
-      _NavItem(Icons.report_problem_rounded, 'Report'),
-      _NavItem(Icons.event_rounded, 'Events'),
-      _NavItem(Icons.receipt_long_rounded, 'Requests'),
-      _NavItem(Icons.person_rounded, 'Profile'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final isSelected = i == _selectedNavIndex;
-              return Expanded(
-                child: InkWell(
-                  onTap: () => setState(() => _selectedNavIndex = i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Active indicator bar
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: isSelected ? 32 : 0,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.emerald700
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Icon(
-                        items[i].icon,
-                        color: isSelected
-                            ? AppColors.emerald700
-                            : AppColors.citizenGrey500,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        items[i].label,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppColors.emerald700
-                              : AppColors.citizenGrey500,
-                          fontSize: 11,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Small helper class for nav items
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem(this.icon, this.label);
 }
