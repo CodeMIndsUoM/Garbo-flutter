@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import '../models/route_models.dart';
+import 'package:garbo_swms/data/models/route_model.dart';
 import 'bin_item_widget.dart';
 import 'high_priority_badge.dart';
 

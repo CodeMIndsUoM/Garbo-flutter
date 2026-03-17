@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import '../models/route_models.dart';
+import 'package:garbo_swms/data/models/route_model.dart';
 
 /// Bottom sheet for collecting a bin — report issues, add notes, take photo,
 /// and mark as collected.

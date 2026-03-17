@@ -5,6 +5,7 @@ import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_card.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_filter_chips.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Bins page shown when the "Bins" tab is selected.
 ///
@@ -19,14 +20,13 @@ class BinsPage extends StatefulWidget {
   State<BinsPage> createState() => _BinsPageState();
 }
 
-
-
 class _BinsPageState extends State<BinsPage> {
   String _selectedFilter = 'All';
   String _searchQuery = '';
   final ApiService _apiService = ApiService();
   bool _isLoading = true;
   String? _error;
+  String _empId = '';
 
   // Use empty list initially
   List<BinModel> _bins = [];
@@ -34,7 +34,20 @@ class _BinsPageState extends State<BinsPage> {
   @override
   void initState() {
     super.initState();
-    _fetchBins();
+    _loadEmpIdAndFetch();
+  }
+
+  Future<void> _loadEmpIdAndFetch() async {
+    final prefs = await SharedPreferences.getInstance();
+    _empId = prefs.getString('empId') ?? '';
+    if (_empId.isEmpty) {
+      setState(() {
+        _error = 'No employee ID found. Please log in again.';
+        _isLoading = false;
+      });
+      return;
+    }
+    await _fetchBins();
   }
 
   Future<void> _fetchBins() async {
@@ -43,8 +56,7 @@ class _BinsPageState extends State<BinsPage> {
       _error = null;
     });
     try {
-      // Hardcoded empId for demo (Sasindu)
-      final bins = await _apiService.getAssignedBins("3");
+      final bins = await _apiService.getAssignedBins(_empId);
       setState(() {
         _bins = bins;
         _isLoading = false;
@@ -79,18 +91,24 @@ class _BinsPageState extends State<BinsPage> {
     // Apply search
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      bins = bins.where((b) =>
-          b.location.toLowerCase().contains(q) ||
-          b.id.toLowerCase().contains(q) ||
-          b.address.toLowerCase().contains(q)).toList();
+      bins = bins
+          .where(
+            (b) =>
+                b.location.toLowerCase().contains(q) ||
+                b.id.toLowerCase().contains(q) ||
+                b.address.toLowerCase().contains(q),
+          )
+          .toList();
     }
 
     // Sort so 'Not Checked' bins appear at the top
     bins.sort((a, b) {
-      if (a.status == BinStatus.notChecked && b.status != BinStatus.notChecked) {
+      if (a.status == BinStatus.notChecked &&
+          b.status != BinStatus.notChecked) {
         return -1;
       }
-      if (a.status != BinStatus.notChecked && b.status == BinStatus.notChecked) {
+      if (a.status != BinStatus.notChecked &&
+          b.status == BinStatus.notChecked) {
         return 1;
       }
       return 0; // Maintain natural ordering for the rest
@@ -100,24 +118,24 @@ class _BinsPageState extends State<BinsPage> {
   }
 
   List<BinFilterItem> get _filterItems => [
-        BinFilterItem(label: 'All', count: _bins.length),
-        BinFilterItem(
-          label: 'Not Checked',
-          count: _bins.where((b) => b.status == BinStatus.notChecked).length,
-        ),
-        BinFilterItem(
-          label: 'Full',
-          count: _bins.where((b) => b.status == BinStatus.full).length,
-        ),
-        BinFilterItem(
-          label: 'Half',
-          count: _bins.where((b) => b.status == BinStatus.half).length,
-        ),
-        BinFilterItem(
-          label: 'Empty',
-          count: _bins.where((b) => b.status == BinStatus.empty).length,
-        ),
-      ];
+    BinFilterItem(label: 'All', count: _bins.length),
+    BinFilterItem(
+      label: 'Not Checked',
+      count: _bins.where((b) => b.status == BinStatus.notChecked).length,
+    ),
+    BinFilterItem(
+      label: 'Full',
+      count: _bins.where((b) => b.status == BinStatus.full).length,
+    ),
+    BinFilterItem(
+      label: 'Half',
+      count: _bins.where((b) => b.status == BinStatus.half).length,
+    ),
+    BinFilterItem(
+      label: 'Empty',
+      count: _bins.where((b) => b.status == BinStatus.empty).length,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +148,10 @@ class _BinsPageState extends State<BinsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error loading bins: $_error', style: const TextStyle(color: Colors.red)),
+            Text(
+              'Error loading bins: $_error',
+              style: const TextStyle(color: Colors.red),
+            ),
             ElevatedButton(onPressed: _fetchBins, child: const Text('Retry')),
           ],
         ),
@@ -178,20 +199,20 @@ class _BinsPageState extends State<BinsPage> {
                       : SliverPadding(
                           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                           sliver: SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                final bin = _filteredBins[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: BinCard(
-                                    bin: bin,
-                                    onReport: () => _handleReport(bin),
-                                    onUndo: () => _handleUndo(bin),
-                                  ),
-                                );
-                              },
-                              childCount: _filteredBins.length,
-                            ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final bin = _filteredBins[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: BinCard(
+                                  bin: bin,
+                                  onReport: () => _handleReport(bin),
+                                  onUndo: () => _handleUndo(bin),
+                                ),
+                              );
+                            }, childCount: _filteredBins.length),
                           ),
                         ),
                 ],
@@ -269,10 +290,7 @@ class _BinsPageState extends State<BinsPage> {
   Future<void> _handleReport(BinModel bin) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ReportBinPage(
-          bin: bin,
-          empId: "3", // Hardcoded for demo
-        ),
+        builder: (context) => ReportBinPage(bin: bin, empId: _empId),
       ),
     );
 
@@ -294,13 +312,18 @@ class _BinsPageState extends State<BinsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.grey600)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.grey600),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.green700,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Undo', style: TextStyle(color: Colors.white)),
           ),
@@ -312,7 +335,7 @@ class _BinsPageState extends State<BinsPage> {
 
     setState(() => _isLoading = true);
     try {
-      final success = await _apiService.undoBinReport("3", bin.id);
+      final success = await _apiService.undoBinReport(_empId, bin.id);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

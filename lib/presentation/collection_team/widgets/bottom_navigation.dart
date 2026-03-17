@@ -1,5 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/map.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/profile.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
+
+class CollectionTeamBottomNav extends StatelessWidget {
+  final int currentIndex;
+
+  const CollectionTeamBottomNav({super.key, required this.currentIndex});
+
+  static const _items = [
+    NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+    NavItem(icon: Icons.route_rounded, label: 'Routes'),
+    NavItem(icon: Icons.map_rounded, label: 'Map'),
+    NavItem(icon: Icons.person_rounded, label: 'Profile'),
+  ];
+
+  void _onTap(BuildContext context, int index) {
+    if (index == currentIndex) return; 
+
+    final pages = <int, Widget>{
+      0: const CollectionTeamDashboard(),
+      1: const CollectionTeamRoutes(),
+      2: const CollectionTeamMap(),
+      3: const CollectionTeamProfile(),
+    };
+
+    final page = pages[index];
+    if (page != null) {
+      Navigator.of(context).pushReplacement(SmoothPageRoute(page: page));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ProfessionalBottomNavigation(
+      currentIndex: currentIndex,
+      items: _items,
+      activeColor: AppColors.green700,
+      inactiveColor: AppColors.grey500,
+      onTap: (index) => _onTap(context, index),
+    );
+  }
+}
+
+class NavItem {
+  final IconData icon;
+  final String label;
+
+  const NavItem({required this.icon, required this.label});
+}
+
+class SmoothPageRoute<T> extends PageRouteBuilder<T> {
+  final Widget page;
+
+  SmoothPageRoute({required this.page})
+    : super(
+        pageBuilder: (context, animation, secondaryAnimation) => page,
+        transitionDuration: const Duration(milliseconds: 350),
+        reverseTransitionDuration: const Duration(milliseconds: 350),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: const Cubic(0.22, 1, 0.36, 1),
+            ),
+            child: child,
+          );
+        },
+      );
+}
 
 class ProfessionalBottomNavigation extends StatefulWidget {
   final int currentIndex;
@@ -32,14 +103,12 @@ class _ProfessionalBottomNavigationState
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
 
-  // Custom ease-out cubic curve (0.22, 1, 0.36, 1)
   static const Curve _easeOutCubic = Cubic(0.22, 1, 0.36, 1);
 
   @override
   void initState() {
     super.initState();
 
-    // Scale animation: 150ms
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 150),
       vsync: this,
@@ -72,7 +141,6 @@ class _ProfessionalBottomNavigationState
   }
 
   void _animateToIndex(int newIndex) {
-    // Start scale animation with 60ms delay
     Future.delayed(const Duration(milliseconds: 60), () {
       if (mounted) {
         _scaleController.forward(from: 0);
@@ -173,7 +241,6 @@ class _NavItemWidgetState extends State<_NavItemWidget>
   void didUpdateWidget(_NavItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isSelected != widget.isSelected) {
-      // Start opacity transition with 40ms delay
       Future.delayed(const Duration(milliseconds: 40), () {
         if (mounted) {
           if (widget.isSelected) {
@@ -211,7 +278,6 @@ class _NavItemWidgetState extends State<_NavItemWidget>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon — 24×24
                 Opacity(
                   opacity: widget.isSelected
                       ? opacity
@@ -225,7 +291,6 @@ class _NavItemWidgetState extends State<_NavItemWidget>
                   ),
                 ),
                 const SizedBox(height: 3),
-                // Active dot indicator — 4×4px, green700
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
                   curve: const Cubic(0.22, 1, 0.36, 1),
@@ -245,7 +310,6 @@ class _NavItemWidgetState extends State<_NavItemWidget>
                   ),
                 ),
                 const SizedBox(height: 2),
-                // Label — 11px
                 Opacity(
                   opacity: widget.isSelected
                       ? opacity
@@ -271,33 +335,4 @@ class _NavItemWidgetState extends State<_NavItemWidget>
       ),
     );
   }
-}
-
-/// Navigation item data model
-class NavItem {
-  final IconData icon;
-  final String label;
-
-  const NavItem({required this.icon, required this.label});
-}
-
-/// Simple dissolve page transition for navigation
-class SmoothPageRoute<T> extends PageRouteBuilder<T> {
-  final Widget page;
-
-  SmoothPageRoute({required this.page})
-    : super(
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionDuration: const Duration(milliseconds: 350),
-        reverseTransitionDuration: const Duration(milliseconds: 350),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: const Cubic(0.22, 1, 0.36, 1),
-            ),
-            child: child,
-          );
-        },
-      );
 }
