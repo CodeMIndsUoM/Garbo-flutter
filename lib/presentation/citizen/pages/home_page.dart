@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 
 class CitizenHomePage extends StatefulWidget {
@@ -232,28 +233,28 @@ class CitizenHomePageState extends State<CitizenHomePage> {
               icon: Icons.report_problem_rounded,
               title: 'Report Issue',
               subtitle: 'File a complaint',
-              routeName: '/citizen/report',
+              routeName: AppRouter.citizenReport,
               hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.local_shipping_rounded,
               title: 'Request Pickup',
               subtitle: 'Schedule collection',
-              routeName: '/citizen/request',
+              routeName: AppRouter.citizenRequest,
               hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.event_rounded,
               title: 'Browse Events',
               subtitle: 'Join community',
-              routeName: '/citizen/events',
+              routeName: AppRouter.citizenEvents,
               hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.bar_chart_rounded,
               title: 'My Activity',
               subtitle: 'Track progress',
-              routeName: '/citizen/profile',
+              routeName: AppRouter.citizenProfile,
               hasGradient: true,
             ),
           ],

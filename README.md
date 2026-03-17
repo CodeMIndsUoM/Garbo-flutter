@@ -1,62 +1,92 @@
-# garbo_swms
+# Garbo SWMS
 
-A new Flutter project.
+Smart Waste Management System — A Flutter mobile application for managing urban waste collection across multiple user roles.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK (3.x or later)
+- Dart SDK
+- Android Studio / Xcode for emulator
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Run the App
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run
+```
 
+## Project Structure
 
+```
 lib/
-├── main.dart                 # App entry point & dependency injection setup [cite: 38]
-├── app.dart                  # Role-based routing logic (Admin, Staff, Citizen) 
+├── main.dart                    # App entry point & dependency injection setup
+├── app.dart                     # Role-based routing logic (Admin, Staff, Citizen)
 │
-├── core/                     # Cross-cutting concerns
-│   ├── constants/            # API endpoints & asset paths [cite: 30, 216]
-│   ├── theme/                # Global styles & multi-lingual configs [cite: 32, 53]
-│   ├── utils/                # Formatters & Permission handlers (GPS/Camera) [cite: 128]
-│   └── errors/               # Custom Failure objects for API/GPS errors
+├── core/                        # Cross-cutting concerns
+│   ├── constants/               # API endpoints & asset paths
+│   ├── theme/                   # Global styles & color palette
+│   ├── router/                  # App routing configuration
+│   ├── utils/                   # Formatters & permission handlers (GPS/Camera)
+│   └── errors/                  # Custom failure objects for API/GPS errors
 │
-├── data/                     # INFRASTRUCTURE LAYER (External Communication)
-│   ├── sources/              # Remote & Local Data Providers
-│   │   ├── api_service.dart  # REST client for Spring Boot (Dio/Http) [cite: 141, 143]
-│   │   ├── storage_service.dart# AWS S3 / GCS Upload logic for photos [cite: 173, 176]
-│   │   ├── location_service.dart# Streams from Phone GPS hardware [cite: 28, 227]
-│   │   └── local_db.dart     # SQLite/Hive for offline data caching [cite: 130]
-│   ├── models/               # DTOs (Data Transfer Objects) [cite: 45]
-│   │   ├── bin_model.dart    # Maps JSON from backend to Dart objects
-│   │   └── route_model.dart  # Maps Google Maps/OR-Tools polyline data [cite: 161, 167]
-│   └── repositories/         # Implementation of domain repository interfaces
+├── data/                        # INFRASTRUCTURE LAYER (External Communication)
+│   ├── sources/                 # Remote & local data providers
+│   │   ├── api_service.dart     # REST client for Spring Boot (Dio/Http)
+│   │   ├── storage_service.dart # Cloud storage upload logic for photos
+│   │   ├── location_service.dart# GPS hardware streams
+│   │   └── local_db.dart        # SQLite/Hive for offline data caching
+│   ├── models/                  # DTOs (Data Transfer Objects)
+│   │   ├── bin_model.dart       # Maps JSON from backend to Dart objects
+│   │   └── route_model.dart     # Maps polyline/route data
+│   └── repositories/            # Implementation of domain repository interfaces
 │
-├── domain/                   # LOGIC LAYER (Pure Dart)
-│   ├── entities/             # Core business objects (Bin, Task, Feedback) [cite: 43]
-│   ├── repositories/         # Abstract contracts (Interfaces)
-│   └── usecases/             # Specific business actions
-│       ├── update_bin_status.dart # Logic for "Fill Level + Photo + GPS" [cite: 49, 188]
-│       ├── get_optimized_route.dart # Logic for "Dijkstra/A* pathing" [cite: 30, 190]
-│       └── submit_feedback.dart # Citizen reporting logic [cite: 220]
+├── domain/                      # LOGIC LAYER (Pure Dart)
+│   ├── entities/                # Core business objects (Bin, Task, Feedback)
+│   ├── repositories/            # Abstract contracts (interfaces)
+│   └── usecases/                # Specific business actions
+│       ├── update_bin_status.dart    # Fill level + photo + GPS logic
+│       ├── get_optimized_route.dart  # Route optimization logic
+│       └── submit_feedback.dart     # Citizen reporting logic
 │
-├── presentation/             # UI LAYER (Organized by User Roles) [cite: 218]
-│   ├── auth/                 # Screens for Authentication
-│   │   ├── pages/            # LoginPage, RegisterPage, ForgotPasswordPage
-│   │   └── state/            # Auth state management logic
-│   ├── field_staff/          # Screens for Bin Monitoring [cite: 218]
-│   │   ├── pages/            # BinCapturePage, StaffDashboard
-│   │   └── state/            # BLoC/Riverpod logic for staff tasks
-│   ├── collection_team/      # Screens for Route Execution [cite: 219]
-│   │   ├── pages/            # MapNavigationPage, TaskCompletePage
-│   │   ├── state/            # Map/GPS state management logic
-│   │   └── widgets/          # Collection-team-specific widgets (RouteCard, BinItem, etc.)
-│   ├── citizen/              # Screens for Feedback Portal [cite: 220]
-│   │   ├── pages/            # ComplaintFormPage, StatusTrackerPage
-│   │   └── state/            # Feedback submission state
-│   └── widgets/              # Reusable UI (Custom Buttons, Cards, Loaders)
+└── presentation/                # UI LAYER (Organized by User Roles)
+    ├── auth/                    # Authentication screens
+    │   └── pages/               # Login, Register, Forgot Password
+    ├── field_staff/             # Bin monitoring & field operations
+    │   ├── dashboard/           # Dashboard feature
+    │   │   ├── dashboard_page.dart
+    │   │   └── widgets/         # PerformanceGrid, BinListSection, etc.
+    │   ├── bins/                # Bins management feature
+    │   │   ├── bins_page.dart
+    │   │   ├── models/          # BinModel & enums
+    │   │   └── widgets/         # BinCard, BinFilterChips
+    │   ├── shared/              # Shared across tabs
+    │   │   ├── stat_header.dart
+    │   │   └── field_bottom_navigation.dart
+    │   └── state/               # State management logic
+    ├── collection_team/         # Route execution screens
+    │   ├── pages/               # MapNavigationPage, TaskCompletePage
+    │   └── state/               # Map/GPS state management
+    ├── citizen/                 # Feedback portal screens
+    │   ├── pages/               # ComplaintFormPage, StatusTrackerPage
+    │   └── state/               # Feedback submission state
+    ├── third_party_collector/   # Third-party collector screens
+    └── widgets/                 # Reusable UI components
+```
+
+## Architecture
+
+The project follows **Clean Architecture** with three layers:
+
+| Layer | Folder | Responsibility |
+|-------|--------|----------------|
+| **Presentation** | `presentation/` | UI widgets, pages, state management |
+| **Domain** | `domain/` | Business logic, entities, use cases |
+| **Data** | `data/` | API calls, local storage, DTOs |
+
+## Resources
+
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter Cookbook](https://docs.flutter.dev/cookbook)

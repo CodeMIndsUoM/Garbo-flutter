@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 
 class CitizenSettingsPage extends StatefulWidget {
@@ -46,7 +47,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
           backgroundColor: AppColors.blue50,
           iconColor: AppColors.blue600,
           onTap: () {
-            Navigator.pushNamed(context, '/citizen/profile');
+            Navigator.pushNamed(context, AppRouter.citizenProfile);
           },
         ),
         const SizedBox(height: 12),

@@ -11,6 +11,7 @@ abstract final class AppColors {
   static const Color emerald100 = Color(0xFFD1FAE5);
   static const Color emerald200 = Color(0xFFA7F3D0);
   static const Color emeraldLight = Color(0xFFDCFCE7);
+  static const Color emerald500 = Color(0xFF10B981);
   static const Color emerald600 = Color(0xFF059669);
   static const Color emerald700 = Color(0xFF047857);
   static const Color emerald800 = Color(0xFF065F46);
@@ -42,11 +43,13 @@ abstract final class AppColors {
   // Purples
   static const Color purple50 = Color(0xFFF3E8FF);
   static const Color purple100 = Color(0xFFE9D5FF);
+  static const Color purple200 = Color(0xFFD8B4FE);
   static const Color purple600 = Color(0xFF9810FA);
 
-  // Yellows
+  // Yellows / Amber
   static const Color yellow = Color(0xFFFEF9C2);
   static const Color yellowOrange = Color(0xFFFFEDD4);
+  static const Color amber600 = Color(0xFFD97706);
 
   // Neutrals
   static const Color grey50 = Color(0xFFF9FAFB);
@@ -69,6 +72,7 @@ abstract final class AppColors {
   static const Color white80 = Color(0xCCFFFFFF);
   static const Color white70 = Color(0xB3FFFFFF);
   static const Color white20 = Color(0x33FFFFFF);
+  static const Color white10 = Color(0x1AFFFFFF);
 }
 
 typedef DesignTokens = AppColors;
