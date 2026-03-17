@@ -51,6 +51,8 @@ lib/
 │       └── submit_feedback.dart     # Citizen reporting logic
 │
 └── presentation/                # UI LAYER (Organized by User Roles)
+    ├── auth/                    # Authentication screens
+    │   └── pages/               # Login, Register, Forgot Password
     ├── field_staff/             # Bin monitoring & field operations
     │   ├── dashboard/           # Dashboard feature
     │   │   ├── dashboard_page.dart
@@ -69,6 +71,7 @@ lib/
     ├── citizen/                 # Feedback portal screens
     │   ├── pages/               # ComplaintFormPage, StatusTrackerPage
     │   └── state/               # Feedback submission state
+    ├── third_party_collector/   # Third-party collector screens
     └── widgets/                 # Reusable UI components
 ```
 

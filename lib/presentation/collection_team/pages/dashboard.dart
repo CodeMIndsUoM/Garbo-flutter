@@ -1,39 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/presentation/collection_team/pages/routes_page.dart';
-import 'package:garbo_swms/presentation/collection_team/widgets/professional_bottom_navigation.dart';
-
+import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
+import 'package:garbo_swms/presentation/collection_team/widgets/header.dart';
+import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
 class CollectionTeamDashboard extends StatefulWidget {
   const CollectionTeamDashboard({super.key});
 
   @override
   State<CollectionTeamDashboard> createState() =>
-      _CollectionTeamDashboardState();
+      CollectionTeamDashboardState();
 }
-
-class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
-  int _selectedNavIndex = 0;
-
+class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          _buildHeader(),
+          Header(),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLevelCard(),
+                  buildLevelCard(),
                   const SizedBox(height: 24),
-                  _buildTodaysPerformance(),
+                  buildTodaysPerformance(),
                   const SizedBox(height: 24),
-                  _buildTodaysRoutes(),
+                  buildTodaysRoutes(),
                   const SizedBox(height: 24),
-                  _buildRecentAchievements(),
+                  buildRecentAchievements(),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -41,135 +38,13 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: const CollectionTeamBottomNav(currentIndex: 0),
     );
   }
 
-  // ── Header ────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget buildLevelCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
-      decoration: BoxDecoration(
-        color: AppColors.green700,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            offset: const Offset(0, 10),
-            blurRadius: 15,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title row with menu button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Collection Team',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Hello, Thanoj!',
-                      style: TextStyle(
-                        color: AppColors.white90,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(Icons.menu, color: Colors.white, size: 24),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Stats row
-            Row(
-              children: [
-                _buildHeaderStat('0/8', 'Collected', null),
-                const SizedBox(width: 17),
-                _buildHeaderStat('2340', 'Points', Icons.bolt),
-                const SizedBox(width: 17),
-                _buildHeaderStat(
-                  '24',
-                  'Day Streak',
-                  Icons.local_fire_department,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderStat(String value, String label, IconData? icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, color: Colors.white, size: 18),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Level Card ────────────────────────────────────────────────
-  Widget _buildLevelCard() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 21, 20, 12),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -227,7 +102,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '2340 pts',
+                    '1750 pts',
                     style: TextStyle(
                       color: AppColors.blue600,
                       fontSize: 16,
@@ -235,7 +110,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     ),
                   ),
                   Text(
-                    '160 to Level 13',
+                    '750 to Level 13',
                     style: TextStyle(
                       color: AppColors.grey500,
                       fontSize: 11,
@@ -246,12 +121,11 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Progress bar
+          const SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: LinearProgressIndicator(
-              value: 0.87,
+              value: 0.70,
               backgroundColor: Colors.white.withOpacity(0.6),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.blue500,
@@ -264,8 +138,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  // ── Today's Performance ───────────────────────────────────────
-  Widget _buildTodaysPerformance() {
+  Widget buildTodaysPerformance() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -288,7 +161,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            _buildPerformanceCard(
+            buildPerformanceCard(
               icon: Icons.delete_outline_rounded,
               value: '0',
               label: 'Bins Collected',
@@ -297,7 +170,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               iconColor: AppColors.emerald600,
               subtextColor: AppColors.emerald600,
             ),
-            _buildPerformanceCard(
+            buildPerformanceCard(
               icon: Icons.route_rounded,
               value: '0',
               label: 'Routes Done',
@@ -306,7 +179,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               iconColor: AppColors.blue600,
               subtextColor: AppColors.blue600,
             ),
-            _buildPerformanceCard(
+            buildPerformanceCard(
               icon: Icons.trending_up_rounded,
               value: '96%',
               label: 'Efficiency',
@@ -315,7 +188,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               iconColor: AppColors.purple600,
               subtextColor: AppColors.purple600,
             ),
-            _buildPerformanceCard(
+            buildPerformanceCard(
               icon: Icons.bolt_rounded,
               value: '+340',
               label: 'Points Today',
@@ -330,7 +203,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  Widget _buildPerformanceCard({
+  Widget buildPerformanceCard({
     required IconData icon,
     required String value,
     required String label,
@@ -340,10 +213,10 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required Color subtextColor,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 14, 10, 14),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey100, width: 1.27),
         boxShadow: [
           BoxShadow(
@@ -413,8 +286,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  // ── Today's Routes ────────────────────────────────────────────
-  Widget _buildTodaysRoutes() {
+  Widget buildTodaysRoutes() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -433,7 +305,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildRouteCard(
+        buildRouteCard(
           priority: 'HIGH PRIORITY',
           priorityColor: AppColors.red500,
           priorityBg: AppColors.red100,
@@ -441,8 +313,8 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           details: '5 bins • 8.5 km • 45 mins',
           gradientColors: const [AppColors.red50, AppColors.orange50],
         ),
-        const SizedBox(height: 12),
-        _buildRouteCard(
+        const SizedBox(height: 16),
+        buildRouteCard(
           priority: 'PENDING',
           priorityColor: AppColors.grey700,
           priorityBg: AppColors.grey200,
@@ -454,7 +326,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  Widget _buildRouteCard({
+  Widget buildRouteCard({
     required String priority,
     required Color priorityColor,
     required Color priorityBg,
@@ -463,7 +335,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     List<Color>? gradientColors,
   }) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 17, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
         gradient: gradientColors != null
             ? LinearGradient(
@@ -482,7 +354,6 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Priority badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
@@ -517,18 +388,13 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             ),
           ),
           const SizedBox(height: 12),
-          // Start Route button
           SizedBox(
             width: double.infinity,
             height: 45,
             child: ElevatedButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Route navigation — coming soon'),
-                    duration: Duration(seconds: 1),
-                    backgroundColor: AppColors.green700,
-                  ),
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const CollectionTeamRoutes()),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -557,8 +423,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  // ── Recent Achievements ───────────────────────────────────────
-  Widget _buildRecentAchievements() {
+  Widget buildRecentAchievements() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -581,19 +446,19 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildAchievementItem(
+        buildAchievementItem(
           icon: Icons.flash_on_rounded,
           title: 'Speed Demon',
           timeAgo: 'Earned 2 days ago',
         ),
-        const SizedBox(height: 8),
-        _buildAchievementItem(
+        const SizedBox(height: 12),
+        buildAchievementItem(
           icon: Icons.star_rounded,
           title: 'Perfect Week',
           timeAgo: 'Earned 1 week ago',
         ),
-        const SizedBox(height: 8),
-        _buildAchievementItem(
+        const SizedBox(height: 12),
+        buildAchievementItem(
           icon: Icons.wb_sunny_rounded,
           title: 'Early Bird',
           timeAgo: 'Earned 3 days ago',
@@ -602,7 +467,7 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
   }
 
-  Widget _buildAchievementItem({
+  Widget buildAchievementItem({
     required IconData icon,
     required String title,
     required String timeAgo,
@@ -668,33 +533,6 @@ class _CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           ),
         ],
       ),
-    );
-  }
-
-  // ── Bottom Navigation ─────────────────────────────────────────
-  Widget _buildBottomNavigation() {
-    final items = [
-      const NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-      const NavItem(icon: Icons.route_rounded, label: 'Routes'),
-      const NavItem(icon: Icons.map_rounded, label: 'Map'),
-      const NavItem(icon: Icons.person_rounded, label: 'Profile'),
-    ];
-
-    return ProfessionalBottomNavigation(
-      currentIndex: _selectedNavIndex,
-      items: items,
-      activeColor: AppColors.green700,
-      inactiveColor: AppColors.grey500,
-      onTap: (index) {
-        if (index == 1) {
-          // Navigate to Routes
-          Navigator.of(context).pushReplacement(
-            SmoothPageRoute(page: const CollectionTeamRoutes()),
-          );
-        } else {
-          setState(() => _selectedNavIndex = index);
-        }
-      },
     );
   }
 }

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/settings.dart';
 
-/// The green header bar with title, greeting, and stats row.
-class RoutesHeader extends StatelessWidget {
-  const RoutesHeader({super.key});
+class Header extends StatelessWidget {
+  const Header({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       decoration: BoxDecoration(
-        color: DesignTokens.green700,
+        color: AppColors.green700,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColors.grey500.withOpacity(0.4),
             offset: const Offset(0, 10),
             blurRadius: 15,
           ),
@@ -25,14 +25,13 @@ class RoutesHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title row with menu button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
+                const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Collection Team',
                       style: TextStyle(
                         color: Colors.white,
@@ -41,40 +40,46 @@ class RoutesHeader extends StatelessWidget {
                         height: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      'Hello, Thanoj!',
+                      'Hello, Mike !',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppColors.white90,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
                 ),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                    );
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.menu, color: Colors.white, size: 24),
                   ),
-                  child: const Icon(Icons.menu, color: Colors.white, size: 24),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            // Stats row
             Row(
               children: [
-                _HeaderStat(value: '0/8', label: 'Collected'),
+                HeaderStat('0/8', 'Collected', null),
                 const SizedBox(width: 17),
-                _HeaderStat(value: '2340', label: 'Points', icon: Icons.bolt),
+                HeaderStat('2340', 'Points', Icons.bolt),
                 const SizedBox(width: 17),
-                _HeaderStat(
-                  value: '24',
-                  label: 'Day Streak',
-                  icon: Icons.local_fire_department,
+                HeaderStat(
+                  '24',
+                  'Day Streak',
+                  Icons.local_fire_department,
                 ),
               ],
             ),
@@ -85,22 +90,25 @@ class RoutesHeader extends StatelessWidget {
   }
 }
 
-/// A single stat pill in the header.
-class _HeaderStat extends StatelessWidget {
+class HeaderStat extends StatelessWidget {
   final String value;
   final String label;
   final IconData? icon;
 
-  const _HeaderStat({required this.value, required this.label, this.icon});
+  const HeaderStat(this.value, this.label, this.icon);
 
   @override
   Widget build(BuildContext context) {
+    return buildHeaderStat(value, label, icon);
+  }
+
+  Widget buildHeaderStat(String value, String label, IconData? icon) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           children: [

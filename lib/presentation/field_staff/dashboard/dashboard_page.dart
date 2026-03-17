@@ -11,6 +11,7 @@ import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
 
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -24,20 +25,33 @@ class _DashboardState extends State<Dashboard> {
   final ApiService _apiService = ApiService();
   List<BinModel> _bins = [];
   String _userName = 'Field Staff';
+  String _empId = '';
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchDashboardData();
+    _loadEmpIdAndFetch();
+  }
+
+  Future<void> _loadEmpIdAndFetch() async {
+    final prefs = await SharedPreferences.getInstance();
+    _empId = prefs.getString('empId') ?? '';
+    _userName = prefs.getString('empName') ?? 'Field Staff';
+    if (_empId.isEmpty) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      return;
+    }
+    await _fetchDashboardData();
   }
 
   Future<void> _fetchDashboardData() async {
     try {
-      // Fetching data for empId 3 (Sasindu)
-      final bins = await _apiService.getAssignedBins("3");
-      final name = await _apiService.getFieldMentorName("3");
-      
+      final bins = await _apiService.getAssignedBins(_empId);
+      final name = await _apiService.getFieldMentorName(_empId);
+
       if (mounted) {
         setState(() {
           _bins = bins;
@@ -49,7 +63,6 @@ class _DashboardState extends State<Dashboard> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          // Handle error silently for dashboard or show snackbar
         });
       }
     }
@@ -67,10 +80,7 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _handleReport(BinModel bin) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ReportBinPage(
-          bin: bin,
-          empId: "3", // Hardcoded for demo
-        ),
+        builder: (context) => ReportBinPage(bin: bin, empId: _empId),
       ),
     );
 
@@ -118,22 +128,18 @@ class _DashboardState extends State<Dashboard> {
     }
 
     final int totalBins = _bins.length;
-    final int pendingBins = _bins.where((b) => b.status == BinStatus.notChecked).length;
+    final int pendingBins = _bins
+        .where((b) => b.status == BinStatus.notChecked)
+        .length;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PerformanceGrid(
-            totalBins: totalBins,
-            pendingBins: pendingBins,
-          ),
+          PerformanceGrid(totalBins: totalBins, pendingBins: pendingBins),
           const SizedBox(height: 24),
-          BinListSection(
-            bins: _bins,
-            onReport: _handleReport,
-          ),
+          BinListSection(bins: _bins, onReport: _handleReport),
           const AchievementListSection(),
           const SizedBox(height: 80),
         ],
