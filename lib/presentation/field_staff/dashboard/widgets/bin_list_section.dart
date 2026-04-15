@@ -64,7 +64,7 @@ class BinListSection extends StatelessWidget {
         ...pendingBins.map((bin) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: _buildBinItem(bin),
-        )).toList(),
+        )),
         const SizedBox(height: 12),
       ],
     );

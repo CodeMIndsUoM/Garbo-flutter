@@ -14,7 +14,7 @@ class HeaderReduced extends StatelessWidget {
         color: AppColors.green700,
         boxShadow: [
           BoxShadow(
-            color: AppColors.grey500.withOpacity(0.4),
+            color: AppColors.grey500.withValues(alpha: 0.4),
             offset: const Offset(0, 10),
             blurRadius: 15,
           ),
@@ -61,7 +61,7 @@ class HeaderReduced extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(Icons.menu, color: Colors.white, size: 24),

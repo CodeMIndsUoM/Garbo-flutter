@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
-import 'package:garbo_swms/presentation/field_staff/shared/stat_header.dart'; // Just checking if we need imports
+// Just checking if we need imports
 
 class BinDetailsOverlay extends StatelessWidget {
   final BinModel bin;

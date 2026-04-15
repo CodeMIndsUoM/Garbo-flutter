@@ -8,8 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
+  const Login({super.key});
+
   @override
-  _LoginState createState() => _LoginState();
+  State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
@@ -72,7 +74,7 @@ class _LoginState extends State<Login> {
         final prefs = await SharedPreferences.getInstance();
 
         // Debug: print the full response to console
-        print('Login response: $body');
+        debugPrint('Login response: $body');
 
         final empId = body['empId'];
         final empName = body['empName'];
@@ -92,7 +94,7 @@ class _LoginState extends State<Login> {
         await prefs.setString('token', body['token'] ?? '');
         await prefs.setString('role', body['role'] ?? '');
 
-        print('Stored empId: ${prefs.getString('empId')}');
+        debugPrint('Stored empId: ${prefs.getString('empId')}');
 
         // Save credentials if remember me is checked
         await _saveCredentials();

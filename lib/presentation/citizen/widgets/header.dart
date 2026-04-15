@@ -22,7 +22,7 @@ class CitizenHeader extends StatelessWidget {
         color: AppColors.emerald700,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             offset: const Offset(0, 2),
             blurRadius: 4,
           ),
@@ -35,7 +35,7 @@ class CitizenHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${name}',
+                name,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -55,7 +55,7 @@ class CitizenHeader extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.menu, color: Colors.white, size: 22),

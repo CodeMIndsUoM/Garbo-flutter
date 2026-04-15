@@ -126,7 +126,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             borderRadius: BorderRadius.circular(100),
             child: LinearProgressIndicator(
               value: 0.70,
-              backgroundColor: Colors.white.withOpacity(0.6),
+              backgroundColor: Colors.white.withValues(alpha: 0.6),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.blue500,
               ),
@@ -220,7 +220,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         border: Border.all(color: AppColors.grey100, width: 1.27),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 1),
             blurRadius: 3,
           ),
@@ -480,7 +480,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         border: Border.all(color: AppColors.grey100, width: 1.27),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 1),
             blurRadius: 3,
           ),
