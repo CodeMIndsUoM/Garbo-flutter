@@ -14,17 +14,6 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
         fontFamily: 'Arimo',
       ),
-      // Quick switch for UI testing:
-      // AppRouter.login
-      // AppRouter.citizenHome
-      // AppRouter.citizenReport
-      // AppRouter.citizenRequest
-      // AppRouter.citizenEvents
-      // AppRouter.citizenProfile
-      // AppRouter.collectorDashboard
-      // AppRouter.collectorRoutes
-      // AppRouter.fieldStaff
-      // AppRouter.thirdParty
       initialRoute: AppRouter.login,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
