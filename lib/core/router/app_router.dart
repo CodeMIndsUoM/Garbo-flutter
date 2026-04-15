@@ -22,36 +22,73 @@ class AppRouter {
   static const String fieldStaff = '/field-staff';
   static const String thirdParty = '/third-party';
 
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case login:
-        return MaterialPageRoute(builder: (_) => Login());
-      case citizenHome:
-        return MaterialPageRoute(builder: (_) => CitizenHomePage());
-      case citizenReport:
-        return MaterialPageRoute(builder: (_) => CitizenReportPage());
-      case citizenRequest:
-        return MaterialPageRoute(builder: (_) => CitizenRequestPage());
-      case citizenEvents:
-        return MaterialPageRoute(builder: (_) => CitizenPublicEventsPage());
-      case citizenProfile:
-        return MaterialPageRoute(builder: (_) => CitizenProfilePage());
-      case collectorDashboard:
-        return MaterialPageRoute(builder: (_) => CollectionTeamDashboard());
-      case collectorRoutes:
-        return MaterialPageRoute(builder: (_) => CollectionTeamRoutes());
-      case fieldStaff:
-        return MaterialPageRoute(builder: (_) => Dashboard());
-      case thirdParty:
-        return MaterialPageRoute(builder: (_) => ThirdPartyHome());
+  static String? routeForRole(String? rawRole) {
+    final normalizedRole = rawRole?.trim().toUpperCase();
+    if (normalizedRole == null || normalizedRole.isEmpty) {
+      return null;
+    }
+
+    switch (normalizedRole) {
+      case 'ROLE_CITIZEN':
+      case 'CITIZEN':
+        return citizenHome;
+      case 'ROLE_BIN_COLLECTOR':
+      case 'BIN_COLLECTOR':
+      case 'ROLE_COLLECTOR':
+      case 'COLLECTOR':
+        return collectorDashboard;
+      case 'ROLE_FIELD_MENTOR':
+      case 'FIELD_MENTOR':
+      case 'ROLE_FIELD_STAFF':
+      case 'FIELD_STAFF':
+        return fieldStaff;
+      case 'ROLE_THIRD_PARTY_COLLECTOR':
+      case 'THIRD_PARTY_COLLECTOR':
+        return thirdParty;
       default:
-        return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-              child: Text('No route defined for ${settings.name}'),
-            ),
-          ),
+        return null;
+    }
+  }
+
+  static String routeForSession({String? token, String? role}) {
+    if (token == null || token.isEmpty) {
+      return login;
+    }
+
+    return routeForRole(role) ?? login;
+  }
+
+  static Widget pageForRoute(String routeName) {
+    switch (routeName) {
+      case login:
+        return const Login();
+      case citizenHome:
+        return const CitizenHomePage();
+      case citizenReport:
+        return const CitizenReportPage();
+      case citizenRequest:
+        return const CitizenRequestPage();
+      case citizenEvents:
+        return const CitizenPublicEventsPage();
+      case citizenProfile:
+        return const CitizenProfilePage();
+      case collectorDashboard:
+        return const CollectionTeamDashboard();
+      case collectorRoutes:
+        return const CollectionTeamRoutes();
+      case fieldStaff:
+        return const Dashboard();
+      case thirdParty:
+        return const ThirdPartyHome();
+      default:
+        return Scaffold(
+          body: Center(child: Text('No route defined for $routeName')),
         );
     }
+  }
+
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    final routeName = settings.name ?? login;
+    return MaterialPageRoute(builder: (_) => pageForRoute(routeName));
   }
 }

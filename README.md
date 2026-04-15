@@ -17,6 +17,30 @@ flutter pub get
 flutter run
 ```
 
+## Test Login Credentials
+
+These mobile test accounts are intended for shared team login testing.
+
+Important:
+- Start the backend first so the seed data is created.
+- `ROLE_SUPERADMIN` is only for the web dashboard, not the mobile app.
+
+| Mobile Role | Email | Password | Mobile Destination |
+|-------|--------|--------|--------|
+| Citizen | `citizen.test@garbo.com` | `Citizen123` | Citizen home |
+| Collection Team | `collector.test@garbo.com` | `Collector123` | Collection team dashboard |
+| Field Staff | `sasindu@gmail.com` | `Sj1234` | Field staff dashboard |
+| Third-Party Collector | `thirdparty.test@garbo.com` | `ThirdParty123` | Third-party collector home |
+
+### Create Seed Users
+
+Run the backend once to create these accounts automatically:
+
+```bash
+cd ../Garbo_backend
+mvn spring-boot:run
+```
+
 ## Project Structure
 
 ```
