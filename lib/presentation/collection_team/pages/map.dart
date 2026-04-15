@@ -115,7 +115,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -151,7 +151,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blue500.withOpacity(0.4),
+                      color: AppColors.blue500.withValues(alpha: 0.4),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -230,7 +230,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

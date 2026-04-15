@@ -1,4 +1,5 @@
 /// Data models for the Routes feature.
+library;
 
 enum RouteStatus { highPriority, pending, completed }
 
