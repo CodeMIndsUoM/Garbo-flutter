@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 
 class ThirdPartyHome extends StatelessWidget {
   const ThirdPartyHome({super.key});
@@ -6,8 +10,603 @@ class ThirdPartyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Third Party Collector')),
-      body: const Center(child: Text('Third Party Home - Placeholder')),
+      backgroundColor: AppColors.grey50,
+      body: Column(
+        children: [
+          const ThirdPartyHeader(
+            title: 'Home',
+            subtitle: 'Lets gets things done smoothly',
+            notificationCount: 1,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  _buildWelcomeCard(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle("Today's Summary"),
+                  const SizedBox(height: 12),
+                  _buildTodaysImpactCard(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Quick Actions'),
+                  const SizedBox(height: 12),
+                  _buildQuickActions(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Performance Metrics'),
+                  const SizedBox(height: 12),
+                  _buildPerformanceMetrics(),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Recent Collection', big: true),
+                  const SizedBox(height: 12),
+                  ..._recentCollections.map(
+                    (c) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildCollectionCard(c),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 0),
     );
   }
+
+  Widget _buildSectionTitle(String title, {bool big = false}) {
+    return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
+  }
+
+  Widget _buildWelcomeCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.emerald600,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald700.withValues(alpha: 0.15),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+            spreadRadius: -3,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Welcome Back!',
+            style: AppTypography.h1.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ready to make a difference today?',
+            style: AppTypography.bodySm.copyWith(color: AppColors.white90),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(child: _buildStatPill('6', 'Available')),
+              const SizedBox(width: 10),
+              Expanded(child: _buildStatPill('7', 'Active')),
+              const SizedBox(width: 10),
+              Expanded(child: _buildStatPill('122', 'Completed')),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatPill(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.white20,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: AppTypography.displayMd.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTypography.captionSm.copyWith(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodaysImpactCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.emerald600,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald700.withValues(alpha: 0.15),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+            spreadRadius: -3,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Today's Impact",
+                style: AppTypography.displaySm.copyWith(color: Colors.white),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white20,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "4.8 Today's Rating",
+                      style: AppTypography.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(child: _buildImpactTile('1h 20m', 'Working Hours')),
+              const SizedBox(width: 10),
+              Expanded(child: _buildImpactTile('2.01 Kg', 'Waste Collected')),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImpactTile(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white20,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            style: AppTypography.displaySm.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTypography.captionSm.copyWith(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      children: [
+        _buildActionButton(
+          icon: Icons.search_rounded,
+          title: 'Browse Requests',
+          subtitle: '6 available nearby',
+          primary: true,
+          onTap: () {},
+        ),
+        const SizedBox(height: 10),
+        _buildActionButton(
+          icon: Icons.local_offer_outlined,
+          title: 'My Offers',
+          subtitle: '2 pending responses',
+          primary: false,
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool primary,
+    required VoidCallback onTap,
+  }) {
+    final bgColor = primary ? AppColors.emerald600 : Colors.white;
+    final titleColor = primary ? Colors.white : AppColors.emerald500;
+    final subColor = primary ? AppColors.white80 : AppColors.emerald500;
+    final iconBg = primary ? AppColors.white20 : AppColors.emerald50;
+    final iconColor = primary ? Colors.white : AppColors.emerald500;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(14),
+            border: primary
+                ? null
+                : Border.all(color: AppColors.emerald100, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: primary
+                    ? AppColors.emerald700.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 2),
+                blurRadius: primary ? 8 : 6,
+                spreadRadius: -1,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTypography.buttonLg.copyWith(color: titleColor),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: AppTypography.caption.copyWith(color: subColor),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: primary ? Colors.white : AppColors.emerald500,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPerformanceMetrics() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 6,
+            spreadRadius: -1,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildMetricRow(
+            icon: Icons.check_circle_outline_rounded,
+            label: 'Response Rate',
+            value: '98%',
+          ),
+          _buildDivider(),
+          _buildMetricRow(
+            icon: Icons.access_time_rounded,
+            label: 'On-Time Rate',
+            value: '96%',
+          ),
+          _buildDivider(),
+          _buildMetricRow(
+            icon: Icons.star_border_rounded,
+            label: 'Average Rating',
+            value: '4.8 / 5.0',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      color: AppColors.grey100,
+    );
+  }
+
+  Widget _buildMetricRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.emerald500, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: AppTypography.bodySm.copyWith(
+                color: AppColors.emerald500,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: AppTypography.titleLg.copyWith(
+              color: AppColors.emerald500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollectionCard(_Collection c) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            offset: const Offset(0, 2),
+            blurRadius: 6,
+            spreadRadius: -1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCollectionImage(c.imageUrl),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(c.title, style: AppTypography.titleMd),
+                              const SizedBox(height: 2),
+                              Text(c.customer, style: AppTypography.bodySm),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildRatingChip(c.rating),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _buildMetaRow(c),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(height: 1, color: AppColors.grey100),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.format_quote_rounded,
+                size: 14,
+                color: AppColors.grey400,
+              ),
+              const SizedBox(width: 4),
+              Expanded(child: Text(c.quote, style: AppTypography.quote)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollectionImage(String? imageUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: 72,
+        height: 72,
+        color: AppColors.grey100,
+        alignment: Alignment.center,
+        child: imageUrl == null
+            ? const Icon(
+                Icons.image_rounded,
+                color: AppColors.grey300,
+                size: 28,
+              )
+            : Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: 72,
+                height: 72,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.broken_image_rounded,
+                  color: AppColors.grey300,
+                  size: 28,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildRatingChip(double rating) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.yellow,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, color: AppColors.amber600, size: 13),
+          const SizedBox(width: 3),
+          Text(
+            rating.toStringAsFixed(1),
+            style: AppTypography.captionSm.copyWith(
+              color: AppColors.amber600,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetaRow(_Collection c) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 4,
+      children: [
+        _buildMetaItem(Icons.location_on_outlined, c.location),
+        _buildMetaItem(Icons.calendar_today_outlined, c.date),
+        _buildMetaItem(Icons.access_time_rounded, c.time),
+      ],
+    );
+  }
+
+  Widget _buildMetaItem(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: AppColors.grey400, size: 12),
+        const SizedBox(width: 3),
+        Text(text, style: AppTypography.captionSm),
+      ],
+    );
+  }
+
+  static final List<_Collection> _recentCollections = [
+    _Collection(
+      title: 'Plastic Bottles',
+      customer: 'Jennifer Lee',
+      location: 'Eastside',
+      date: 'Dec 5, 2024',
+      time: '3:30 PM',
+      rating: 5.0,
+      quote: 'Very professional and on time!',
+    ),
+    _Collection(
+      title: 'Paper Waste',
+      customer: 'Mark Stevens',
+      location: 'Riverside',
+      date: 'Dec 4, 2024',
+      time: '11:15 AM',
+      rating: 5.0,
+      quote: 'Great service, highly recommend!',
+    ),
+    _Collection(
+      title: 'Electronics',
+      customer: 'Paula Martinez',
+      location: 'Tech District',
+      date: 'Dec 3, 2024',
+      time: '4:45 PM',
+      rating: 4.0,
+      quote: 'Good job, quick pickup.',
+    ),
+    _Collection(
+      title: 'Organic Waste',
+      customer: 'Thomas Clark',
+      location: 'Green Valley',
+      date: 'Dec 2, 2024',
+      time: '10:00 AM',
+      rating: 5.0,
+      quote: 'Excellent and friendly!',
+    ),
+  ];
+}
+
+class _Collection {
+  final String? imageUrl;
+  final String title;
+  final String customer;
+  final String location;
+  final String date;
+  final String time;
+  final double rating;
+  final String quote;
+
+  _Collection({
+    // ignore: unused_element_parameter
+    this.imageUrl,
+    required this.title,
+    required this.customer,
+    required this.location,
+    required this.date,
+    required this.time,
+    required this.rating,
+    required this.quote,
+  });
 }
