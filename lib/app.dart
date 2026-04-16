@@ -21,16 +21,16 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
         fontFamily: 'Arimo',
       ),
-      initialRoute: '/citizen-home',
+      initialRoute: '/collector/dashboard',
       routes: {
         '/login': (context) => Login(),
         '/citizen-home': (context) => CitizenHomePage(),
-        '/citizen/report': (context) => CitizenReportPage(),
-        '/citizen/request': (context) => CitizenRequestPage(),
-        '/citizen/events': (context) => CitizenPublicEventsPage(),
-        '/citizen/profile': (context) => CitizenProfilePage(),
+        // '/citizen/report': (context) => CitizenReportPage(),
+        // '/citizen/request': (context) => CitizenRequestPage(),
+        // '/citizen/events': (context) => CitizenPublicEventsPage(),
+        // '/citizen/profile': (context) => CitizenProfilePage(),
         '/collector/dashboard': (context) => CollectionTeamDashboard(),
-        '/collector/routes': (context) => CollectionTeamRoutes(),
+        // '/collector/routes': (context) => CollectionTeamRoutes(),
       },
     );
   }
