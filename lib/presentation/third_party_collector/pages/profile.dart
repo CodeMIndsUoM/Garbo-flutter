@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/app_settings.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
@@ -31,7 +32,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildSettingsCard(context),
                 const SizedBox(height: 16),
-                _buildLogoutButton(),
+                _buildLogoutButton(context),
                 const SizedBox(height: 8),
               ]),
             ),
@@ -435,12 +436,12 @@ class ThirdPartyProfilePage extends StatelessWidget {
 
   // ── Logout Button ────────────────────────────────────────────────────
 
-  Widget _buildLogoutButton() {
+  Widget _buildLogoutButton(BuildContext context) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: () {},
+        onTap: () => _confirmLogout(context),
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -469,6 +470,113 @@ class ThirdPartyProfilePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ── Logout Flow ──────────────────────────────────────────────────────
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.red50,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.red500,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Log out of your account?',
+                textAlign: TextAlign.center,
+                style: AppTypography.h4,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "You'll need to sign in again to access your offers and jobs.",
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySm,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(ctx).pop(false),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            'Cancel',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.buttonMd.copyWith(
+                              color: AppColors.grey700,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Material(
+                      color: AppColors.red500,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(ctx).pop(true),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            'Log Out',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.buttonMd.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Login()),
+        (route) => false,
+      );
+    }
   }
 }
 
