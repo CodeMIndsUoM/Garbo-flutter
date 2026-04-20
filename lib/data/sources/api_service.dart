@@ -198,6 +198,48 @@ class ApiService {
     );
   }
 
+  Future<String> uploadCitizenRequestPhoto({
+    required String citizenId,
+    required String photoPath,
+  }) async {
+    if (citizenId.isEmpty) {
+      throw Exception('Citizen ID is empty. Please log in again.');
+    }
+
+    final file = File(photoPath);
+    if (!await file.exists()) {
+      throw Exception('Selected image file was not found.');
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId/request-photo',
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    final request = http.MultipartRequest('POST', url);
+    if (token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to upload request photo');
+    }
+
+    final data = body['data'] as Map<String, dynamic>? ?? const {};
+    final photoUrl = data['photoUrl']?.toString();
+    if (photoUrl == null || photoUrl.trim().isEmpty) {
+      throw Exception('Backend did not return a photo URL.');
+    }
+    return photoUrl;
+  }
+
   Future<CollectionOfferModel> acceptOffer(int offerId) async {
     return _offerAction(offerId, 'accept');
   }

@@ -63,10 +63,7 @@ class LeafletNavigationPage extends StatelessWidget {
           ),
           Expanded(
             child: FlutterMap(
-              options: MapOptions(
-                initialCenter: point,
-                initialZoom: 15,
-              ),
+              options: MapOptions(initialCenter: point, initialZoom: 15),
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',

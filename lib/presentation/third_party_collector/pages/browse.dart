@@ -314,7 +314,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildIconSlot(wasteType),
+                    _buildIconSlot(wasteType, request.photoUrl),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -391,7 +391,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
   }
 
-  Widget _buildIconSlot(String wasteType) {
+  Widget _buildIconSlot(String wasteType, String? imageUrl) {
     final icon = switch (wasteType) {
       'E WASTE' => Icons.electrical_services_rounded,
       'METAL' => Icons.precision_manufacturing_outlined,
@@ -409,7 +409,16 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
         height: 72,
         color: AppColors.grey100,
         alignment: Alignment.center,
-        child: Icon(icon, color: AppColors.grey500, size: 28),
+        child: imageUrl == null || imageUrl.trim().isEmpty
+            ? Icon(icon, color: AppColors.grey500, size: 28)
+            : Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: 72,
+                height: 72,
+                errorBuilder: (_, __, ___) =>
+                    Icon(icon, color: AppColors.grey500, size: 28),
+              ),
       ),
     );
   }

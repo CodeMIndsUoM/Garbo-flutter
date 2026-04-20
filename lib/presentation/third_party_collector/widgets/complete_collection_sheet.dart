@@ -539,11 +539,16 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             if (_photoPath == null)
               Row(
                 children: [
-                  const Icon(Icons.camera_alt_outlined, color: AppColors.grey500),
+                  const Icon(
+                    Icons.camera_alt_outlined,
+                    color: AppColors.grey500,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Tap to capture photo',
-                    style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
+                    style: AppTypography.bodyMd.copyWith(
+                      color: AppColors.grey600,
+                    ),
                   ),
                 ],
               )
