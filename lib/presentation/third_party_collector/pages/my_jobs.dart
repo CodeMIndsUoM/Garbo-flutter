@@ -101,6 +101,13 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         .toList(growable: false);
   }
 
+  int get _myOffersTotal {
+    return _offerTabs.fold<int>(
+      0,
+      (sum, tab) => sum + _offersByStatus(tab.$1).length,
+    );
+  }
+
   OfferStatus _toSheetStatus(String status) {
     if (status == 'PENDING') return OfferStatus.pending;
     if (status == 'ACCEPTED' || status == 'IN_PROGRESS') {
@@ -345,7 +352,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           Expanded(
             child: _buildTabItem(
               label: 'My Offers',
-              count: _offers.length,
+              count: _myOffersTotal,
               selected: _tab == _TabType.offer,
               onTap: () => setState(() => _tab = _TabType.offer),
             ),

@@ -308,8 +308,7 @@ class ApiService {
     final data = body['data'] as List<dynamic>? ?? const [];
     return data
         .map(
-          (item) =>
-              CollectionOfferModel.fromJson(item as Map<String, dynamic>),
+          (item) => CollectionOfferModel.fromJson(item as Map<String, dynamic>),
         )
         .toList();
   }
@@ -336,8 +335,7 @@ class ApiService {
     final data = body['data'] as List<dynamic>? ?? const [];
     return data
         .map(
-          (item) =>
-              CollectionOfferModel.fromJson(item as Map<String, dynamic>),
+          (item) => CollectionOfferModel.fromJson(item as Map<String, dynamic>),
         )
         .toList();
   }
@@ -363,10 +361,7 @@ class ApiService {
     final response = await client.post(
       url,
       headers: headers,
-      body: json.encode({
-        'reason': reason,
-        'note': note,
-      }),
+      body: json.encode({'reason': reason, 'note': note}),
     );
     final body = json.decode(response.body) as Map<String, dynamic>;
 
