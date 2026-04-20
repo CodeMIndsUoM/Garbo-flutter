@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CompleteCollectionSheet extends StatefulWidget {
   final String title;
@@ -45,6 +48,9 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   final TextEditingController _notes = TextEditingController();
   final FocusNode _weightFocus = FocusNode();
   final FocusNode _notesFocus = FocusNode();
+  final ImagePicker _picker = ImagePicker();
+
+  String? _photoPath;
 
   @override
   void dispose() {
@@ -75,12 +81,27 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       return;
     }
 
+    if (_photoPath == null) {
+      _showSnack('Please attach a completion photo.', isError: true);
+      return;
+    }
+
     Navigator.of(context).pop(
       CompleteCollectionInput(
         weightKg: parsedWeight,
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        photoPath: _photoPath,
       ),
     );
+  }
+
+  Future<void> _pickCompletionPhoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _photoPath = picked.path);
   }
 
   void _showSnack(String message, {bool isError = false}) {
@@ -179,6 +200,10 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                     'Add any observations, conditions, or special notes about the collection',
                                 maxLines: 4,
                               ),
+                              const SizedBox(height: 20),
+                              _buildFieldLabel('Completion Photo'),
+                              const SizedBox(height: 10),
+                              _buildPhotoPicker(),
                               const SizedBox(height: 18),
                               _buildDisclaimer(),
                               const SizedBox(height: 20),
@@ -495,13 +520,60 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       ),
     );
   }
+
+  Widget _buildPhotoPicker() {
+    return InkWell(
+      onTap: _pickCompletionPhoto,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey200, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_photoPath == null)
+              Row(
+                children: [
+                  const Icon(Icons.camera_alt_outlined, color: AppColors.grey500),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Tap to capture photo',
+                    style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
+                  ),
+                ],
+              )
+            else
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_photoPath!),
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class CompleteCollectionInput {
   final double? weightKg;
   final String? notes;
+  final String? photoPath;
 
-  const CompleteCollectionInput({required this.weightKg, required this.notes});
+  const CompleteCollectionInput({
+    required this.weightKg,
+    required this.notes,
+    required this.photoPath,
+  });
 }
 
 class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
