@@ -11,7 +11,8 @@ class SendOfferSheet extends StatefulWidget {
     required String priceUnit,
     required DateTime proposedPickupAt,
     String? messageToCitizen,
-  }) onSubmit;
+  })
+  onSubmit;
 
   const SendOfferSheet({
     super.key,
@@ -31,7 +32,8 @@ class SendOfferSheet extends StatefulWidget {
       required String priceUnit,
       required DateTime proposedPickupAt,
       String? messageToCitizen,
-    }) onSubmit,
+    })
+    onSubmit,
   }) {
     return Navigator.of(context).push<bool>(
       _SendOfferRoute(
@@ -70,7 +72,10 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
 
   bool get _canSubmit {
     final price = double.tryParse(_priceController.text.trim());
-    return !_submitting && price != null && price > 0 && _proposedPickupAt != null;
+    return !_submitting &&
+        price != null &&
+        price > 0 &&
+        _proposedPickupAt != null;
   }
 
   Future<void> _pickDateTime() async {
@@ -175,7 +180,9 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(28),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Color(0x1F000000),
@@ -230,7 +237,10 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                                 const SizedBox(height: 10),
                                 _buildDateTimeButton(),
                                 const SizedBox(height: 20),
-                                _buildFieldLabel('Message to Citizen', optional: true),
+                                _buildFieldLabel(
+                                  'Message to Citizen',
+                                  optional: true,
+                                ),
                                 const SizedBox(height: 10),
                                 _buildNotesField(),
                                 const SizedBox(height: 18),
@@ -392,10 +402,15 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: 'Enter amount (LKR)',
-              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
+              hintStyle: AppTypography.bodyMd.copyWith(
+                color: AppColors.grey400,
+              ),
               prefixText: 'LKR ',
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 14,
+              ),
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -416,7 +431,10 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         child: DropdownButton<String>(
           isExpanded: true,
           value: _priceUnit,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.grey500,
+          ),
           borderRadius: BorderRadius.circular(12),
           items: const [
             DropdownMenuItem(value: 'FIXED', child: Text('Fixed Price')),
@@ -448,13 +466,19 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.schedule_rounded, color: AppColors.emerald600, size: 18),
+            const Icon(
+              Icons.schedule_rounded,
+              color: AppColors.emerald600,
+              size: 18,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 text,
                 style: AppTypography.bodyMd.copyWith(
-                  color: _proposedPickupAt == null ? AppColors.grey400 : AppColors.grey900,
+                  color: _proposedPickupAt == null
+                      ? AppColors.grey400
+                      : AppColors.grey900,
                 ),
               ),
             ),
@@ -488,9 +512,14 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: 'Any extra details for the citizen',
-              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
+              hintStyle: AppTypography.bodyMd.copyWith(
+                color: AppColors.grey400,
+              ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 14,
+              ),
             ),
           ),
         );
@@ -529,7 +558,9 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 'Citizens can compare offers and accept one based on price and timing.',
-                style: AppTypography.captionSm.copyWith(color: AppColors.emerald800),
+                style: AppTypography.captionSm.copyWith(
+                  color: AppColors.emerald800,
+                ),
               ),
             ),
           ),
@@ -576,7 +607,11 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                       ),
                     )
                   else
-                    const Icon(Icons.send_rounded, color: Colors.white, size: 14),
+                    const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                   const SizedBox(width: 10),
                   Text(
                     _submitting ? 'Sending...' : 'Send Offer',

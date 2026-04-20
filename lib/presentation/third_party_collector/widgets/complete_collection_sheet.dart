@@ -63,7 +63,9 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
 
   void _submit() {
     final weightText = _weight.text.trim();
-    final parsedWeight = weightText.isEmpty ? null : double.tryParse(weightText);
+    final parsedWeight = weightText.isEmpty
+        ? null
+        : double.tryParse(weightText);
     if (widget.weightRequired && (parsedWeight == null || parsedWeight <= 0)) {
       _showSnack('Weight is required for this waste type.', isError: true);
       return;
@@ -109,9 +111,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
                       color: Color(0x1F000000),
@@ -146,10 +146,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                           child: _buildHeader(),
                         ),
                         const SizedBox(height: 18),
-                        Container(
-                          height: 1,
-                          color: AppColors.grey100,
-                        ),
+                        Container(height: 1, color: AppColors.grey100),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
                           child: _buildJobCard(),
@@ -220,11 +217,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.check_rounded,
-            color: Colors.white,
-            size: 18,
-          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -508,10 +501,7 @@ class CompleteCollectionInput {
   final double? weightKg;
   final String? notes;
 
-  const CompleteCollectionInput({
-    required this.weightKg,
-    required this.notes,
-  });
+  const CompleteCollectionInput({required this.weightKg, required this.notes});
 }
 
 class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
@@ -535,11 +525,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
           final fade = CurvedAnimation(
             parent: animation,
             curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
-            reverseCurve: const Interval(
-              0.3,
-              1.0,
-              curve: Curves.easeInCubic,
-            ),
+            reverseCurve: const Interval(0.3, 1.0, curve: Curves.easeInCubic),
           );
           return FadeTransition(
             opacity: fade,
@@ -549,10 +535,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
                 end: Offset.zero,
               ).animate(motion),
               child: ScaleTransition(
-                scale: Tween<double>(
-                  begin: 0.97,
-                  end: 1.0,
-                ).animate(motion),
+                scale: Tween<double>(begin: 0.97, end: 1.0).animate(motion),
                 alignment: Alignment.bottomCenter,
                 child: child,
               ),

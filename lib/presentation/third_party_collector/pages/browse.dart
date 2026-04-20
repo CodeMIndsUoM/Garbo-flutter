@@ -83,30 +83,33 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       wasteType: request.wasteType.replaceAll('_', ' '),
       location: request.addressLine,
       preferredTime: _preferredTimeLabel(request),
-      onSubmit: ({
-        required double pricePerUnit,
-        required String priceUnit,
-        required DateTime proposedPickupAt,
-        String? messageToCitizen,
-      }) async {
-        if (_submittingOffer) return;
-        setState(() => _submittingOffer = true);
-        try {
-          await _apiService.sendCollectorOffer(
-            requestId: request.id,
-            payload: {
-              'pricePerUnit': pricePerUnit,
-              'priceUnit': priceUnit,
-              'proposedPickupAt': proposedPickupAt.toUtc().toIso8601String(),
-              'messageToCitizen': messageToCitizen,
-            },
-          );
-        } finally {
-          if (mounted) {
-            setState(() => _submittingOffer = false);
-          }
-        }
-      },
+      onSubmit:
+          ({
+            required double pricePerUnit,
+            required String priceUnit,
+            required DateTime proposedPickupAt,
+            String? messageToCitizen,
+          }) async {
+            if (_submittingOffer) return;
+            setState(() => _submittingOffer = true);
+            try {
+              await _apiService.sendCollectorOffer(
+                requestId: request.id,
+                payload: {
+                  'pricePerUnit': pricePerUnit,
+                  'priceUnit': priceUnit,
+                  'proposedPickupAt': proposedPickupAt
+                      .toUtc()
+                      .toIso8601String(),
+                  'messageToCitizen': messageToCitizen,
+                },
+              );
+            } finally {
+              if (mounted) {
+                setState(() => _submittingOffer = false);
+              }
+            }
+          },
     );
 
     if (sent == true && mounted) {
@@ -119,7 +122,8 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     return _allRequests.where((r) {
       final prettyWasteType = r.wasteType.replaceAll('_', ' ').toLowerCase();
       final matchesFilter =
-          _selectedFilter == 'All' || prettyWasteType == _selectedFilter.toLowerCase();
+          _selectedFilter == 'All' ||
+          prettyWasteType == _selectedFilter.toLowerCase();
       final q = _searchQuery.trim().toLowerCase();
       final matchesQuery =
           q.isEmpty ||
@@ -200,8 +204,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                         ? SliverToBoxAdapter(child: _buildEmptyState())
                         : SliverList.separated(
                             itemCount: results.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
-                            itemBuilder: (_, i) => _buildRequestCard(results[i]),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (_, i) =>
+                                _buildRequestCard(results[i]),
                           ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -234,7 +240,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
             size: 20,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
           isDense: true,
         ),
       ),
@@ -311,7 +320,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('$wasteType Waste', style: AppTypography.titleMd),
+                          Text(
+                            '$wasteType Waste',
+                            style: AppTypography.titleMd,
+                          ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
@@ -323,7 +335,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  request.citizenName.isEmpty ? 'Citizen' : request.citizenName,
+                                  request.citizenName.isEmpty
+                                      ? 'Citizen'
+                                      : request.citizenName,
                                   style: AppTypography.bodySm,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -331,7 +345,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                             ],
                           ),
                           const SizedBox(height: 6),
-                          _buildMetaItem(Icons.location_on_outlined, request.addressLine),
+                          _buildMetaItem(
+                            Icons.location_on_outlined,
+                            request.addressLine,
+                          ),
                           const SizedBox(height: 4),
                           _buildMetaItem(
                             Icons.access_time_rounded,
@@ -360,7 +377,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                     const Spacer(),
                     Text(
                       _submittingOffer ? 'Sending...' : 'Tap to offer',
-                      style: AppTypography.caption.copyWith(color: AppColors.emerald700),
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.emerald700,
+                      ),
                     ),
                   ],
                 ),

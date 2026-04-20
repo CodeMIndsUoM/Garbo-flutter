@@ -51,13 +51,12 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       );
       final requestById = {for (final request in details) request.id: request};
 
-      final rows = completedOffers.map((offer) {
-        final request = requestById[offer.requestId];
-        return _Collection.fromOffer(
-          offer: offer,
-          request: request,
-        );
-      }).toList(growable: false);
+      final rows = completedOffers
+          .map((offer) {
+            final request = requestById[offer.requestId];
+            return _Collection.fromOffer(offer: offer, request: request);
+          })
+          .toList(growable: false);
 
       rows.sort((a, b) => b.sortTime.compareTo(a.sortTime));
 
@@ -121,12 +120,14 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                     else if (_completedCollections.isEmpty)
                       _buildEmptyCompleted()
                     else
-                      ..._completedCollections.take(10).map(
-                        (c) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildCollectionCard(c),
-                        ),
-                      ),
+                      ..._completedCollections
+                          .take(2)
+                          .map(
+                            (c) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildCollectionCard(c),
+                            ),
+                          ),
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -240,7 +241,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 style: AppTypography.displaySm.copyWith(color: Colors.white),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.white20,
                   borderRadius: BorderRadius.circular(20),
@@ -248,7 +252,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       "4.8 Today's Rating",
@@ -549,14 +557,21 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         color: AppColors.grey100,
         alignment: Alignment.center,
         child: imageUrl == null
-            ? const Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
+            ? const Icon(
+                Icons.image_rounded,
+                color: AppColors.grey300,
+                size: 28,
+              )
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image_rounded, color: AppColors.grey300, size: 28),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.broken_image_rounded,
+                  color: AppColors.grey300,
+                  size: 28,
+                ),
               ),
       ),
     );
@@ -638,7 +653,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       ),
     );
   }
-
 }
 
 class _Collection {
