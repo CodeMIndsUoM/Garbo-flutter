@@ -17,6 +17,16 @@ flutter pub get
 flutter run
 ```
 
+### Third-Party Completion Photo Upload
+
+Photo upload is handled by backend multipart API. Flutter does not require Cloudinary Dart defines.
+
+Team workflow:
+
+1. Start backend with Cloudinary environment variables.
+2. Run Flutter app normally.
+3. Complete collection flow will send photo file to backend, and backend uploads to Cloudinary.
+
 ## Test Login Credentials
 
 These mobile test accounts are intended for shared team login testing.
