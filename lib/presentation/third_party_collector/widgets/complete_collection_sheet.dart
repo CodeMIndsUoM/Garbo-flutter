@@ -6,26 +6,30 @@ class CompleteCollectionSheet extends StatefulWidget {
   final String title;
   final String address;
   final String person;
+  final bool weightRequired;
 
   const CompleteCollectionSheet({
     super.key,
     required this.title,
     required this.address,
     required this.person,
+    required this.weightRequired,
   });
 
-  static Future<bool?> show(
+  static Future<CompleteCollectionInput?> show(
     BuildContext context, {
     required String title,
     required String address,
     required String person,
+    required bool weightRequired,
   }) {
-    return Navigator.of(context).push<bool>(
+    return Navigator.of(context).push<CompleteCollectionInput>(
       _CompleteCollectionRoute(
         child: CompleteCollectionSheet(
           title: title,
           address: address,
           person: person,
+          weightRequired: weightRequired,
         ),
       ),
     );
@@ -55,6 +59,35 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length == 1) return parts.first;
     return '${parts.first} ${parts.last.substring(0, 1)}.';
+  }
+
+  void _submit() {
+    final weightText = _weight.text.trim();
+    final parsedWeight = weightText.isEmpty ? null : double.tryParse(weightText);
+    if (widget.weightRequired && (parsedWeight == null || parsedWeight <= 0)) {
+      _showSnack('Weight is required for this waste type.', isError: true);
+      return;
+    }
+    if (weightText.isNotEmpty && (parsedWeight == null || parsedWeight <= 0)) {
+      _showSnack('Weight must be a positive number.', isError: true);
+      return;
+    }
+
+    Navigator.of(context).pop(
+      CompleteCollectionInput(
+        weightKg: parsedWeight,
+        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+      ),
+    );
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+      ),
+    );
   }
 
   @override
@@ -305,7 +338,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ),
           ),
           TextSpan(
-            text: '  (optional)',
+            text: widget.weightRequired ? '  (required)' : '  (optional)',
             style: AppTypography.labelSm.copyWith(color: AppColors.grey400),
           ),
         ],
@@ -433,7 +466,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           color: AppColors.emerald600,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
-            onTap: () => Navigator.of(context).pop(true),
+            onTap: _submit,
             borderRadius: BorderRadius.circular(14),
             splashColor: AppColors.emerald700.withValues(alpha: 0.3),
             highlightColor: AppColors.emerald700.withValues(alpha: 0.15),
@@ -469,6 +502,16 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       ),
     );
   }
+}
+
+class CompleteCollectionInput {
+  final double? weightKg;
+  final String? notes;
+
+  const CompleteCollectionInput({
+    required this.weightKg,
+    required this.notes,
+  });
 }
 
 class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
