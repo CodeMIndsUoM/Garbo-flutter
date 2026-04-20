@@ -47,7 +47,7 @@ class CollectionTeamProfile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.green700.withOpacity(0.3),
+            color: AppColors.green700.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -62,7 +62,7 @@ class CollectionTeamProfile extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
@@ -387,7 +387,7 @@ class CollectionTeamProfile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.green700.withOpacity(0.3)),
+        border: Border.all(color: AppColors.green700.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

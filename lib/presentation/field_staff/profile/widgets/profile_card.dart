@@ -61,7 +61,7 @@ class ProfileCard extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: ShapeDecoration(
-                  color: Colors.white.withOpacity(0.25), // Increased contrast
+                  color: Colors.white.withValues(alpha: 0.25), // Increased contrast
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -146,7 +146,7 @@ class ProfileCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: ShapeDecoration(
-        color: Colors.white.withOpacity(0.15), // Increased contrast
+        color: Colors.white.withValues(alpha: 0.15), // Increased contrast
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),

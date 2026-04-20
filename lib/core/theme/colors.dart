@@ -48,6 +48,7 @@ abstract final class AppColors {
 
   // Yellows / Amber
   static const Color yellow = Color(0xFFFEF9C2);
+  static const Color yellow400 = Color(0xFFFACC15);
   static const Color yellowOrange = Color(0xFFFFEDD4);
   static const Color amber600 = Color(0xFFD97706);
 

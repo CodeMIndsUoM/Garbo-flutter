@@ -1,15 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
-import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/presentation/auth/pages/forgot_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/register.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
+  const Login({super.key});
+
   @override
-  _LoginState createState() => _LoginState();
+  State<Login> createState() => _LoginState();
 }
 
 class _LoginState extends State<Login> {
@@ -72,7 +74,7 @@ class _LoginState extends State<Login> {
         final prefs = await SharedPreferences.getInstance();
 
         // Debug: print the full response to console
-        print('Login response: $body');
+        debugPrint('Login response: $body');
 
         final empId = body['empId'];
         final empName = body['empName'];
@@ -80,7 +82,9 @@ class _LoginState extends State<Login> {
         if (empId == null) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Login failed: no employee ID returned')),
+              const SnackBar(
+                content: Text('Login failed: no employee ID returned'),
+              ),
             );
           }
           return;
@@ -90,17 +94,31 @@ class _LoginState extends State<Login> {
         await prefs.setString('empId', empId.toString());
         await prefs.setString('empName', empName?.toString() ?? '');
         await prefs.setString('token', body['token'] ?? '');
-        await prefs.setString('role', body['role'] ?? '');
+        final role = body['role']?.toString() ?? '';
+        await prefs.setString('role', role);
 
-        print('Stored empId: ${prefs.getString('empId')}');
+        debugPrint('Stored empId: ${prefs.getString('empId')}');
 
         // Save credentials if remember me is checked
         await _saveCredentials();
 
+        final nextRoute = AppRouter.routeForRole(role);
         if (mounted) {
-          Navigator.pushReplacement(
+          if (nextRoute == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'This mobile app does not support the role "$role".',
+                ),
+              ),
+            );
+            return;
+          }
+
+          Navigator.pushNamedAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const Dashboard()),
+            nextRoute,
+            (route) => false,
           );
         }
       } else {
