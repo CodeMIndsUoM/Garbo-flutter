@@ -6,12 +6,19 @@ class SendOfferSheet extends StatefulWidget {
   final String wasteType;
   final String location;
   final String preferredTime;
+  final Future<void> Function({
+    required double pricePerUnit,
+    required String priceUnit,
+    required DateTime proposedPickupAt,
+    String? messageToCitizen,
+  }) onSubmit;
 
   const SendOfferSheet({
     super.key,
     required this.wasteType,
     required this.location,
     required this.preferredTime,
+    required this.onSubmit,
   });
 
   static Future<bool?> show(
@@ -19,6 +26,12 @@ class SendOfferSheet extends StatefulWidget {
     required String wasteType,
     required String location,
     required String preferredTime,
+    required Future<void> Function({
+      required double pricePerUnit,
+      required String priceUnit,
+      required DateTime proposedPickupAt,
+      String? messageToCitizen,
+    }) onSubmit,
   }) {
     return Navigator.of(context).push<bool>(
       _SendOfferRoute(
@@ -26,6 +39,7 @@ class SendOfferSheet extends StatefulWidget {
           wasteType: wasteType,
           location: location,
           preferredTime: preferredTime,
+          onSubmit: onSubmit,
         ),
       ),
     );
@@ -36,22 +50,107 @@ class SendOfferSheet extends StatefulWidget {
 }
 
 class _SendOfferSheetState extends State<SendOfferSheet> {
-  String? _offerType;
-  final TextEditingController _notes = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+  final FocusNode _priceFocus = FocusNode();
   final FocusNode _notesFocus = FocusNode();
 
-  static const List<String> _offerTypes = [
-    'Free Pickup',
-    'Pay by Weight',
-    'Fixed Price',
-    'Exchange / Barter',
-  ];
+  bool _submitting = false;
+  String _priceUnit = 'FIXED';
+  DateTime? _proposedPickupAt;
 
   @override
   void dispose() {
-    _notes.dispose();
+    _priceController.dispose();
+    _notesController.dispose();
+    _priceFocus.dispose();
     _notesFocus.dispose();
     super.dispose();
+  }
+
+  bool get _canSubmit {
+    final price = double.tryParse(_priceController.text.trim());
+    return !_submitting && price != null && price > 0 && _proposedPickupAt != null;
+  }
+
+  Future<void> _pickDateTime() async {
+    final now = DateTime.now();
+    final initialDate = _proposedPickupAt ?? now.add(const Duration(hours: 1));
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 60)),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initialDate),
+    );
+    if (time == null || !mounted) return;
+
+    setState(() {
+      _proposedPickupAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
+  }
+
+  Future<void> _submit() async {
+    final price = double.tryParse(_priceController.text.trim());
+    if (price == null || price <= 0) {
+      _showSnack('Enter a valid price.', isError: true);
+      return;
+    }
+    final pickupAt = _proposedPickupAt;
+    if (pickupAt == null) {
+      _showSnack('Select a pickup date and time.', isError: true);
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await widget.onSubmit(
+        pricePerUnit: price,
+        priceUnit: _priceUnit,
+        proposedPickupAt: pickupAt,
+        messageToCitizen: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack('Could not send offer: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+      ),
+    );
+  }
+
+  String _formatPickup(DateTime dt) {
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $hh:$mm';
   }
 
   @override
@@ -76,9 +175,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     boxShadow: [
                       BoxShadow(
                         color: Color(0x1F000000),
@@ -121,19 +218,19 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                                 const SizedBox(height: 10),
                                 _buildSummaryCard(),
                                 const SizedBox(height: 20),
-                                _buildFieldLabel('Offer Description'),
+                                _buildFieldLabel('Price'),
                                 const SizedBox(height: 10),
-                                _buildDropdown(),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "Be clear and specific about what you're offering",
-                                  style: AppTypography.captionSm,
-                                ),
+                                _buildPriceField(),
+                                const SizedBox(height: 14),
+                                _buildFieldLabel('Price Unit'),
+                                const SizedBox(height: 10),
+                                _buildPriceUnitPicker(),
+                                const SizedBox(height: 14),
+                                _buildFieldLabel('Proposed Pickup Time'),
+                                const SizedBox(height: 10),
+                                _buildDateTimeButton(),
                                 const SizedBox(height: 20),
-                                _buildFieldLabel(
-                                  'Additional Notes',
-                                  optional: true,
-                                ),
+                                _buildFieldLabel('Message to Citizen', optional: true),
                                 const SizedBox(height: 10),
                                 _buildNotesField(),
                                 const SizedBox(height: 18),
@@ -167,7 +264,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               Text('Send Collection Offer', style: AppTypography.h3),
               const SizedBox(height: 2),
               Text(
-                'Propose how you can collect or exchange this waste item',
+                'Submit your price and pickup time for this request',
                 style: AppTypography.bodySm,
               ),
             ],
@@ -219,8 +316,6 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           _buildSummaryRow('Location', widget.location),
           const SizedBox(height: 10),
           _buildSummaryRow('Preferred Time', widget.preferredTime),
-          const SizedBox(height: 14),
-          _buildViewLocationButton(),
         ],
       ),
     );
@@ -251,45 +346,6 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildViewLocationButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 11),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.emerald500, width: 1.2),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.near_me_rounded,
-                  color: AppColors.emerald600,
-                  size: 16,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'View Location',
-                  style: AppTypography.buttonMd.copyWith(
-                    color: AppColors.emerald700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildFieldLabel(String label, {bool optional = false}) {
     return RichText(
       text: TextSpan(
@@ -312,7 +368,43 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildDropdown() {
+  Widget _buildPriceField() {
+    return AnimatedBuilder(
+      animation: _priceFocus,
+      builder: (context, _) {
+        final focused = _priceFocus.hasFocus;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: focused ? AppColors.emerald500 : AppColors.grey200,
+              width: focused ? 1.4 : 1,
+            ),
+          ),
+          child: TextField(
+            controller: _priceController,
+            focusNode: _priceFocus,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            cursorColor: AppColors.emerald600,
+            style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
+            decoration: InputDecoration(
+              hintText: 'Enter amount (LKR)',
+              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
+              prefixText: 'LKR ',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPriceUnitPicker() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -323,32 +415,50 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
-          value: _offerType,
-          hint: Text(
-            'Describe Your Offer',
-            style: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
-          ),
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.grey500,
-          ),
+          value: _priceUnit,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
           borderRadius: BorderRadius.circular(12),
-          dropdownColor: Colors.white,
-          style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-          items: _offerTypes
-              .map(
-                (v) => DropdownMenuItem<String>(
-                  value: v,
-                  child: Text(
-                    v,
-                    style: AppTypography.bodyMd.copyWith(
-                      color: AppColors.grey900,
-                    ),
-                  ),
+          items: const [
+            DropdownMenuItem(value: 'FIXED', child: Text('Fixed Price')),
+            DropdownMenuItem(value: 'PER_KG', child: Text('Per Kilogram')),
+          ],
+          onChanged: (v) {
+            if (v == null) return;
+            setState(() => _priceUnit = v);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateTimeButton() {
+    final text = _proposedPickupAt == null
+        ? 'Select pickup date and time'
+        : _formatPickup(_proposedPickupAt!);
+    return InkWell(
+      onTap: _pickDateTime,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey200, width: 1),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.schedule_rounded, color: AppColors.emerald600, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                text,
+                style: AppTypography.bodyMd.copyWith(
+                  color: _proposedPickupAt == null ? AppColors.grey400 : AppColors.grey900,
                 ),
-              )
-              .toList(),
-          onChanged: (v) => setState(() => _offerType = v),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -369,35 +479,18 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               color: focused ? AppColors.emerald500 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
-            boxShadow: focused
-                ? [
-                    BoxShadow(
-                      color: AppColors.emerald500.withValues(alpha: 0.10),
-                      blurRadius: 0,
-                      spreadRadius: 3,
-                    ),
-                  ]
-                : null,
           ),
           child: TextField(
-            controller: _notes,
+            controller: _notesController,
             focusNode: _notesFocus,
             maxLines: 3,
             cursorColor: AppColors.emerald600,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
-              hintText: 'Add any additional information or special conditions',
-              hintStyle: AppTypography.bodyMd.copyWith(
-                color: AppColors.grey400,
-              ),
+              hintText: 'Any extra details for the citizen',
+              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
               border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             ),
           ),
         );
@@ -435,10 +528,8 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             child: Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(
-                'Offers are reviewed by citizens before confirmation',
-                style: AppTypography.captionSm.copyWith(
-                  color: AppColors.emerald800,
-                ),
+                'Citizens can compare offers and accept one based on price and timing.',
+                style: AppTypography.captionSm.copyWith(color: AppColors.emerald800),
               ),
             ),
           ),
@@ -448,13 +539,12 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
   }
 
   Widget _buildSendButton() {
-    final enabled = _offerType != null;
     return SizedBox(
       width: double.infinity,
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          boxShadow: enabled
+          boxShadow: _canSubmit
               ? [
                   BoxShadow(
                     color: AppColors.emerald600.withValues(alpha: 0.28),
@@ -466,37 +556,30 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               : null,
         ),
         child: Material(
-          color: enabled ? AppColors.emerald600 : AppColors.grey300,
+          color: _canSubmit ? AppColors.emerald600 : AppColors.grey300,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
-            onTap: enabled
-                ? () => Navigator.of(context).pop(true)
-                : null,
+            onTap: _canSubmit ? _submit : null,
             borderRadius: BorderRadius.circular(14),
-            splashColor: AppColors.emerald700.withValues(alpha: 0.3),
-            highlightColor: AppColors.emerald700.withValues(alpha: 0.15),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: const BoxDecoration(
-                      color: AppColors.white20,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 13,
-                    ),
-                  ),
+                  if (_submitting)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  else
+                    const Icon(Icons.send_rounded, color: Colors.white, size: 14),
                   const SizedBox(width: 10),
                   Text(
-                    'Send Offer',
+                    _submitting ? 'Sending...' : 'Send Offer',
                     style: AppTypography.buttonLg.copyWith(color: Colors.white),
                   ),
                 ],
@@ -530,11 +613,7 @@ class _SendOfferRoute<T> extends PageRouteBuilder<T> {
           final fade = CurvedAnimation(
             parent: animation,
             curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
-            reverseCurve: const Interval(
-              0.3,
-              1.0,
-              curve: Curves.easeInCubic,
-            ),
+            reverseCurve: const Interval(0.3, 1.0, curve: Curves.easeInCubic),
           );
           return FadeTransition(
             opacity: fade,
@@ -544,10 +623,7 @@ class _SendOfferRoute<T> extends PageRouteBuilder<T> {
                 end: Offset.zero,
               ).animate(motion),
               child: ScaleTransition(
-                scale: Tween<double>(
-                  begin: 0.97,
-                  end: 1.0,
-                ).animate(motion),
+                scale: Tween<double>(begin: 0.97, end: 1.0).animate(motion),
                 alignment: Alignment.bottomCenter,
                 child: child,
               ),

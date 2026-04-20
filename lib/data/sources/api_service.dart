@@ -219,4 +219,184 @@ class ApiService {
 
     return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
+
+  Future<List<CollectionRequestModel>> getCollectorFeed(
+    String collectorId, {
+    double? lat,
+    double? lng,
+  }) async {
+    if (collectorId.isEmpty) {
+      throw Exception('Collector ID is empty. Please log in again.');
+    }
+
+    final params = <String, String>{};
+    if (lat != null && lng != null) {
+      params['lat'] = lat.toString();
+      params['lng'] = lng.toString();
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/feed',
+    ).replace(queryParameters: params.isEmpty ? null : params);
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load collector feed');
+    }
+
+    final data = body['data'] as List<dynamic>? ?? const [];
+    return data
+        .map(
+          (item) => CollectionRequestModel.fromSummaryJson(
+            item as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+  }
+
+  Future<CollectionOfferModel> sendCollectorOffer({
+    required int requestId,
+    required Map<String, dynamic> payload,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.collectionRequests}/$requestId/offers',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(payload),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 201 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to send offer');
+    }
+
+    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<CollectionOfferModel>> getCollectorOffers(
+    String collectorId, {
+    String? status,
+  }) async {
+    if (collectorId.isEmpty) {
+      throw Exception('Collector ID is empty. Please log in again.');
+    }
+
+    final params = <String, String>{};
+    if (status != null && status.trim().isNotEmpty) {
+      params['status'] = status.trim();
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/my-offers',
+    ).replace(queryParameters: params.isEmpty ? null : params);
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load offers');
+    }
+
+    final data = body['data'] as List<dynamic>? ?? const [];
+    return data
+        .map(
+          (item) =>
+              CollectionOfferModel.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<List<CollectionOfferModel>> getCollectorActiveJobs(
+    String collectorId,
+  ) async {
+    if (collectorId.isEmpty) {
+      throw Exception('Collector ID is empty. Please log in again.');
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/active-jobs',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load active jobs');
+    }
+
+    final data = body['data'] as List<dynamic>? ?? const [];
+    return data
+        .map(
+          (item) =>
+              CollectionOfferModel.fromJson(item as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<CollectionOfferModel> withdrawOffer(int offerId) async {
+    return _offerAction(offerId, 'withdraw');
+  }
+
+  Future<CollectionOfferModel> startOffer(int offerId) async {
+    return _offerAction(offerId, 'start');
+  }
+
+  Future<CollectionOfferModel> cancelOffer({
+    required int offerId,
+    required String reason,
+    String? note,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/cancel',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode({
+        'reason': reason,
+        'note': note,
+      }),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to cancel offer');
+    }
+
+    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  Future<CollectionOfferModel> completeOffer({
+    required int offerId,
+    required Map<String, dynamic> payload,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(payload),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to complete offer');
+    }
+
+    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
 }
