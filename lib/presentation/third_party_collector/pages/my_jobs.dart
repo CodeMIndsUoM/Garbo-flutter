@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -10,6 +12,7 @@ import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_c
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/offer_details_sheet.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum _TabType { offer, active }
 
@@ -22,10 +25,12 @@ class ThirdPartyMyJobsPage extends StatefulWidget {
 
 class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   final ApiService _apiService = ApiService();
+  Timer? _timeTicker;
 
   _TabType _tab = _TabType.offer;
   bool _loading = false;
   String? _collectorId;
+  Set<int> _dismissedOfferIds = <int>{};
 
   List<CollectionOfferModel> _offers = const [];
   List<CollectionOfferModel> _activeJobs = const [];
@@ -40,14 +45,52 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   @override
   void initState() {
     super.initState();
+    _timeTicker = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     _bootstrap();
+  }
+
+  @override
+  void dispose() {
+    _timeTicker?.cancel();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
     final collectorId = await _apiService.getStoredEmpId();
     if (!mounted) return;
     setState(() => _collectorId = collectorId);
+    await _loadDismissedOffers();
     await _loadData();
+  }
+
+  String _dismissedOffersKey(String collectorId) {
+    return 'third_party_collector_${collectorId}_dismissed_offer_ids';
+  }
+
+  Future<void> _loadDismissedOffers() async {
+    final collectorId = _collectorId;
+    if (collectorId == null || collectorId.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_dismissedOffersKey(collectorId)) ??
+        const <String>[];
+    final ids = raw.map(int.tryParse).whereType<int>().toSet();
+    if (!mounted) return;
+    setState(() => _dismissedOfferIds = ids);
+  }
+
+  Future<void> _saveDismissedOffers() async {
+    final collectorId = _collectorId;
+    if (collectorId == null || collectorId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final values = _dismissedOfferIds
+        .map((id) => id.toString())
+        .toList(growable: false);
+    await prefs.setStringList(_dismissedOffersKey(collectorId), values);
   }
 
   Future<void> _loadData() async {
@@ -58,6 +101,15 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     try {
       final offers = await _apiService.getCollectorOffers(collectorId);
       final activeJobs = await _apiService.getCollectorActiveJobs(collectorId);
+
+      // Keep dismissed cache small by dropping ids no longer in collector offers.
+      final offerIds = offers.map((o) => o.id).toSet();
+      final beforePruneCount = _dismissedOfferIds.length;
+      _dismissedOfferIds.removeWhere((id) => !offerIds.contains(id));
+      final hasPruned = _dismissedOfferIds.length != beforePruneCount;
+      if (hasPruned) {
+        await _saveDismissedOffers();
+      }
 
       final requestIds = <int>{
         ...offers.map((o) => o.requestId),
@@ -89,6 +141,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   List<CollectionOfferModel> _offersByStatus(OfferStatus tabStatus) {
     return _offers
         .where((offer) {
+          if (_dismissedOfferIds.contains(offer.id)) {
+            return false;
+          }
           final status = offer.status;
           return switch (tabStatus) {
             OfferStatus.pending => status == 'PENDING',
@@ -127,8 +182,18 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     return '$y-$m-$d $hh:$mm';
   }
 
-  String _postedAgoLabel(DateTime dateTime) {
+  String _postedAgoLabel(DateTime? dateTime) {
+    if (dateTime == null) return 'unknown';
+
     final diff = DateTime.now().difference(dateTime.toLocal());
+    if (diff.isNegative) {
+      final ahead = diff.abs();
+      if (ahead.inMinutes < 1) return 'soon';
+      if (ahead.inHours < 1) return 'in ${ahead.inMinutes} min';
+      if (ahead.inDays < 1) return 'in ${ahead.inHours} hrs';
+      return 'in ${ahead.inDays} days';
+    }
+
     if (diff.inMinutes < 1) return 'just now';
     if (diff.inHours < 1) return '${diff.inMinutes} min ago';
     if (diff.inDays < 1) return '${diff.inHours} hrs ago';
@@ -149,7 +214,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       person: request?.citizenName ?? 'Citizen',
       location: request?.addressLine ?? 'Location unavailable',
       distance: 'N/A',
-      postedAgo: _postedAgoLabel(offer.proposedPickupAt),
+      postedAgo: _postedAgoLabel(offer.createdAt),
       status: _toSheetStatus(offer.status),
       pickup: _formatPickup(offer.proposedPickupAt.toLocal()),
       contact: request?.contactPhone,
@@ -172,6 +237,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         );
         _showSnackBar('Offer cancelled.');
       } else {
+        _dismissedOfferIds.add(offer.id);
+        await _saveDismissedOffers();
         setState(() {
           _offers = _offers
               .where((o) => o.id != offer.id)
@@ -659,7 +726,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          _postedAgoLabel(offer.proposedPickupAt),
+                          _postedAgoLabel(offer.createdAt),
                           style: AppTypography.captionSm.copyWith(
                             color: AppColors.grey400,
                           ),
