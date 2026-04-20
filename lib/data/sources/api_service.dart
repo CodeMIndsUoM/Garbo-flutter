@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
@@ -374,18 +375,42 @@ class ApiService {
 
   Future<CollectionOfferModel> completeOffer({
     required int offerId,
-    required Map<String, dynamic> payload,
+    required String photoPath,
+    required double latitude,
+    required double longitude,
+    double? weightKg,
+    String? notes,
   }) async {
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete',
     );
 
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(payload),
-    );
+    final file = File(photoPath);
+    if (!await file.exists()) {
+      throw Exception('Completion photo file not found. Please capture again.');
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    final request = http.MultipartRequest('POST', url)
+      ..fields['latitude'] = latitude.toString()
+      ..fields['longitude'] = longitude.toString();
+
+    if (weightKg != null) {
+      request.fields['weightKg'] = weightKg.toString();
+    }
+    if (notes != null && notes.trim().isNotEmpty) {
+      request.fields['notes'] = notes.trim();
+    }
+    if (token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+
+    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
     final body = json.decode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200 || body['success'] != true) {

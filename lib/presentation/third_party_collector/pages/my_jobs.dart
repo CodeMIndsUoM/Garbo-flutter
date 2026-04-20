@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
-import 'package:garbo_swms/data/sources/cloudinary_upload_service.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_collection_sheet.dart';
@@ -25,8 +22,6 @@ class ThirdPartyMyJobsPage extends StatefulWidget {
 
 class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   final ApiService _apiService = ApiService();
-  final CloudinaryUploadService _cloudinaryUploadService =
-      CloudinaryUploadService();
 
   _TabType _tab = _TabType.offer;
   bool _loading = false;
@@ -250,9 +245,6 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         return;
       }
 
-      final uploadedPhotoUrl = await _cloudinaryUploadService
-          .uploadCollectionPhoto(File(photoPath));
-
       final fallbackLat = request?.latitude ?? 6.9271;
       final fallbackLng = request?.longitude ?? 79.8612;
       final currentPosition = await _tryGetCurrentPosition();
@@ -261,13 +253,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
       await _apiService.completeOffer(
         offerId: offerForCompletion.id,
-        payload: {
-          'photoUrl': uploadedPhotoUrl,
-          'weightKg': completionInput.weightKg,
-          'latitude': completionLat,
-          'longitude': completionLng,
-          'notes': completionInput.notes,
-        },
+        photoPath: photoPath,
+        weightKg: completionInput.weightKg,
+        latitude: completionLat,
+        longitude: completionLng,
+        notes: completionInput.notes,
       );
 
       if (!mounted) return;
