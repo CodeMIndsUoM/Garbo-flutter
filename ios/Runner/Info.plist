@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Garbo uses the camera to capture proof photos when completing a collection.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Garbo may access photos to attach evidence for completed collections.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Garbo uses your location to record collection completion coordinates and assist navigation.</string>
 </dict>
 </plist>

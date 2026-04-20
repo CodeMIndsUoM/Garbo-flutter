@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/data/sources/cloudinary_upload_service.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_collection_sheet.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/offer_details_sheet.dart';
+import 'package:geolocator/geolocator.dart';
 
 enum _TabType { offer, active }
 
@@ -20,6 +25,8 @@ class ThirdPartyMyJobsPage extends StatefulWidget {
 
 class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   final ApiService _apiService = ApiService();
+  final CloudinaryUploadService _cloudinaryUploadService =
+      CloudinaryUploadService();
 
   _TabType _tab = _TabType.offer;
   bool _loading = false;
@@ -237,13 +244,28 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
       if (completionInput == null) return;
 
+      final photoPath = completionInput.photoPath;
+      if (photoPath == null) {
+        _showSnackBar('Completion photo is required.', isError: true);
+        return;
+      }
+
+      final uploadedPhotoUrl = await _cloudinaryUploadService
+          .uploadCollectionPhoto(File(photoPath));
+
+      final fallbackLat = request?.latitude ?? 6.9271;
+      final fallbackLng = request?.longitude ?? 79.8612;
+      final currentPosition = await _tryGetCurrentPosition();
+      final completionLat = currentPosition?.latitude ?? fallbackLat;
+      final completionLng = currentPosition?.longitude ?? fallbackLng;
+
       await _apiService.completeOffer(
         offerId: offerForCompletion.id,
         payload: {
-          'photoUrl': 'https://example.com/completion-placeholder.jpg',
+          'photoUrl': uploadedPhotoUrl,
           'weightKg': completionInput.weightKg,
-          'latitude': 6.9271,
-          'longitude': 79.8612,
+          'latitude': completionLat,
+          'longitude': completionLng,
           'notes': completionInput.notes,
         },
       );
@@ -254,6 +276,28 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not complete collection: $e', isError: true);
+    }
+  }
+
+  Future<Position?> _tryGetCurrentPosition() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -721,9 +765,28 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 child: _buildSecondaryButton(
                   icon: Icons.navigation_outlined,
                   label: 'Navigate',
-                  onTap: () => _showSnackBar(
-                    request?.addressLine ?? 'Address unavailable',
-                  ),
+                  onTap: () {
+                    final lat = request?.latitude ?? 0;
+                    final lng = request?.longitude ?? 0;
+                    if (lat == 0 && lng == 0) {
+                      _showSnackBar(
+                        request?.addressLine ?? 'Address unavailable',
+                        isError: true,
+                      );
+                      return;
+                    }
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => LeafletNavigationPage(
+                          latitude: lat,
+                          longitude: lng,
+                          title: wasteLabel,
+                          subtitle: request?.addressLine ?? 'Target location',
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 10),
