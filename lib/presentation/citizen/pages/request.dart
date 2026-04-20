@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/data/models/collection_offer_model.dart';
+import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 
@@ -11,15 +14,319 @@ class CitizenRequestPage extends StatefulWidget {
 }
 
 class CitizenRequestPageState extends State<CitizenRequestPage> {
+  final ApiService _apiService = ApiService();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
   int currentStep = 1;
   String? selectedWasteType;
   String? selectedQuantity;
   DateTime? selectedPickupDate;
   String? selectedTimeSlot;
-  String? selectedPickupLocation;
-  String? contactPhone;
-  String? additionalNotes;
   bool showMyRequests = false;
+  bool _submitting = false;
+  bool _loadingRequests = false;
+  String? _citizenId;
+  List<CollectionRequestModel> _requests = const [];
+
+  static const List<String> _wasteTypeItems = [
+    'Plastic',
+    'Glass',
+    'Metal',
+    'E-Waste',
+    'Paper',
+    'Organic',
+    'Textile',
+    'Mixed',
+  ];
+
+  static const List<String> _quantityItems = [
+    'Small (1-2 bags/items)',
+    'Medium (3-5 bags/items)',
+    'Large (6-10 bags/items)',
+    'Extra Large (10+ bags/items)',
+  ];
+
+  static const List<String> _timeSlotItems = [
+    'Morning (8AM-12PM)',
+    'Afternoon (12PM-4PM)',
+    'Evening (4PM-7PM)',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final citizenId = await _apiService.getStoredEmpId();
+    if (!mounted) return;
+    setState(() => _citizenId = citizenId);
+    await _loadRequests();
+  }
+
+  Future<void> _loadRequests() async {
+    final citizenId = _citizenId;
+    if (citizenId == null || citizenId.isEmpty) {
+      return;
+    }
+
+    setState(() => _loadingRequests = true);
+    try {
+      final requests = await _apiService.getCitizenCollectionRequests(
+        citizenId,
+      );
+      if (!mounted) return;
+      setState(() => _requests = requests);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not load your requests: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _loadingRequests = false);
+      }
+    }
+  }
+
+  Future<void> _submitRequest() async {
+    final citizenId = _citizenId;
+    if (citizenId == null || citizenId.isEmpty) {
+      _showSnackBar('Please log in again to continue.', isError: true);
+      return;
+    }
+
+    final validationError = _validateForm();
+    if (validationError != null) {
+      _showSnackBar(validationError, isError: true);
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await _apiService.createCollectionRequest(
+        citizenId: citizenId,
+        payload: {
+          'wasteType': _mapWasteType(selectedWasteType!),
+          'quantityLabel': selectedQuantity,
+          'quantityKgEstimate': null,
+          'addressLine': _addressController.text.trim(),
+          'latitude': 6.9271,
+          'longitude': 79.8612,
+          'preferredDate': _formatDate(selectedPickupDate!),
+          'preferredSlot': _mapTimeSlot(selectedTimeSlot!),
+          'contactPhone': _phoneController.text.trim(),
+          'notes': _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
+          'photoUrl': null,
+        },
+      );
+      if (!mounted) return;
+      _resetForm();
+      setState(() {
+        showMyRequests = true;
+      });
+      await _loadRequests();
+      _showSnackBar('Request submitted successfully.');
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not submit request: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+  }
+
+  String? _validateForm() {
+    if (selectedWasteType == null) return 'Please select a waste type.';
+    if (selectedQuantity == null) return 'Please select an estimated quantity.';
+    if (selectedPickupDate == null) return 'Please select a pickup date.';
+    if (selectedTimeSlot == null) return 'Please select a time slot.';
+    if (_addressController.text.trim().isEmpty) {
+      return 'Please enter the pickup address.';
+    }
+    if (_phoneController.text.trim().isEmpty) {
+      return 'Please enter a contact phone number.';
+    }
+    return null;
+  }
+
+  void _resetForm() {
+    setState(() {
+      currentStep = 1;
+      selectedWasteType = null;
+      selectedQuantity = null;
+      selectedPickupDate = null;
+      selectedTimeSlot = null;
+    });
+    _addressController.clear();
+    _phoneController.clear();
+    _notesController.clear();
+  }
+
+  Future<void> _openRequestDetail(CollectionRequestModel request) async {
+    try {
+      final detail = await _apiService.getCollectionRequestDetail(request.id);
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _RequestOffersSheet(
+          request: detail,
+          onAccept: (offer) => _handleOfferAction(offer.id, true),
+          onReject: (offer) => _handleOfferAction(offer.id, false),
+        ),
+      );
+      await _loadRequests();
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not load request offers: $e', isError: true);
+    }
+  }
+
+  Future<void> _handleOfferAction(int offerId, bool accept) async {
+    try {
+      if (accept) {
+        await _apiService.acceptOffer(offerId);
+      } else {
+        await _apiService.rejectOffer(offerId);
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      await _loadRequests();
+      _showSnackBar(
+        accept
+            ? 'Offer accepted successfully.'
+            : 'Offer rejected successfully.',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not update offer: $e', isError: true);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+      ),
+    );
+  }
+
+  String _mapWasteType(String value) {
+    switch (value) {
+      case 'Plastic':
+        return 'PLASTIC';
+      case 'Glass':
+        return 'GLASS';
+      case 'Metal':
+        return 'METAL';
+      case 'E-Waste':
+        return 'E_WASTE';
+      case 'Paper':
+        return 'PAPER';
+      case 'Organic':
+        return 'ORGANIC';
+      case 'Textile':
+        return 'TEXTILE';
+      default:
+        return 'MIXED';
+    }
+  }
+
+  String _mapTimeSlot(String value) {
+    if (value.startsWith('Morning')) return 'MORNING';
+    if (value.startsWith('Afternoon')) return 'AFTERNOON';
+    return 'EVENING';
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  IconData _iconForWasteType(String wasteType) {
+    switch (wasteType) {
+      case 'E_WASTE':
+        return Icons.electrical_services_rounded;
+      case 'METAL':
+        return Icons.precision_manufacturing_outlined;
+      case 'ORGANIC':
+        return Icons.eco_outlined;
+      case 'PAPER':
+        return Icons.description_outlined;
+      case 'TEXTILE':
+        return Icons.checkroom_outlined;
+      case 'GLASS':
+        return Icons.wine_bar_outlined;
+      default:
+        return Icons.delete_outline_rounded;
+    }
+  }
+
+  ({Color bg, Color text, String label}) _statusStyle(String status) {
+    switch (status) {
+      case 'OPEN':
+        return (
+          bg: AppColors.orange200,
+          text: AppColors.orange600,
+          label: 'open',
+        );
+      case 'ASSIGNED':
+        return (
+          bg: AppColors.blue200,
+          text: AppColors.blue600,
+          label: 'assigned',
+        );
+      case 'COMPLETED':
+      case 'CONFIRMED':
+        return (
+          bg: AppColors.emerald200,
+          text: AppColors.emerald900,
+          label: status.toLowerCase(),
+        );
+      case 'CANCELLED':
+        return (
+          bg: AppColors.grey200,
+          text: AppColors.grey700,
+          label: 'cancelled',
+        );
+      default:
+        return (
+          bg: AppColors.grey200,
+          text: AppColors.grey700,
+          label: status.toLowerCase(),
+        );
+    }
+  }
+
+  String _requestSubtitle(CollectionRequestModel request) {
+    if (request.status == 'OPEN' && request.offersCount > 0) {
+      return '${request.offersCount} offer${request.offersCount == 1 ? '' : 's'} available';
+    }
+    if (request.status == 'ASSIGNED') {
+      return 'Collector selected';
+    }
+    if (request.status == 'CONFIRMED') {
+      return 'Collection confirmed';
+    }
+    return request.addressLine;
+  }
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,25 +334,27 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          CitizenHeader(name: 'Requests',),
+          const CitizenHeader(name: 'Requests'),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+            child: RefreshIndicator(
+              onRefresh: _loadRequests,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
                   const SizedBox(height: 12),
                   buildActionButtons(),
                   const SizedBox(height: 20),
-                  showMyRequests ? buildRequestsList() : buildRequestForm(),
+                  if (showMyRequests)
+                    buildRequestsList()
+                  else
+                    buildRequestForm(),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 3,
-      ),
+      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 3),
     );
   }
 
@@ -60,46 +369,53 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
             icon: const Icon(Icons.add, size: 18),
             label: const Text(
               'New Request',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: !showMyRequests ? AppColors.emerald600 : Colors.white,
-              foregroundColor: !showMyRequests ? Colors.white : AppColors.emerald600,
+              backgroundColor: !showMyRequests
+                  ? AppColors.emerald600
+                  : Colors.white,
+              foregroundColor: !showMyRequests
+                  ? Colors.white
+                  : AppColors.emerald600,
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              side: showMyRequests ? const BorderSide(color: AppColors.emerald600, width: 1.5) : BorderSide.none,
+              side: showMyRequests
+                  ? const BorderSide(color: AppColors.emerald600, width: 1.5)
+                  : BorderSide.none,
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {
+            onPressed: () async {
               setState(() => showMyRequests = true);
+              await _loadRequests();
             },
             icon: const Icon(Icons.list_alt_rounded, size: 18),
             label: const Text(
               'My Requests',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: showMyRequests ? AppColors.emerald600 : Colors.white,
-              foregroundColor: showMyRequests ? Colors.white : AppColors.emerald600,
+              backgroundColor: showMyRequests
+                  ? AppColors.emerald600
+                  : Colors.white,
+              foregroundColor: showMyRequests
+                  ? Colors.white
+                  : AppColors.emerald600,
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              side: !showMyRequests ? const BorderSide(color: AppColors.emerald600, width: 1.5) : BorderSide.none,
+              side: !showMyRequests
+                  ? const BorderSide(color: AppColors.emerald600, width: 1.5)
+                  : BorderSide.none,
             ),
           ),
         ),
@@ -108,166 +424,179 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   }
 
   Widget buildRequestsList() {
-    final requests = [
-      {
-        'image': Icons.electrical_services_rounded,
-        'title': 'Electronic Waste',
-        'collector': 'GreenTech Recyclers',
-        'date': '2025-11-18',
-        'status': 'accepted',
-        'statusColor': AppColors.blue200,
-        'statusTextColor': AppColors.blue600,
-        'hasOffers': false,
-      },
-      {
-        'image': Icons.chair_rounded,
-        'title': 'Furniture',
-        'collector': 'Looking for collector...',
-        'date': '2025-11-20',
-        'status': 'pending',
-        'statusColor': AppColors.orange200,
-        'statusTextColor': AppColors.orange600,
-        'hasOffers': true,
-      },
-      {
-        'image': Icons.construction_rounded,
-        'title': 'Construction Debris',
-        'collector': 'BuildWaste Co.',
-        'date': '2025-11-12',
-        'status': 'completed',
-        'statusColor': AppColors.emerald200,
-        'statusTextColor': AppColors.emerald900,
-        'hasOffers': false,
-      },
-    ];
+    if (_loadingRequests) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_requests.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.inbox_outlined, size: 40, color: AppColors.grey400),
+            SizedBox(height: 12),
+            Text(
+              'No requests yet',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.grey900,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              'Create your first collection request and nearby third-party collectors will start sending offers.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.grey600,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       children: [
-        ...requests.map((request) {
+        ..._requests.map((request) {
+          final statusStyle = _statusStyle(request.status);
+          final canOpenOffers =
+              request.offersCount > 0 ||
+              request.status == 'OPEN' ||
+              request.status == 'ASSIGNED';
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    offset: const Offset(0, 1),
-                    blurRadius: 6,
-                    spreadRadius: -1,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.grey200,
-                      borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: canOpenOffers ? () => _openRequestDetail(request) : null,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      offset: const Offset(0, 1),
+                      blurRadius: 6,
+                      spreadRadius: -1,
                     ),
-                    child: Icon(
-                      request['image'] as IconData,
-                      color: AppColors.grey700,
-                      size: 28,
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey200,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _iconForWasteType(request.wasteType),
+                        color: AppColors.grey700,
+                        size: 28,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                request['title'] as String,
-                                style: const TextStyle(
-                                  color: AppColors.citizenGrey900,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.3,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  request.wasteType.replaceAll('_', ' '),
+                                  style: const TextStyle(
+                                    color: AppColors.citizenGrey900,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.3,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: request['statusColor'] as Color,
-                                borderRadius: BorderRadius.circular(8),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusStyle.bg,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  statusStyle.label,
+                                  style: TextStyle(
+                                    color: statusStyle.text,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                              child: Text(
-                                request['status'] as String,
-                                style: TextStyle(
-                                  color: request['statusTextColor'] as Color,
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_rounded,
+                                size: 14,
+                                color: AppColors.citizenGrey600,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _requestSubtitle(request),
+                                  style: const TextStyle(
+                                    color: AppColors.citizenGrey600,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDate(request.preferredDate),
+                                style: const TextStyle(
+                                  color: AppColors.citizenGrey500,
                                   fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_rounded,
-                                size: 14, color: AppColors.citizenGrey600),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                request['collector'] as String,
-                                style: const TextStyle(
-                                  color: AppColors.citizenGrey600,
-                                  fontSize: 13,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              request['date'] as String,
-                              style: const TextStyle(
-                                color: AppColors.citizenGrey500,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            if (request['hasOffers'] == true)
-                              InkWell(
-                                onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('View offers feature coming soon'),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  'View available offers',
+                              if (request.offersCount > 0)
+                                const Text(
+                                  'View offers',
                                   style: TextStyle(
                                     color: AppColors.emerald600,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -296,12 +625,12 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Tap on pending requests',
+                      'Tap any open request with offers',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -310,7 +639,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'to view and accept collection offers from nearby collectors',
+                      'You can review collector price proposals and accept the one that fits best.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.emerald700,
@@ -344,38 +673,22 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                currentStep == 1 ? 'Request Collection' : currentStep == 2 ? 'Pickup Schedule' : 'Contact & Photos',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.grey900,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                },
-                child: Text(
-                  currentStep == 1 ? 'Waste Details' : currentStep == 2 ? 'Pickup Details' : 'Contact & Photos',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.emerald600,
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            currentStep == 1
+                ? 'Request Collection'
+                : currentStep == 2
+                ? 'Pickup Schedule'
+                : 'Contact Details',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.grey900,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Step $currentStep of 3',
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.grey600,
-            ),
+            style: const TextStyle(fontSize: 13, color: AppColors.grey600),
           ),
           const SizedBox(height: 12),
           ClipRRect(
@@ -394,36 +707,19 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
           if (currentStep == 2) ..._buildStep2Content(),
           if (currentStep == 3) ..._buildStep3Content(),
           if (currentStep == 1)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() => currentStep++);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.emerald600,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Next',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 18),
-                  ],
-                ),
-              ),
+            _navigationButton(
+              label: 'Next',
+              icon: Icons.arrow_forward,
+              onPressed: () {
+                if (selectedWasteType == null || selectedQuantity == null) {
+                  _showSnackBar(
+                    'Please complete the waste type and quantity fields first.',
+                    isError: true,
+                  );
+                  return;
+                }
+                setState(() => currentStep++);
+              },
             ),
           if (currentStep > 1)
             Row(
@@ -431,14 +727,15 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      if (currentStep > 1) {
-                        setState(() => currentStep--);
-                      }
+                      setState(() => currentStep--);
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.grey900,
                       backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppColors.grey300, width: 1.5),
+                      side: const BorderSide(
+                        color: AppColors.grey300,
+                        width: 1.5,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -463,18 +760,24 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (currentStep < 3) {
-                        setState(() => currentStep++);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Request submitted successfully!'),
-                            backgroundColor: AppColors.emerald600,
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _submitting
+                        ? null
+                        : () {
+                            if (currentStep < 3) {
+                              if (selectedPickupDate == null ||
+                                  selectedTimeSlot == null ||
+                                  _addressController.text.trim().isEmpty) {
+                                _showSnackBar(
+                                  'Please complete the pickup details first.',
+                                  isError: true,
+                                );
+                                return;
+                              }
+                              setState(() => currentStep++);
+                            } else {
+                              _submitRequest();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.emerald600,
                       foregroundColor: Colors.white,
@@ -487,19 +790,33 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (currentStep == 3)
-                          const Icon(Icons.check_circle_outline, size: 18),
-                        if (currentStep == 3) const SizedBox(width: 8),
+                        if (_submitting)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        else if (currentStep == 3)
+                          const Icon(Icons.check_circle_outline, size: 18)
+                        else
+                          const Icon(Icons.arrow_forward, size: 18),
+                        const SizedBox(width: 8),
                         Text(
-                          currentStep == 3 ? 'Submit Request' : 'Next',
+                          _submitting
+                              ? 'Submitting...'
+                              : currentStep == 3
+                              ? 'Submit Request'
+                              : 'Next',
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (currentStep < 3) const SizedBox(width: 8),
-                        if (currentStep < 3)
-                          const Icon(Icons.arrow_forward, size: 18),
                       ],
                     ),
                   ),
@@ -511,19 +828,54 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
     );
   }
 
+  Widget _navigationButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.emerald600,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 8),
+            Icon(icon, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildStep1Content() {
     return [
-      buildFormField(
+      buildDropdownField(
         label: 'What needs to be collected?',
         hint: 'Select waste type',
         value: selectedWasteType,
+        items: _wasteTypeItems,
         onChanged: (value) => setState(() => selectedWasteType = value),
       ),
       const SizedBox(height: 20),
-      buildFormField(
+      buildDropdownField(
         label: 'Estimated quantity',
         hint: 'Select approximate amount',
         value: selectedQuantity,
+        items: _quantityItems,
         onChanged: (value) => setState(() => selectedQuantity = value),
       ),
       const SizedBox(height: 36),
@@ -550,10 +902,10 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Collection Info',
                     style: TextStyle(
@@ -564,7 +916,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Third-party collectors will see your request and contact you directly.',
+                    'Third-party collectors will see your request and send offers through the app.',
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.emerald700,
@@ -583,117 +935,111 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
 
   List<Widget> _buildStep2Content() {
     return [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Preferred pickup date *',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey700,
-            ),
+      const Text(
+        'Preferred pickup date *',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey700,
+        ),
+      ),
+      const SizedBox(height: 8),
+      InkWell(
+        onTap: () async {
+          final DateTime? picked = await showDatePicker(
+            context: context,
+            initialDate: selectedPickupDate ?? DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 365)),
+          );
+          if (picked != null) {
+            setState(() => selectedPickupDate = picked);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppColors.grey50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.grey300),
           ),
-          const SizedBox(height: 8),
-          InkWell(
-            onTap: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: selectedPickupDate ?? DateTime.now(),
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
-              );
-              if (picked != null) {
-                setState(() => selectedPickupDate = picked);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.grey50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.grey300),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.calendar_today,
+                size: 18,
+                color: AppColors.grey400,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_today, size: 18, color: AppColors.grey400),
-                  const SizedBox(width: 12),
-                  Text(
-                    selectedPickupDate != null
-                        ? '${selectedPickupDate!.year}-${selectedPickupDate!.month.toString().padLeft(2, '0')}-${selectedPickupDate!.day.toString().padLeft(2, '0')}'
-                        : 'Select date',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: selectedPickupDate != null ? AppColors.grey900 : AppColors.grey400,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              Text(
+                selectedPickupDate != null
+                    ? _formatDate(selectedPickupDate!)
+                    : 'Select date',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: selectedPickupDate != null
+                      ? AppColors.grey900
+                      : AppColors.grey400,
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
       const SizedBox(height: 20),
-      buildFormField(
+      buildDropdownField(
         label: 'Preferred time slot *',
         hint: 'Select time slot',
         value: selectedTimeSlot,
+        items: _timeSlotItems,
         onChanged: (value) => setState(() => selectedTimeSlot = value),
       ),
       const SizedBox(height: 20),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Pickup location *',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey700,
+      const Text(
+        'Pickup location *',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey700,
+        ),
+      ),
+      const SizedBox(height: 8),
+      TextField(
+        controller: _addressController,
+        decoration: InputDecoration(
+          hintText: 'Enter pickup address',
+          hintStyle: const TextStyle(fontSize: 14, color: AppColors.grey400),
+          prefixIcon: const Icon(
+            Icons.location_on_outlined,
+            color: AppColors.grey400,
+          ),
+          filled: true,
+          fillColor: AppColors.grey50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.emerald700,
+              width: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            onChanged: (value) => setState(() => selectedPickupLocation = value),
-            decoration: InputDecoration(
-              hintText: 'Enter pickup address',
-              hintStyle: const TextStyle(
-                fontSize: 14,
-                color: AppColors.grey400,
-              ),
-              prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.grey400),
-              filled: true,
-              fillColor: AppColors.grey50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppColors.emerald700,
-                  width: 1.5,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-            ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'GPS: Automatically detected',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.grey500,
-            ),
-          ),
-        ],
+        ),
+      ),
+      const SizedBox(height: 6),
+      const Text(
+        'GPS capture is still pending, so the app is using a default Colombo location for now.',
+        style: TextStyle(fontSize: 11, color: AppColors.grey500),
       ),
       const SizedBox(height: 24),
     ];
@@ -701,223 +1047,143 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
 
   List<Widget> _buildStep3Content() {
     return [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Contact phone *',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey700,
+      const Text(
+        'Contact phone *',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey700,
+        ),
+      ),
+      const SizedBox(height: 8),
+      TextField(
+        controller: _phoneController,
+        keyboardType: TextInputType.phone,
+        decoration: InputDecoration(
+          hintText: 'Your phone number',
+          hintStyle: const TextStyle(fontSize: 14, color: AppColors.grey400),
+          prefixIcon: const Icon(
+            Icons.phone_outlined,
+            color: AppColors.grey400,
+          ),
+          filled: true,
+          fillColor: AppColors.grey50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.emerald700,
+              width: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            onChanged: (value) => setState(() => contactPhone = value),
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              hintText: 'Your phone number',
-              hintStyle: const TextStyle(
-                fontSize: 14,
-                color: AppColors.grey400,
-              ),
-              prefixIcon: const Icon(Icons.phone_outlined, color: AppColors.grey400),
-              filled: true,
-              fillColor: AppColors.grey50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppColors.emerald700,
-                  width: 1.5,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-            ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Collectors will contact you on this number',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.grey500,
-            ),
-          ),
-        ],
+        ),
+      ),
+      const SizedBox(height: 6),
+      const Text(
+        'Collectors will contact you on this number',
+        style: TextStyle(fontSize: 11, color: AppColors.grey500),
       ),
       const SizedBox(height: 20),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Upload photos of items *',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Help collectors assess the items',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.grey500,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Take photo functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Camera feature coming soon'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.camera_alt_outlined, size: 20),
-                  label: const Text(
-                    'Take Photo',
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.grey50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey300),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.photo_camera_back_outlined, color: AppColors.grey500),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Photo upload comes in the next backend step',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: AppColors.grey900,
                     ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.grey500,
-                    backgroundColor: AppColors.grey50,
-                    side: const BorderSide(color: AppColors.grey400, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Upload feature coming soon'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.upload_outlined, size: 20),
-                  label: const Text(
-                    'Upload',
+                  SizedBox(height: 4),
+                  Text(
+                    'For now this request is submitted without an image so we can test the request and offer flow inside the app.',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: AppColors.grey600,
+                      height: 1.4,
                     ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.grey500,
-                    backgroundColor: AppColors.grey50,
-                    side: const BorderSide(color: AppColors.grey400, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
       const SizedBox(height: 20),
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Additional notes (Optional)',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey700,
+      const Text(
+        'Additional notes (Optional)',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey700,
+        ),
+      ),
+      const SizedBox(height: 8),
+      TextField(
+        controller: _notesController,
+        maxLines: 4,
+        decoration: InputDecoration(
+          hintText: 'Any special instructions or details...',
+          hintStyle: const TextStyle(fontSize: 14, color: AppColors.grey400),
+          filled: true,
+          fillColor: AppColors.grey50,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: AppColors.emerald700,
+              width: 1.5,
             ),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            onChanged: (value) => setState(() => additionalNotes = value),
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Any special instructions or details...',
-              hintStyle: const TextStyle(
-                fontSize: 14,
-                color: AppColors.grey400,
-              ),
-              filled: true,
-              fillColor: AppColors.grey50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.grey300),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppColors.emerald700,
-                  width: 1.5,
-                ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-            ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
           ),
-        ],
+        ),
       ),
       const SizedBox(height: 24),
     ];
   }
 
-  Widget buildFormField({
+  Widget buildDropdownField({
     required String label,
     required String hint,
     required String? value,
+    required List<String> items,
     required ValueChanged<String?> onChanged,
   }) {
-    List<String> items = [];
-    if (label == 'What needs to be collected?') {
-      items = ['E-Waste', 'Furniture', 'Geaden Waste', 'Other'];
-    } else if (label == 'Estimated quantity') {
-      items = [
-        'Small(1-2 bags/items)',
-        'Medium(3-5 bags/items)',
-        'Large(6-10 bags/items)',
-        'Extra Large(10+ bags/items)'
-      ];
-    } else if (label == 'Preferred time slot *') {
-      items = [
-        'Morning(8AM-12PM)',
-        'Afternoon(12 PM- 4 PM)',
-        'Evening(4PM-7PM)'
-      ];
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -932,12 +1198,18 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           initialValue: value,
+          items: items
+              .map(
+                (item) => DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(item, style: const TextStyle(fontSize: 14)),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              color: AppColors.grey400,
-            ),
+            hintStyle: const TextStyle(fontSize: 14, color: AppColors.grey400),
             filled: true,
             fillColor: AppColors.grey50,
             border: OutlineInputBorder(
@@ -960,15 +1232,267 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
               vertical: 14,
             ),
           ),
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
-          onChanged: onChanged,
         ),
       ],
+    );
+  }
+}
+
+class _RequestOffersSheet extends StatelessWidget {
+  final CollectionRequestModel request;
+  final Future<void> Function(CollectionOfferModel offer) onAccept;
+  final Future<void> Function(CollectionOfferModel offer) onReject;
+
+  const _RequestOffersSheet({
+    required this.request,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  String _formatDateTime(DateTime dateTime) {
+    final date =
+        '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final suffix = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$date  $hour:$minute $suffix';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.82,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.grey300,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request.wasteType.replaceAll('_', ' '),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.grey900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        request.addressLine,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.grey600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.emerald200),
+                  ),
+                  child: Text(
+                    request.offers.isEmpty
+                        ? 'No offers yet. Collectors will appear here once they respond.'
+                        : '${request.offers.length} collector offer${request.offers.length == 1 ? '' : 's'} available for this request.',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.emerald900,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...request.offers.map((offer) {
+                  final pending =
+                      offer.status == 'PENDING' && request.status == 'OPEN';
+                  final accepted = offer.status == 'ACCEPTED';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.grey200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          offset: const Offset(0, 1),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                offer.collectorName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.grey900,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accepted
+                                    ? AppColors.emerald200
+                                    : AppColors.grey200,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                offer.status.toLowerCase(),
+                                style: TextStyle(
+                                  color: accepted
+                                      ? AppColors.emerald900
+                                      : AppColors.grey700,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if ((offer.collectorCompany ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            offer.collectorCompany!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.grey600,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.payments_outlined,
+                              size: 16,
+                              color: AppColors.emerald600,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'LKR ${offer.pricePerUnit.toStringAsFixed(2)} (${offer.priceUnit})',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.grey900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.schedule_outlined,
+                              size: 16,
+                              color: AppColors.blue600,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatDateTime(offer.proposedPickupAt),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.grey700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if ((offer.messageToCitizen ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            offer.messageToCitizen!,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.grey700,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                        if (pending) ...[
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => onReject(offer),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.grey700,
+                                    side: const BorderSide(
+                                      color: AppColors.grey300,
+                                    ),
+                                  ),
+                                  child: const Text('Reject'),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => onAccept(offer),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.emerald600,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Accept'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

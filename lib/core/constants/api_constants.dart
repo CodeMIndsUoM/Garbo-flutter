@@ -9,4 +9,10 @@ class ApiConstants {
   // Field Mentor Endpoints
   static const String fieldMentors = '/fieldmentors';
   static const String bins = '/bins';
+
+  // Collection request endpoints
+  static const String citizens = '/citizens';
+  static const String collectionRequests = '/collection-requests';
+  static const String offers = '/offers';
+  static const String thirdPartyCollectors = '/thirdpartycollectors';
 }

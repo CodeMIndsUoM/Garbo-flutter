@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
+import 'package:garbo_swms/data/models/collection_offer_model.dart';
+import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class ApiService {
@@ -112,5 +114,109 @@ class ApiService {
       // Fail silently for UI polish
       return 'Field Staff';
     }
+  }
+
+  Future<String> getStoredEmpId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('empId') ?? '';
+  }
+
+  Future<List<CollectionRequestModel>> getCitizenCollectionRequests(
+    String citizenId, {
+    String? status,
+  }) async {
+    if (citizenId.isEmpty) {
+      throw Exception('Citizen ID is empty. Please log in again.');
+    }
+
+    final query = status == null ? '' : '?status=$status';
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId${ApiConstants.collectionRequests}$query',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load requests');
+    }
+
+    final data = body['data'] as List<dynamic>? ?? const [];
+    return data
+        .map(
+          (item) => CollectionRequestModel.fromSummaryJson(
+            item as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+  }
+
+  Future<CollectionRequestModel> getCollectionRequestDetail(
+    int requestId,
+  ) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.collectionRequests}/$requestId',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load request detail');
+    }
+
+    return CollectionRequestModel.fromDetailJson(
+      body['data'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<CollectionRequestModel> createCollectionRequest({
+    required String citizenId,
+    required Map<String, dynamic> payload,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId${ApiConstants.collectionRequests}',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(payload),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 201 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to create request');
+    }
+
+    return CollectionRequestModel.fromSummaryJson(
+      body['data'] as Map<String, dynamic>,
+    );
+  }
+
+  Future<CollectionOfferModel> acceptOffer(int offerId) async {
+    return _offerAction(offerId, 'accept');
+  }
+
+  Future<CollectionOfferModel> rejectOffer(int offerId) async {
+    return _offerAction(offerId, 'reject');
+  }
+
+  Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action',
+    );
+    final headers = await _authHeaders();
+    final response = await client.post(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to $action offer');
+    }
+
+    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 }
