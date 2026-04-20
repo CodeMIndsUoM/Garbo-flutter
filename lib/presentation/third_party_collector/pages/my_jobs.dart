@@ -85,15 +85,20 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   }
 
   List<CollectionOfferModel> _offersByStatus(OfferStatus tabStatus) {
-    return _offers.where((offer) {
-      final status = offer.status;
-      return switch (tabStatus) {
-        OfferStatus.pending => status == 'PENDING',
-        OfferStatus.accepted => status == 'ACCEPTED' || status == 'IN_PROGRESS',
-        OfferStatus.rejected =>
-          status == 'REJECTED' || status == 'WITHDRAWN' || status == 'CANCELLED',
-      };
-    }).toList(growable: false);
+    return _offers
+        .where((offer) {
+          final status = offer.status;
+          return switch (tabStatus) {
+            OfferStatus.pending => status == 'PENDING',
+            OfferStatus.accepted =>
+              status == 'ACCEPTED' || status == 'IN_PROGRESS',
+            OfferStatus.rejected =>
+              status == 'REJECTED' ||
+                  status == 'WITHDRAWN' ||
+                  status == 'CANCELLED',
+          };
+        })
+        .toList(growable: false);
   }
 
   OfferStatus _toSheetStatus(String status) {
@@ -159,7 +164,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         _showSnackBar('Offer cancelled.');
       } else {
         setState(() {
-          _offers = _offers.where((o) => o.id != offer.id).toList(growable: false);
+          _offers = _offers
+              .where((o) => o.id != offer.id)
+              .toList(growable: false);
         });
       }
       await _loadData();
@@ -184,9 +191,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           child: ListView(
             shrinkWrap: true,
             children: [
-              const ListTile(
-                title: Text('Select cancellation reason'),
-              ),
+              const ListTile(title: Text('Select cancellation reason')),
               ...reasons.map(
                 (reason) => ListTile(
                   title: Text(reason.replaceAll('_', ' ')),
@@ -204,7 +209,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     try {
       var offerForCompletion = offer;
       if (offerForCompletion.status == 'ACCEPTED') {
-        offerForCompletion = await _apiService.startOffer(offerForCompletion.id);
+        offerForCompletion = await _apiService.startOffer(
+          offerForCompletion.id,
+        );
         if (!mounted) return;
       }
 
@@ -216,7 +223,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             : '${request.wasteType.replaceAll('_', ' ')} Waste',
         address: request?.addressLine ?? 'Address unavailable',
         person: request?.citizenName ?? 'Citizen',
-        weightRequired: request != null ? _weightRequired(request.wasteType) : false,
+        weightRequired: request != null
+            ? _weightRequired(request.wasteType)
+            : false,
       );
 
       if (completionInput == null) return;
@@ -308,8 +317,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                           ? SliverToBoxAdapter(child: _buildEmptyActive())
                           : SliverList.separated(
                               itemCount: _activeJobs.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (_, i) => _buildActiveCard(_activeJobs[i]),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (_, i) =>
+                                  _buildActiveCard(_activeJobs[i]),
                             ),
                     ),
                 ],
@@ -387,7 +398,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         final controller = DefaultTabController.of(context);
         return Container(
           decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: AppColors.grey200, width: 1)),
+            border: Border(
+              bottom: BorderSide(color: AppColors.grey200, width: 1),
+            ),
           ),
           child: TabBar(
             isScrollable: false,
@@ -404,11 +417,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 height: 44,
                 child: AnimatedBuilder(
                   animation: controller,
-                  builder: (_, __) => _buildStatusTabLabel(
-                    label,
-                    count,
-                    controller.index == i,
-                  ),
+                  builder: (_, __) =>
+                      _buildStatusTabLabel(label, count, controller.index == i),
                 ),
               );
             }),
@@ -419,38 +429,41 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   }
 
   Widget _buildStatusTabLabel(String label, int count, bool selected) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 180),
-          style: AppTypography.titleSm.copyWith(
-            color: selected ? AppColors.emerald700 : AppColors.grey500,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-          ),
-          child: Text(label),
-        ),
-        const SizedBox(width: 6),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.emerald50 : AppColors.grey100,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: AnimatedDefaultTextStyle(
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 180),
-            style: AppTypography.captionSm.copyWith(
+            style: AppTypography.titleSm.copyWith(
               color: selected ? AppColors.emerald700 : AppColors.grey500,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-              height: 1.1,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
             ),
-            child: Text('$count'),
+            child: Text(label),
           ),
-        ),
-      ],
+          const SizedBox(width: 5),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.emerald50 : AppColors.grey100,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 180),
+              style: AppTypography.captionSm.copyWith(
+                color: selected ? AppColors.emerald700 : AppColors.grey500,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                height: 1.1,
+              ),
+              child: Text('$count'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -483,12 +496,19 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               color: AppColors.grey100,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(Icons.work_off_outlined, color: AppColors.grey400, size: 30),
+            child: const Icon(
+              Icons.work_off_outlined,
+              color: AppColors.grey400,
+              size: 30,
+            ),
           ),
           const SizedBox(height: 14),
           Text('No offers found', style: AppTypography.titleMd),
           const SizedBox(height: 4),
-          Text('Browse requests to send new offers', style: AppTypography.bodySm),
+          Text(
+            'Browse requests to send new offers',
+            style: AppTypography.bodySm,
+          ),
         ],
       ),
     );
@@ -497,10 +517,22 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   Widget _buildOfferCard(CollectionOfferModel offer) {
     final request = _requestById[offer.requestId];
     final sheetStatus = _toSheetStatus(offer.status);
-    final (Color badgeBg, Color badgeFg, String badgeLabel) = switch (sheetStatus) {
+    final (
+      Color badgeBg,
+      Color badgeFg,
+      String badgeLabel,
+    ) = switch (sheetStatus) {
       OfferStatus.pending => (AppColors.grey100, AppColors.grey600, 'Pending'),
-      OfferStatus.accepted => (AppColors.emerald50, AppColors.emerald700, 'Accepted'),
-      OfferStatus.rejected => (AppColors.grey100, AppColors.grey500, 'Rejected'),
+      OfferStatus.accepted => (
+        AppColors.emerald50,
+        AppColors.emerald700,
+        'Accepted',
+      ),
+      OfferStatus.rejected => (
+        AppColors.grey100,
+        AppColors.grey500,
+        'Rejected',
+      ),
     };
 
     return Material(
@@ -545,7 +577,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: badgeBg,
                             borderRadius: BorderRadius.circular(8),
@@ -561,11 +596,18 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(request?.citizenName ?? 'Citizen', style: AppTypography.bodySm),
+                    Text(
+                      request?.citizenName ?? 'Citizen',
+                      style: AppTypography.bodySm,
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, color: AppColors.emerald600, size: 13),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.emerald600,
+                          size: 13,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -577,7 +619,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         const SizedBox(width: 6),
                         Text(
                           _postedAgoLabel(offer.proposedPickupAt),
-                          style: AppTypography.captionSm.copyWith(color: AppColors.grey400),
+                          style: AppTypography.captionSm.copyWith(
+                            color: AppColors.grey400,
+                          ),
                         ),
                       ],
                     ),
@@ -587,7 +631,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               const SizedBox(width: 4),
               Padding(
                 padding: const EdgeInsets.only(top: 18),
-                child: Icon(Icons.chevron_right_rounded, color: AppColors.grey300, size: 20),
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.grey300,
+                  size: 20,
+                ),
               ),
             ],
           ),
@@ -630,11 +678,18 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                   children: [
                     Text(wasteLabel, style: AppTypography.titleMd),
                     const SizedBox(height: 2),
-                    Text(request?.citizenName ?? 'Citizen', style: AppTypography.bodySm),
+                    Text(
+                      request?.citizenName ?? 'Citizen',
+                      style: AppTypography.bodySm,
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, color: AppColors.emerald600, size: 13),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.emerald600,
+                          size: 13,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -798,7 +853,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: AppTypography.buttonMd.copyWith(color: AppColors.emerald700),
+                style: AppTypography.buttonMd.copyWith(
+                  color: AppColors.emerald700,
+                ),
               ),
             ],
           ),
@@ -816,14 +873,21 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         color: AppColors.grey100,
         alignment: Alignment.center,
         child: imageUrl == null
-            ? const Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
+            ? const Icon(
+                Icons.image_rounded,
+                color: AppColors.grey300,
+                size: 28,
+              )
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.broken_image_rounded, color: AppColors.grey300, size: 28),
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.broken_image_rounded,
+                  color: AppColors.grey300,
+                  size: 28,
+                ),
               ),
       ),
     );
@@ -841,7 +905,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               color: AppColors.grey100,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(Icons.playlist_add_check_rounded, color: AppColors.grey400, size: 30),
+            child: const Icon(
+              Icons.playlist_add_check_rounded,
+              color: AppColors.grey400,
+              size: 30,
+            ),
           ),
           const SizedBox(height: 14),
           Text('No active jobs', style: AppTypography.titleMd),

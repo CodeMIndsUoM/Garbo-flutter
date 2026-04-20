@@ -1,11 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/models/collection_offer_model.dart';
+import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 
-class ThirdPartyHome extends StatelessWidget {
+class ThirdPartyHome extends StatefulWidget {
   const ThirdPartyHome({super.key});
+
+  @override
+  State<ThirdPartyHome> createState() => _ThirdPartyHomeState();
+}
+
+class _ThirdPartyHomeState extends State<ThirdPartyHome> {
+  final ApiService _apiService = ApiService();
+
+  bool _loadingCompleted = false;
+  String? _collectorId;
+  List<_Collection> _completedCollections = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final collectorId = await _apiService.getStoredEmpId();
+    if (!mounted) return;
+    setState(() => _collectorId = collectorId);
+    await _loadCompletedCollections();
+  }
+
+  Future<void> _loadCompletedCollections() async {
+    final collectorId = _collectorId;
+    if (collectorId == null || collectorId.isEmpty) return;
+
+    setState(() => _loadingCompleted = true);
+    try {
+      final completedOffers = await _apiService.getCollectorOffers(
+        collectorId,
+        status: 'COMPLETED',
+      );
+
+      final requestIds = completedOffers.map((o) => o.requestId).toSet();
+      final details = await Future.wait(
+        requestIds.map((id) => _apiService.getCollectionRequestDetail(id)),
+      );
+      final requestById = {for (final request in details) request.id: request};
+
+      final rows = completedOffers.map((offer) {
+        final request = requestById[offer.requestId];
+        return _Collection.fromOffer(
+          offer: offer,
+          request: request,
+        );
+      }).toList(growable: false);
+
+      rows.sort((a, b) => b.sortTime.compareTo(a.sortTime));
+
+      if (!mounted) return;
+      setState(() => _completedCollections = rows);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _completedCollections = const []);
+    } finally {
+      if (mounted) {
+        setState(() => _loadingCompleted = false);
+      }
+    }
+  }
+
+  Widget _buildSectionTitle(String title, {bool big = false}) {
+    return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,36 +89,47 @@ class ThirdPartyHome extends StatelessWidget {
             notificationCount: 1,
           ),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildWelcomeCard(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle("Today's Summary"),
-                  const SizedBox(height: 12),
-                  _buildTodaysImpactCard(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Quick Actions'),
-                  const SizedBox(height: 12),
-                  _buildQuickActions(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Performance Metrics'),
-                  const SizedBox(height: 12),
-                  _buildPerformanceMetrics(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Recent Collection', big: true),
-                  const SizedBox(height: 12),
-                  ..._recentCollections.map(
-                    (c) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildCollectionCard(c),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+            child: RefreshIndicator(
+              onRefresh: _loadCompletedCollections,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildWelcomeCard(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle("Today's Summary"),
+                    const SizedBox(height: 12),
+                    _buildTodaysImpactCard(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Quick Actions'),
+                    const SizedBox(height: 12),
+                    _buildQuickActions(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Performance Metrics'),
+                    const SizedBox(height: 12),
+                    _buildPerformanceMetrics(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Completed Collections', big: true),
+                    const SizedBox(height: 12),
+                    if (_loadingCompleted)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (_completedCollections.isEmpty)
+                      _buildEmptyCompleted()
+                    else
+                      ..._completedCollections.take(10).map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildCollectionCard(c),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),
@@ -56,10 +137,6 @@ class ThirdPartyHome extends StatelessWidget {
       ),
       bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 0),
     );
-  }
-
-  Widget _buildSectionTitle(String title, {bool big = false}) {
-    return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
   }
 
   Widget _buildWelcomeCard() {
@@ -97,7 +174,12 @@ class ThirdPartyHome extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(child: _buildStatPill('7', 'Active')),
               const SizedBox(width: 10),
-              Expanded(child: _buildStatPill('122', 'Completed')),
+              Expanded(
+                child: _buildStatPill(
+                  _completedCollections.length.toString(),
+                  'Completed',
+                ),
+              ),
             ],
           ),
         ],
@@ -158,10 +240,7 @@ class ThirdPartyHome extends StatelessWidget {
                 style: AppTypography.displaySm.copyWith(color: Colors.white),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: AppColors.white20,
                   borderRadius: BorderRadius.circular(20),
@@ -169,11 +248,7 @@ class ThirdPartyHome extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: Colors.white,
-                      size: 14,
-                    ),
+                    const Icon(Icons.star_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       "4.8 Today's Rating",
@@ -231,7 +306,7 @@ class ThirdPartyHome extends StatelessWidget {
         _buildActionButton(
           icon: Icons.search_rounded,
           title: 'Browse Requests',
-          subtitle: '6 available nearby',
+          subtitle: 'See nearby requests to offer on',
           primary: true,
           onTap: () {},
         ),
@@ -239,7 +314,7 @@ class ThirdPartyHome extends StatelessWidget {
         _buildActionButton(
           icon: Icons.local_offer_outlined,
           title: 'My Offers',
-          subtitle: '2 pending responses',
+          subtitle: 'Track pending and accepted offers',
           primary: false,
           onTap: () {},
         ),
@@ -365,10 +440,7 @@ class ThirdPartyHome extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return Container(
-      height: 1,
-      color: AppColors.grey100,
-    );
+    return Container(height: 1, color: AppColors.grey100);
   }
 
   Widget _buildMetricRow({
@@ -385,16 +457,12 @@ class ThirdPartyHome extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: AppTypography.bodySm.copyWith(
-                color: AppColors.emerald500,
-              ),
+              style: AppTypography.bodySm.copyWith(color: AppColors.emerald500),
             ),
           ),
           Text(
             value,
-            style: AppTypography.titleLg.copyWith(
-              color: AppColors.emerald500,
-            ),
+            style: AppTypography.titleLg.copyWith(color: AppColors.emerald500),
           ),
         ],
       ),
@@ -481,27 +549,21 @@ class ThirdPartyHome extends StatelessWidget {
         color: AppColors.grey100,
         alignment: Alignment.center,
         child: imageUrl == null
-            ? const Icon(
-                Icons.image_rounded,
-                color: AppColors.grey300,
-                size: 28,
-              )
+            ? const Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.broken_image_rounded,
-                  color: AppColors.grey300,
-                  size: 28,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.broken_image_rounded, color: AppColors.grey300, size: 28),
               ),
       ),
     );
   }
 
   Widget _buildRatingChip(double rating) {
+    final hasRating = rating > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -514,7 +576,7 @@ class ThirdPartyHome extends StatelessWidget {
           const Icon(Icons.star_rounded, color: AppColors.amber600, size: 13),
           const SizedBox(width: 3),
           Text(
-            rating.toStringAsFixed(1),
+            hasRating ? rating.toStringAsFixed(1) : 'N/A',
             style: AppTypography.captionSm.copyWith(
               color: AppColors.amber600,
               fontWeight: FontWeight.w700,
@@ -548,44 +610,35 @@ class ThirdPartyHome extends StatelessWidget {
     );
   }
 
-  static final List<_Collection> _recentCollections = [
-    _Collection(
-      title: 'Plastic Bottles',
-      customer: 'Jennifer Lee',
-      location: 'Eastside',
-      date: 'Dec 5, 2024',
-      time: '3:30 PM',
-      rating: 5.0,
-      quote: 'Very professional and on time!',
-    ),
-    _Collection(
-      title: 'Paper Waste',
-      customer: 'Mark Stevens',
-      location: 'Riverside',
-      date: 'Dec 4, 2024',
-      time: '11:15 AM',
-      rating: 5.0,
-      quote: 'Great service, highly recommend!',
-    ),
-    _Collection(
-      title: 'Electronics',
-      customer: 'Paula Martinez',
-      location: 'Tech District',
-      date: 'Dec 3, 2024',
-      time: '4:45 PM',
-      rating: 4.0,
-      quote: 'Good job, quick pickup.',
-    ),
-    _Collection(
-      title: 'Organic Waste',
-      customer: 'Thomas Clark',
-      location: 'Green Valley',
-      date: 'Dec 2, 2024',
-      time: '10:00 AM',
-      rating: 5.0,
-      quote: 'Excellent and friendly!',
-    ),
-  ];
+  Widget _buildEmptyCompleted() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey200, width: 1),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.assignment_turned_in_outlined,
+            color: AppColors.grey400,
+            size: 34,
+          ),
+          const SizedBox(height: 10),
+          Text('No completed collections yet', style: AppTypography.titleMd),
+          const SizedBox(height: 4),
+          Text(
+            'Completed pickups will appear here with citizen feedback.',
+            style: AppTypography.bodySm,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _Collection {
@@ -597,9 +650,9 @@ class _Collection {
   final String time;
   final double rating;
   final String quote;
+  final DateTime sortTime;
 
   _Collection({
-    // ignore: unused_element_parameter
     this.imageUrl,
     required this.title,
     required this.customer,
@@ -608,5 +661,53 @@ class _Collection {
     required this.time,
     required this.rating,
     required this.quote,
+    required this.sortTime,
   });
+
+  factory _Collection.fromOffer({
+    required CollectionOfferModel offer,
+    required CollectionRequestModel? request,
+  }) {
+    final completedTime = offer.completedAt ?? offer.proposedPickupAt;
+    return _Collection(
+      imageUrl: null,
+      title: request == null
+          ? 'Request #${offer.requestId}'
+          : '${request.wasteType.replaceAll('_', ' ')} Waste',
+      customer: request?.citizenName.isNotEmpty == true
+          ? request!.citizenName
+          : 'Citizen',
+      location: request?.addressLine ?? 'Location unavailable',
+      date: _formatStaticDate(completedTime.toLocal()),
+      time: _formatStaticTime(completedTime.toLocal()),
+      rating: (offer.citizenRating ?? 0).toDouble(),
+      quote: offer.citizenFeedback ?? 'Collection completed successfully.',
+      sortTime: completedTime,
+    );
+  }
+
+  static String _formatStaticDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  static String _formatStaticTime(DateTime date) {
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final meridiem = date.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $meridiem';
+  }
 }
