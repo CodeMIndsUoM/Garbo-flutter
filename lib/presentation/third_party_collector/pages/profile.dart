@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/app_settings.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 
 class ThirdPartyProfilePage extends StatelessWidget {
@@ -366,25 +368,21 @@ class ThirdPartyProfilePage extends StatelessWidget {
           _buildSettingsRow(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
-            onTap: () {},
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ThirdPartyEditProfilePage(),
+              ),
+            ),
           ),
           const _RowDivider(),
           _buildSettingsRow(
-            icon: Icons.notifications_outlined,
-            label: 'Notifications',
-            onTap: () {},
-          ),
-          const _RowDivider(),
-          _buildSettingsRow(
-            icon: Icons.lock_outline_rounded,
-            label: 'Privacy & Security',
-            onTap: () {},
-          ),
-          const _RowDivider(),
-          _buildSettingsRow(
-            icon: Icons.help_outline_rounded,
-            label: 'Help & Support',
-            onTap: () {},
+            icon: Icons.settings_outlined,
+            label: 'App Settings',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ThirdPartyAppSettingsPage(),
+              ),
+            ),
           ),
         ],
       ),
