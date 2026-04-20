@@ -4,8 +4,9 @@ import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_collection_sheet.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
+import 'package:garbo_swms/presentation/third_party_collector/widgets/offer_details_sheet.dart';
 
-enum _JobStatus { offer, active }
+enum _TabType { offer, active }
 
 class ThirdPartyMyJobsPage extends StatefulWidget {
   const ThirdPartyMyJobsPage({super.key});
@@ -15,11 +16,10 @@ class ThirdPartyMyJobsPage extends StatefulWidget {
 }
 
 class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
-  _JobStatus _tab = _JobStatus.active;
+  _TabType _tab = _TabType.offer;
 
-  static final List<_Job> _all = [
-    _Job(
-      status: _JobStatus.active,
+  static final List<_ActiveJob> _activeJobs = [
+    _ActiveJob(
       title: 'Glass Bottles',
       person: 'Robert Garcia',
       location: 'Westside',
@@ -28,8 +28,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       contact: '+1 (555) 123-4567',
       address: '234 West Street, Westside Plaza, Apartment 8C',
     ),
-    _Job(
-      status: _JobStatus.active,
+    _ActiveJob(
       title: 'Textile Waste',
       person: 'Amanda Foster',
       location: 'Northside',
@@ -40,8 +39,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       startedAt: '5:45 PM',
       duration: '30 mins',
     ),
-    _Job(
-      status: _JobStatus.active,
+    _ActiveJob(
       title: 'Metal Scrap',
       person: 'James Lee',
       location: 'Eastside',
@@ -50,55 +48,54 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       contact: '+1 (555) 222-8899',
       address: '89 Steel Road, Industrial Block 2',
     ),
-    _Job(
-      status: _JobStatus.offer,
+  ];
+
+  static final List<_Offer> _offers = [
+    _Offer(
       title: 'Plastic Waste',
       person: 'Sarah Miller',
       location: 'Downtown Area',
       distance: '1.4 km',
-      pickup: 'Tomorrow, 10:00 AM - 12:00 PM',
-      contact: '+1 (555) 301-2211',
-      address: '12 Market Lane, Downtown',
+      postedAgo: '2 hrs ago',
+      offerStatus: OfferStatus.pending,
     ),
-    _Job(
-      status: _JobStatus.offer,
-      title: 'Organic Waste',
-      person: 'Michael Chen',
-      location: 'Green Valley',
-      distance: '2.1 km',
-      pickup: 'Tomorrow, 9:00 AM - 11:00 AM',
-      contact: '+1 (555) 402-7788',
-      address: '4 Orchard St, Green Valley',
-    ),
-    _Job(
-      status: _JobStatus.offer,
-      title: 'Paper Waste',
-      person: 'Olivia Park',
-      location: 'Riverside',
-      distance: '2.6 km',
-      pickup: 'Tomorrow, 3:00 PM - 5:00 PM',
-      contact: '+1 (555) 556-4412',
-      address: '18 River Ave, Apt 4B',
-    ),
-    _Job(
-      status: _JobStatus.offer,
+    _Offer(
       title: 'Electronic Waste',
       person: 'Emma Thompson',
       location: 'Tech District',
       distance: '3.8 km',
-      pickup: 'Today, 5:00 PM - 7:00 PM',
-      contact: '+1 (555) 661-9921',
-      address: '221 Circuit Blvd, Suite 7',
+      postedAgo: '5 hrs ago',
+      offerStatus: OfferStatus.pending,
+    ),
+    _Offer(
+      title: 'Organic Waste',
+      person: 'Michael Chen',
+      location: 'Green Valley',
+      distance: '2.1 km',
+      postedAgo: '1 hrs ago',
+      offerStatus: OfferStatus.accepted,
+      pickup: 'Tomorrow, 9:00 AM - 11:00 AM',
+      contact: '+1 (555) 402-7788',
+      address: '4 Orchard St, Green Valley',
+    ),
+    _Offer(
+      title: 'Organic Waste',
+      person: 'Michael Chen',
+      location: 'Green Valley',
+      distance: '2.1 km',
+      postedAgo: '1 hrs ago',
+      offerStatus: OfferStatus.rejected,
     ),
   ];
 
-  List<_Job> get _visible =>
-      _all.where((j) => j.status == _tab).toList(growable: false);
+  List<_Offer> _offersByStatus(OfferStatus s) =>
+      _offers.where((o) => o.offerStatus == s).toList(growable: false);
 
-  int get _offerCount =>
-      _all.where((j) => j.status == _JobStatus.offer).length;
-  int get _activeCount =>
-      _all.where((j) => j.status == _JobStatus.active).length;
+  static const _offerTabs = [
+    (OfferStatus.pending, 'Awaiting'),
+    (OfferStatus.accepted, 'Accepted'),
+    (OfferStatus.rejected, 'Rejected'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -120,14 +117,38 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                     child: _buildTabs(),
                   ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  sliver: SliverList.separated(
-                    itemCount: _visible.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _buildJobCard(_visible[i]),
+                if (_tab == _TabType.offer) ...[
+                  SliverFillRemaining(
+                    hasScrollBody: true,
+                    child: DefaultTabController(
+                      length: _offerTabs.length,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: _buildOfferStatusTabs(),
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: _offerTabs
+                                  .map((tab) => _buildOfferStatusList(tab.$1))
+                                  .toList(growable: false),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
+                if (_tab == _TabType.active)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    sliver: SliverList.separated(
+                      itemCount: _activeJobs.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (_, i) => _buildActiveCard(_activeJobs[i]),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -136,6 +157,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 2),
     );
   }
+
+  // ── Tabs ─────────────────────────────────────────────────────────────
 
   Widget _buildTabs() {
     return Container(
@@ -149,17 +172,17 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           Expanded(
             child: _buildTabItem(
               label: 'My Offers',
-              count: _offerCount,
-              selected: _tab == _JobStatus.offer,
-              onTap: () => setState(() => _tab = _JobStatus.offer),
+              count: _offers.length,
+              selected: _tab == _TabType.offer,
+              onTap: () => setState(() => _tab = _TabType.offer),
             ),
           ),
           Expanded(
             child: _buildTabItem(
               label: 'Active',
-              count: _activeCount,
-              selected: _tab == _JobStatus.active,
-              onTap: () => setState(() => _tab = _JobStatus.active),
+              count: _activeJobs.length,
+              selected: _tab == _TabType.active,
+              onTap: () => setState(() => _tab = _TabType.active),
             ),
           ),
         ],
@@ -196,7 +219,280 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
-  Widget _buildJobCard(_Job j) {
+  // ── Offer Status Tabs (Swipeable) ──────────────────────────────────
+
+  Widget _buildOfferStatusTabs() {
+    return Builder(
+      builder: (context) {
+        final controller = DefaultTabController.of(context);
+        return Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: AppColors.grey200, width: 1),
+            ),
+          ),
+          child: TabBar(
+            isScrollable: false,
+            indicator: const UnderlineTabIndicator(
+              borderSide: BorderSide(color: AppColors.emerald600, width: 2.5),
+              insets: EdgeInsets.zero,
+            ),
+            indicatorSize: TabBarIndicatorSize.label,
+            dividerColor: Colors.transparent,
+            splashFactory: NoSplash.splashFactory,
+            overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            tabs: List.generate(_offerTabs.length, (i) {
+              final (status, label) = _offerTabs[i];
+              final count = _offersByStatus(status).length;
+              return Tab(
+                height: 44,
+                child: AnimatedBuilder(
+                  animation: controller,
+                  builder: (_, __) => _buildStatusTabLabel(
+                    label,
+                    count,
+                    controller.index == i,
+                  ),
+                ),
+              );
+            }),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusTabLabel(String label, int count, bool selected) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          style: AppTypography.titleSm.copyWith(
+            color: selected ? AppColors.emerald700 : AppColors.grey500,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+          ),
+          child: Text(label),
+        ),
+        const SizedBox(width: 6),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.emerald50 : AppColors.grey100,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            style: AppTypography.captionSm.copyWith(
+              color: selected ? AppColors.emerald700 : AppColors.grey500,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+              height: 1.1,
+            ),
+            child: Text('$count'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOfferStatusList(OfferStatus status) {
+    final offers = _offersByStatus(status);
+    if (offers.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [_buildEmptyOffers()],
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      itemCount: offers.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (_, i) => _buildOfferCard(offers[i]),
+    );
+  }
+
+  Widget _buildEmptyOffers() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.grey100,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.work_off_outlined,
+              color: AppColors.grey400,
+              size: 30,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text('No offers found', style: AppTypography.titleMd),
+          const SizedBox(height: 4),
+          Text(
+            'Browse requests to send new offers',
+            style: AppTypography.bodySm,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Offer Card (tappable, no buttons) ────────────────────────────────
+
+  Widget _buildOfferCard(_Offer o) {
+    final (Color badgeBg, Color badgeFg, String badgeLabel) =
+        switch (o.offerStatus) {
+      OfferStatus.pending => (
+        AppColors.grey100,
+        AppColors.grey600,
+        'Pending',
+      ),
+      OfferStatus.accepted => (
+        AppColors.emerald50,
+        AppColors.emerald700,
+        'Accepted',
+      ),
+      OfferStatus.rejected => (
+        AppColors.grey100,
+        AppColors.grey500,
+        'Rejected',
+      ),
+    };
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: () => _openOfferDetails(o),
+        borderRadius: BorderRadius.circular(14),
+        splashColor: AppColors.emerald50,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 2),
+                blurRadius: 6,
+                spreadRadius: -1,
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageSlot(o.imageUrl),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            o.title,
+                            style: AppTypography.titleMd,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeBg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badgeLabel,
+                            style: AppTypography.captionSm.copyWith(
+                              color: badgeFg,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(o.person, style: AppTypography.bodySm),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.emerald600,
+                          size: 13,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '${o.location} • ${o.distance}',
+                            style: AppTypography.captionSm,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          o.postedAgo,
+                          style: AppTypography.captionSm.copyWith(
+                            color: AppColors.grey400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Padding(
+                padding: const EdgeInsets.only(top: 18),
+                child: Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.grey300,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openOfferDetails(_Offer o) {
+    OfferDetailsSheet.show(
+      context,
+      title: o.title,
+      person: o.person,
+      location: o.location,
+      distance: o.distance,
+      postedAgo: o.postedAgo,
+      status: o.offerStatus,
+      pickup: o.pickup,
+      contact: o.contact,
+      address: o.address,
+    );
+  }
+
+  // ── Active Card ──────────────────────────────────────────────────────
+
+  Widget _buildActiveCard(_ActiveJob j) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -252,13 +548,36 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           const SizedBox(height: 12),
           _buildDetailsBox(j),
           const SizedBox(height: 12),
-          _buildActions(j),
+          Row(
+            children: [
+              Expanded(
+                child: _buildSecondaryButton(
+                  icon: Icons.navigation_outlined,
+                  label: 'Navigate',
+                  onTap: () {},
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildPrimaryButton(
+                  icon: Icons.check_rounded,
+                  label: 'Complete',
+                  onTap: () => CompleteCollectionSheet.show(
+                    context,
+                    title: j.title,
+                    address: j.address,
+                    person: j.person,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDetailsBox(_Job j) {
+  Widget _buildDetailsBox(_ActiveJob j) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -334,53 +653,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
-  Widget _buildActions(_Job j) {
-    if (j.status == _JobStatus.offer) {
-      return Row(
-        children: [
-          Expanded(
-            child: _buildSecondaryButton(
-              icon: Icons.close_rounded,
-              label: 'Decline',
-              onTap: () {},
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _buildPrimaryButton(
-              icon: Icons.check_rounded,
-              label: 'Accept',
-              onTap: () {},
-            ),
-          ),
-        ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSecondaryButton(
-            icon: Icons.navigation_outlined,
-            label: 'Navigate',
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildPrimaryButton(
-            icon: Icons.check_rounded,
-            label: 'Complete',
-            onTap: () => CompleteCollectionSheet.show(
-              context,
-              title: j.title,
-              address: j.address,
-              person: j.person,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // ── Shared Buttons ───────────────────────────────────────────────────
 
   Widget _buildPrimaryButton({
     required IconData icon,
@@ -442,6 +715,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
+  // ── Image Slot ───────────────────────────────────────────────────────
+
   Widget _buildImageSlot(String? imageUrl) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -472,9 +747,37 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   }
 }
 
-class _Job {
+// ── Data Models ──────────────────────────────────────────────────────────
+
+class _Offer {
   final String? imageUrl;
-  final _JobStatus status;
+  final String title;
+  final String person;
+  final String location;
+  final String distance;
+  final String postedAgo;
+  final OfferStatus offerStatus;
+  final String? pickup;
+  final String? contact;
+  final String? address;
+
+  _Offer({
+    // ignore: unused_element_parameter
+    this.imageUrl,
+    required this.title,
+    required this.person,
+    required this.location,
+    required this.distance,
+    required this.postedAgo,
+    required this.offerStatus,
+    this.pickup,
+    this.contact,
+    this.address,
+  });
+}
+
+class _ActiveJob {
+  final String? imageUrl;
   final String title;
   final String person;
   final String location;
@@ -485,10 +788,9 @@ class _Job {
   final String? startedAt;
   final String? duration;
 
-  _Job({
+  _ActiveJob({
     // ignore: unused_element_parameter
     this.imageUrl,
-    required this.status,
     required this.title,
     required this.person,
     required this.location,
