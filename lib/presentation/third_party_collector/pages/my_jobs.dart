@@ -599,7 +599,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildImageSlot(null),
+              _buildImageSlot(request?.photoUrl),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -711,7 +711,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildImageSlot(null),
+              _buildImageSlot(request?.photoUrl),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

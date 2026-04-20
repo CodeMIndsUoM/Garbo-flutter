@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -5,6 +7,7 @@ import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CitizenRequestPage extends StatefulWidget {
   const CitizenRequestPage({super.key});
@@ -18,6 +21,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   int currentStep = 1;
   String? selectedWasteType;
@@ -28,6 +32,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   bool _submitting = false;
   bool _loadingRequests = false;
   String? _citizenId;
+  String? _requestPhotoPath;
   List<CollectionRequestModel> _requests = const [];
 
   static const List<String> _wasteTypeItems = [
@@ -105,6 +110,14 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
 
     setState(() => _submitting = true);
     try {
+      String? requestPhotoUrl;
+      if (_requestPhotoPath != null) {
+        requestPhotoUrl = await _apiService.uploadCitizenRequestPhoto(
+          citizenId: citizenId,
+          photoPath: _requestPhotoPath!,
+        );
+      }
+
       await _apiService.createCollectionRequest(
         citizenId: citizenId,
         payload: {
@@ -120,7 +133,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
           'notes': _notesController.text.trim().isEmpty
               ? null
               : _notesController.text.trim(),
-          'photoUrl': null,
+          'photoUrl': requestPhotoUrl,
         },
       );
       if (!mounted) return;
@@ -161,10 +174,20 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       selectedQuantity = null;
       selectedPickupDate = null;
       selectedTimeSlot = null;
+      _requestPhotoPath = null;
     });
     _addressController.clear();
     _phoneController.clear();
     _notesController.clear();
+  }
+
+  Future<void> _pickRequestPhoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _requestPhotoPath = picked.path);
   }
 
   Future<void> _openRequestDetail(CollectionRequestModel request) async {
@@ -1095,43 +1118,81 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
         style: TextStyle(fontSize: 11, color: AppColors.grey500),
       ),
       const SizedBox(height: 20),
-      Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.grey50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.grey300),
+      const Text(
+        'Request photo (Optional)',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: AppColors.grey700,
         ),
-        child: const Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.photo_camera_back_outlined, color: AppColors.grey500),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Photo upload comes in the next backend step',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.grey900,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'For now this request is submitted without an image so we can test the request and offer flow inside the app.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.grey600,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+      ),
+      const SizedBox(height: 8),
+      GestureDetector(
+        onTap: _pickRequestPhoto,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.grey50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.grey300),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  color: AppColors.grey100,
+                  alignment: Alignment.center,
+                  child: _requestPhotoPath == null
+                      ? const Icon(
+                          Icons.photo_camera_back_outlined,
+                          color: AppColors.grey500,
+                          size: 26,
+                        )
+                      : Image.file(
+                          File(_requestPhotoPath!),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.image_not_supported_outlined,
+                            color: AppColors.grey500,
+                            size: 26,
+                          ),
+                        ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _requestPhotoPath == null
+                          ? 'Tap to choose image from gallery'
+                          : 'Image selected. Tap to change.',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.grey900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'This image is uploaded with your request and shown to collectors.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.grey600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       const SizedBox(height: 20),
