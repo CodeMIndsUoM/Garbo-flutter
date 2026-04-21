@@ -387,6 +387,57 @@ class ApiService {
     return _offerAction(offerId, 'withdraw');
   }
 
+  Future<void> hideOffer(int offerId) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/hide',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(<String, dynamic>{}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to remove offer from list');
+    }
+  }
+
+  Future<int> hideCollectorOffers({
+    required String collectorId,
+    List<String>? statuses,
+  }) async {
+    if (collectorId.isEmpty) {
+      throw Exception('Collector ID is empty. Please log in again.');
+    }
+
+    final params = <String, String>{};
+    if (statuses != null && statuses.isNotEmpty) {
+      params['statuses'] = statuses.join(',');
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/my-offers/hide',
+    ).replace(queryParameters: params.isEmpty ? null : params);
+
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(<String, dynamic>{}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to clear offers');
+    }
+
+    final data = body['data'] as Map<String, dynamic>? ?? const {};
+    return (data['hiddenCount'] as num?)?.toInt() ?? 0;
+  }
+
   Future<CollectionOfferModel> startOffer(int offerId) async {
     return _offerAction(offerId, 'start');
   }

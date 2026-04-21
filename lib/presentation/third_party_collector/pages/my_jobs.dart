@@ -12,7 +12,6 @@ import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_c
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/offer_details_sheet.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 enum _TabType { offer, active }
 
@@ -29,8 +28,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   _TabType _tab = _TabType.offer;
   bool _loading = false;
+  bool _clearingRejected = false;
   String? _collectorId;
-  Set<int> _dismissedOfferIds = <int>{};
+  Set<String> _selectedWasteTypes = <String>{};
+  String _searchQuery = '';
+  int? _createdWithinDays;
 
   List<CollectionOfferModel> _offers = const [];
   List<CollectionOfferModel> _activeJobs = const [];
@@ -63,34 +65,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     final collectorId = await _apiService.getStoredEmpId();
     if (!mounted) return;
     setState(() => _collectorId = collectorId);
-    await _loadDismissedOffers();
     await _loadData();
-  }
-
-  String _dismissedOffersKey(String collectorId) {
-    return 'third_party_collector_${collectorId}_dismissed_offer_ids';
-  }
-
-  Future<void> _loadDismissedOffers() async {
-    final collectorId = _collectorId;
-    if (collectorId == null || collectorId.isEmpty) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_dismissedOffersKey(collectorId)) ??
-        const <String>[];
-    final ids = raw.map(int.tryParse).whereType<int>().toSet();
-    if (!mounted) return;
-    setState(() => _dismissedOfferIds = ids);
-  }
-
-  Future<void> _saveDismissedOffers() async {
-    final collectorId = _collectorId;
-    if (collectorId == null || collectorId.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
-    final values = _dismissedOfferIds
-        .map((id) => id.toString())
-        .toList(growable: false);
-    await prefs.setStringList(_dismissedOffersKey(collectorId), values);
   }
 
   Future<void> _loadData() async {
@@ -101,15 +76,6 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     try {
       final offers = await _apiService.getCollectorOffers(collectorId);
       final activeJobs = await _apiService.getCollectorActiveJobs(collectorId);
-
-      // Keep dismissed cache small by dropping ids no longer in collector offers.
-      final offerIds = offers.map((o) => o.id).toSet();
-      final beforePruneCount = _dismissedOfferIds.length;
-      _dismissedOfferIds.removeWhere((id) => !offerIds.contains(id));
-      final hasPruned = _dismissedOfferIds.length != beforePruneCount;
-      if (hasPruned) {
-        await _saveDismissedOffers();
-      }
 
       final requestIds = <int>{
         ...offers.map((o) => o.requestId),
@@ -141,7 +107,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   List<CollectionOfferModel> _offersByStatus(OfferStatus tabStatus) {
     return _offers
         .where((offer) {
-          if (_dismissedOfferIds.contains(offer.id)) {
+          if (!_matchesAdvancedFilters(offer)) {
             return false;
           }
           final status = offer.status;
@@ -163,6 +129,64 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       0,
       (sum, tab) => sum + _offersByStatus(tab.$1).length,
     );
+  }
+
+  int get _activeFilterCount {
+    var count = 0;
+    if (_selectedWasteTypes.isNotEmpty) count++;
+    if (_searchQuery.trim().isNotEmpty) count++;
+    if (_createdWithinDays != null) count++;
+    return count;
+  }
+
+  bool _matchesAdvancedFilters(CollectionOfferModel offer) {
+    final request = _requestById[offer.requestId];
+    if (request == null) {
+      return _selectedWasteTypes.isEmpty &&
+          _searchQuery.trim().isEmpty &&
+          _createdWithinDays == null;
+    }
+
+    if (_selectedWasteTypes.isNotEmpty &&
+        !_selectedWasteTypes.contains(request.wasteType)) {
+      return false;
+    }
+
+    final trimmedQuery = _searchQuery.trim().toLowerCase();
+    if (trimmedQuery.isNotEmpty) {
+      final searchable = [
+        request.citizenName,
+        request.addressLine,
+        request.wasteType.replaceAll('_', ' '),
+        '#${offer.requestId}',
+      ].join(' ').toLowerCase();
+      if (!searchable.contains(trimmedQuery)) {
+        return false;
+      }
+    }
+
+    if (_createdWithinDays != null) {
+      final createdAt = offer.createdAt;
+      if (createdAt == null) {
+        return false;
+      }
+      final diff = DateTime.now().difference(createdAt.toLocal());
+      if (diff.isNegative || diff.inDays > _createdWithinDays!) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  List<String> get _availableWasteTypes {
+    final types = _offers
+        .map((offer) => _requestById[offer.requestId]?.wasteType)
+        .whereType<String>()
+        .toSet()
+        .toList(growable: false);
+    types.sort();
+    return types;
   }
 
   OfferStatus _toSheetStatus(String status) {
@@ -237,13 +261,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         );
         _showSnackBar('Offer cancelled.');
       } else {
-        _dismissedOfferIds.add(offer.id);
-        await _saveDismissedOffers();
-        setState(() {
-          _offers = _offers
-              .where((o) => o.id != offer.id)
-              .toList(growable: false);
-        });
+        await _apiService.hideOffer(offer.id);
+        _showSnackBar('Offer removed from list.');
       }
       await _loadData();
     } catch (e) {
@@ -279,6 +298,215 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         );
       },
     );
+  }
+
+  Future<void> _openAdvancedFilters() async {
+    final wasteTypes = _availableWasteTypes;
+    final queryController = TextEditingController(text: _searchQuery);
+    final localWasteTypes = Set<String>.from(_selectedWasteTypes);
+    var localCreatedWithinDays = _createdWithinDays;
+
+    final shouldApply = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            Widget buildTimeChip(String label, int? days) {
+              final selected = localCreatedWithinDays == days;
+              return ChoiceChip(
+                label: Text(label),
+                selected: selected,
+                onSelected: (_) {
+                  setModalState(() => localCreatedWithinDays = days);
+                },
+              );
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.of(ctx).viewInsets.bottom,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text('Advanced Filters', style: AppTypography.titleMd),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                localWasteTypes.clear();
+                                localCreatedWithinDays = null;
+                                queryController.clear();
+                              });
+                            },
+                            child: const Text('Reset'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Search', style: AppTypography.titleSm),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: queryController,
+                        decoration: InputDecoration(
+                          hintText: 'Citizen, address, request id',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          filled: true,
+                          fillColor: AppColors.grey50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text('Waste Type', style: AppTypography.titleSm),
+                      const SizedBox(height: 8),
+                      if (wasteTypes.isEmpty)
+                        Text(
+                          'No waste types available yet',
+                          style: AppTypography.captionSm.copyWith(
+                            color: AppColors.grey500,
+                          ),
+                        )
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: wasteTypes
+                              .map(
+                                (type) => FilterChip(
+                                  label: Text(type.replaceAll('_', ' ')),
+                                  selected: localWasteTypes.contains(type),
+                                  onSelected: (selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        localWasteTypes.add(type);
+                                      } else {
+                                        localWasteTypes.remove(type);
+                                      }
+                                    });
+                                  },
+                                ),
+                              )
+                              .toList(growable: false),
+                        ),
+                      const SizedBox(height: 14),
+                      Text('Offer Age', style: AppTypography.titleSm),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          buildTimeChip('Any', null),
+                          buildTimeChip('Last 24h', 1),
+                          buildTimeChip('Last 7d', 7),
+                          buildTimeChip('Last 30d', 30),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.emerald600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.check_rounded),
+                          label: const Text('Apply Filters'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    final appliedQuery = queryController.text.trim();
+    queryController.dispose();
+
+    if (shouldApply != true || !mounted) return;
+    setState(() {
+      _selectedWasteTypes = localWasteTypes;
+      _createdWithinDays = localCreatedWithinDays;
+      _searchQuery = appliedQuery;
+    });
+  }
+
+  Future<void> _clearRejectedOffers() async {
+    final collectorId = _collectorId;
+    if (collectorId == null || collectorId.isEmpty || _clearingRejected) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Rejected Offers'),
+        content: const Text(
+          'This removes all rejected, withdrawn, and cancelled offers from My Jobs.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.emerald600,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Clear All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _clearingRejected = true);
+    try {
+      final hiddenCount = await _apiService.hideCollectorOffers(
+        collectorId: collectorId,
+        statuses: const ['REJECTED', 'WITHDRAWN', 'CANCELLED'],
+      );
+      _showSnackBar(
+        hiddenCount > 0
+            ? 'Removed $hiddenCount offers from list.'
+            : 'No rejected offers to remove.',
+      );
+      await _loadData();
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not clear offers: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _clearingRejected = false);
+      }
+    }
   }
 
   Future<void> _handleComplete(CollectionOfferModel offer) async {
@@ -404,9 +632,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         child: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                              child: _buildOfferStatusTabs(),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                              child: _buildFilterBar(),
                             ),
+                            _buildActiveFiltersRail(),
                             Expanded(
                               child: TabBarView(
                                 children: _offerTabs
@@ -414,6 +643,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                                     .toList(growable: false),
                               ),
                             ),
+                            _buildClearRejectedBar(),
                           ],
                         ),
                       ),
@@ -500,77 +730,457 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
-  Widget _buildOfferStatusTabs() {
+  Widget _buildFilterBar() {
     return Builder(
       builder: (context) {
         final controller = DefaultTabController.of(context);
-        return Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: AppColors.grey200, width: 1),
-            ),
-          ),
-          child: TabBar(
-            isScrollable: false,
-            indicator: const UnderlineTabIndicator(
-              borderSide: BorderSide(color: AppColors.emerald600, width: 2.5),
-              insets: EdgeInsets.zero,
-            ),
-            indicatorSize: TabBarIndicatorSize.label,
-            dividerColor: Colors.transparent,
-            tabs: List.generate(_offerTabs.length, (i) {
-              final (status, label) = _offerTabs[i];
-              final count = _offersByStatus(status).length;
-              return Tab(
-                height: 44,
-                child: AnimatedBuilder(
-                  animation: controller,
-                  builder: (_, __) =>
-                      _buildStatusTabLabel(label, count, controller.index == i),
+        return Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: AnimatedBuilder(
+                    animation: controller,
+                    builder: (_, __) {
+                      return Row(
+                        children: List.generate(_offerTabs.length, (i) {
+                          final (status, label) = _offerTabs[i];
+                          final count = _offersByStatus(status).length;
+                          final selected = controller.index == i;
+                          return Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => controller.animateTo(i),
+                              child: _buildStatusPill(
+                                label: label,
+                                count: count,
+                                selected: selected,
+                              ),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                  ),
                 ),
-              );
-            }),
+              ),
+              const SizedBox(width: 8),
+              _buildFilterIconButton(),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildStatusTabLabel(String label, int count, bool selected) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 180),
-            style: AppTypography.titleSm.copyWith(
-              color: selected ? AppColors.emerald700 : AppColors.grey500,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-            ),
-            child: Text(label),
-          ),
-          const SizedBox(width: 5),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.emerald50 : AppColors.grey100,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: AnimatedDefaultTextStyle(
+  Widget _buildStatusPill({
+    required String label,
+    required int count,
+    required bool selected,
+  }) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: selected ? Colors.white : Colors.transparent,
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  offset: const Offset(0, 1),
+                  blurRadius: 3,
+                ),
+              ]
+            : null,
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 180),
-              style: AppTypography.captionSm.copyWith(
-                color: selected ? AppColors.emerald700 : AppColors.grey500,
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
-                height: 1.1,
+              style: AppTypography.titleSm.copyWith(
+                color: selected ? AppColors.emerald700 : AppColors.grey600,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                fontSize: 13,
               ),
-              child: Text('$count'),
+              child: Text(label),
+            ),
+            const SizedBox(width: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: selected ? AppColors.emerald50 : AppColors.grey200,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$count',
+                style: AppTypography.captionSm.copyWith(
+                  color: selected ? AppColors.emerald700 : AppColors.grey600,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterIconButton() {
+    final hasFilters = _activeFilterCount > 0;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: hasFilters ? AppColors.emerald600 : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasFilters ? AppColors.emerald600 : AppColors.grey200,
+          width: 1,
+        ),
+        boxShadow: hasFilters
+            ? [
+                BoxShadow(
+                  color: AppColors.emerald600.withValues(alpha: 0.25),
+                  offset: const Offset(0, 2),
+                  blurRadius: 6,
+                  spreadRadius: -1,
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  offset: const Offset(0, 1),
+                  blurRadius: 3,
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: _openAdvancedFilters,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: hasFilters
+              ? Colors.white.withValues(alpha: 0.2)
+              : AppColors.emerald50,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Center(
+                  child: Icon(
+                    Icons.tune_rounded,
+                    color: hasFilters ? Colors.white : AppColors.grey700,
+                    size: 20,
+                  ),
+                ),
+                if (hasFilters)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.emerald600,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClearRejectedBar() {
+    return Builder(
+      builder: (context) {
+        final controller = DefaultTabController.of(context);
+        return AnimatedBuilder(
+          animation: controller,
+          builder: (_, __) {
+            final rejectedCount = _offersByStatus(OfferStatus.rejected).length;
+            final visible = controller.index == 2 && rejectedCount > 0;
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                final slide = Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(animation);
+                return SlideTransition(
+                  position: slide,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: visible
+                  ? Container(
+                      key: const ValueKey('clear-rejected-bar'),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          top: BorderSide(
+                            color: AppColors.grey100,
+                            width: 1,
+                          ),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            offset: const Offset(0, -2),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                      child: SafeArea(
+                        top: false,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '$rejectedCount rejected offer${rejectedCount == 1 ? '' : 's'}',
+                                    style: AppTypography.titleSm.copyWith(
+                                      color: AppColors.grey900,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Clean up to keep this list focused',
+                                    style: AppTypography.captionSm.copyWith(
+                                      color: AppColors.grey500,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _buildClearRejectedAction(),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(
+                      key: ValueKey('clear-rejected-hidden'),
+                      width: double.infinity,
+                    ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildClearRejectedAction() {
+    return Material(
+      color: _clearingRejected ? AppColors.grey100 : AppColors.emerald600,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: _clearingRejected ? null : _clearRejectedOffers,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_clearingRejected)
+                const SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.emerald600,
+                    ),
+                  ),
+                )
+              else
+                const Icon(
+                  Icons.delete_sweep_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              const SizedBox(width: 6),
+              Text(
+                _clearingRejected ? 'Clearing...' : 'Clear all',
+                style: AppTypography.buttonMd.copyWith(
+                  color: _clearingRejected
+                      ? AppColors.grey500
+                      : Colors.white,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveFiltersRail() {
+    if (_activeFilterCount == 0) return const SizedBox.shrink();
+
+    final chips = <Widget>[];
+
+    if (_searchQuery.trim().isNotEmpty) {
+      chips.add(
+        _activeFilterChip(
+          icon: Icons.search_rounded,
+          label: '"${_searchQuery.trim()}"',
+          onRemove: () => setState(() => _searchQuery = ''),
+        ),
+      );
+    }
+
+    for (final type in _selectedWasteTypes) {
+      chips.add(
+        _activeFilterChip(
+          icon: Icons.category_outlined,
+          label: type.replaceAll('_', ' '),
+          onRemove: () => setState(() => _selectedWasteTypes.remove(type)),
+        ),
+      );
+    }
+
+    if (_createdWithinDays != null) {
+      final daysLabel = switch (_createdWithinDays!) {
+        1 => 'Last 24h',
+        7 => 'Last 7d',
+        30 => 'Last 30d',
+        _ => 'Last ${_createdWithinDays}d',
+      };
+      chips.add(
+        _activeFilterChip(
+          icon: Icons.access_time_rounded,
+          label: daysLabel,
+          onRemove: () => setState(() => _createdWithinDays = null),
+        ),
+      );
+    }
+
+    chips.add(
+      Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: TextButton(
+          onPressed: () {
+            setState(() {
+              _selectedWasteTypes.clear();
+              _searchQuery = '';
+              _createdWithinDays = null;
+            });
+          },
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            minimumSize: const Size(0, 32),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Clear all',
+            style: AppTypography.captionSm.copyWith(
+              color: AppColors.emerald700,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            for (var i = 0; i < chips.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              chips[i],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _activeFilterChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onRemove,
+  }) {
+    return Material(
+      color: AppColors.emerald50,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onRemove,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: AppColors.emerald700, size: 13),
+              const SizedBox(width: 5),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.captionSm.copyWith(
+                    color: AppColors.emerald700,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.emerald600,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -593,6 +1203,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   }
 
   Widget _buildEmptyOffers() {
+    final filtered = _activeFilterCount > 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
@@ -601,22 +1212,48 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.grey100,
+              color: filtered ? AppColors.emerald50 : AppColors.grey100,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
-              Icons.work_off_outlined,
-              color: AppColors.grey400,
+            child: Icon(
+              filtered ? Icons.search_off_rounded : Icons.work_off_outlined,
+              color: filtered ? AppColors.emerald600 : AppColors.grey400,
               size: 30,
             ),
           ),
           const SizedBox(height: 14),
-          Text('No offers found', style: AppTypography.titleMd),
+          Text(
+            filtered ? 'No matches' : 'No offers found',
+            style: AppTypography.titleMd,
+          ),
           const SizedBox(height: 4),
           Text(
-            'Browse requests to send new offers',
+            filtered
+                ? 'Try adjusting or clearing your filters'
+                : 'Browse requests to send new offers',
             style: AppTypography.bodySm,
           ),
+          if (filtered) ...[
+            const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: () {
+                setState(() {
+                  _selectedWasteTypes.clear();
+                  _searchQuery = '';
+                  _createdWithinDays = null;
+                });
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.emerald700,
+                side: const BorderSide(color: AppColors.emerald600, width: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              icon: const Icon(Icons.refresh_rounded, size: 16),
+              label: const Text('Clear filters'),
+            ),
+          ],
         ],
       ),
     );
