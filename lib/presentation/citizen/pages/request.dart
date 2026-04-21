@@ -5,9 +5,11 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 
 class CitizenRequestPage extends StatefulWidget {
   const CitizenRequestPage({super.key});
@@ -28,6 +30,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   String? selectedQuantity;
   DateTime? selectedPickupDate;
   String? selectedTimeSlot;
+  LatLng? _pickupLocation;
   bool showMyRequests = false;
   bool _submitting = false;
   bool _loadingRequests = false;
@@ -125,8 +128,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
           'quantityLabel': selectedQuantity,
           'quantityKgEstimate': null,
           'addressLine': _addressController.text.trim(),
-          'latitude': 6.9271,
-          'longitude': 79.8612,
+          'latitude': _pickupLocation!.latitude,
+          'longitude': _pickupLocation!.longitude,
           'preferredDate': _formatDate(selectedPickupDate!),
           'preferredSlot': _mapTimeSlot(selectedTimeSlot!),
           'contactPhone': _phoneController.text.trim(),
@@ -158,6 +161,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
     if (selectedQuantity == null) return 'Please select an estimated quantity.';
     if (selectedPickupDate == null) return 'Please select a pickup date.';
     if (selectedTimeSlot == null) return 'Please select a time slot.';
+    if (_pickupLocation == null) {
+      return 'Please choose a pickup location on the map.';
+    }
     if (_addressController.text.trim().isEmpty) {
       return 'Please enter the pickup address.';
     }
@@ -174,6 +180,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       selectedQuantity = null;
       selectedPickupDate = null;
       selectedTimeSlot = null;
+      _pickupLocation = null;
       _requestPhotoPath = null;
     });
     _addressController.clear();
@@ -188,6 +195,20 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
     );
     if (picked == null || !mounted) return;
     setState(() => _requestPhotoPath = picked.path);
+  }
+
+  Future<void> _openPickupLocationPicker() async {
+    final selected = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute<LatLng>(
+        builder: (_) => PickupLocationPickerPage(
+          initialLocation: _pickupLocation ?? const LatLng(6.9271, 79.8612),
+          initialAddress: _addressController.text.trim(),
+        ),
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+    setState(() => _pickupLocation = selected);
   }
 
   Future<void> _openRequestDetail(CollectionRequestModel request) async {
@@ -789,6 +810,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                             if (currentStep < 3) {
                               if (selectedPickupDate == null ||
                                   selectedTimeSlot == null ||
+                                  _pickupLocation == null ||
                                   _addressController.text.trim().isEmpty) {
                                 _showSnackBar(
                                   'Please complete the pickup details first.',
@@ -1059,13 +1081,103 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
           ),
         ),
       ),
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _openPickupLocationPicker,
+          icon: const Icon(Icons.map_outlined, size: 18),
+          label: Text(
+            _pickupLocation == null
+                ? 'Choose on map'
+                : 'Change pickup location',
+          ),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.emerald700,
+            backgroundColor: Colors.white,
+            side: const BorderSide(color: AppColors.emerald200, width: 1.2),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 10),
+      _buildPickupLocationCard(),
       const SizedBox(height: 6),
       const Text(
-        'GPS capture is still pending, so the app is using a default Colombo location for now.',
+        'Use the map to place your pickup point, then add the address as a clear location label.',
         style: TextStyle(fontSize: 11, color: AppColors.grey500),
       ),
       const SizedBox(height: 24),
     ];
+  }
+
+  Widget _buildPickupLocationCard() {
+    final location = _pickupLocation;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: location == null ? AppColors.grey50 : AppColors.emerald50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: location == null ? AppColors.grey300 : AppColors.emerald200,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: location == null
+                  ? AppColors.grey300
+                  : AppColors.emerald600,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              location == null ? Icons.location_off_outlined : Icons.place,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  location == null
+                      ? 'No pickup point selected'
+                      : 'Pickup point selected',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: location == null
+                        ? AppColors.grey700
+                        : AppColors.emerald700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  location == null
+                      ? 'Tap Choose on map to place the pickup point.'
+                      : 'Lat ${location.latitude.toStringAsFixed(5)}, Lng ${location.longitude.toStringAsFixed(5)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.grey600,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildStep3Content() {
