@@ -342,7 +342,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                     children: [
                       Row(
                         children: [
-                          Text('Advanced Filters', style: AppTypography.titleMd),
+                          Text(
+                            'Advanced Filters',
+                            style: AppTypography.titleMd,
+                          ),
                           const Spacer(),
                           TextButton(
                             onPressed: () {
@@ -944,10 +947,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border(
-                          top: BorderSide(
-                            color: AppColors.grey100,
-                            width: 1,
-                          ),
+                          top: BorderSide(color: AppColors.grey100, width: 1),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -1035,9 +1035,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               Text(
                 _clearingRejected ? 'Clearing...' : 'Clear all',
                 style: AppTypography.buttonMd.copyWith(
-                  color: _clearingRejected
-                      ? AppColors.grey500
-                      : Colors.white,
+                  color: _clearingRejected ? AppColors.grey500 : Colors.white,
                   fontSize: 13,
                 ),
               ),
