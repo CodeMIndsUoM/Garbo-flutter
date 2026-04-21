@@ -48,8 +48,10 @@ Run the backend once to create these accounts automatically:
 
 ```bash
 cd ../Garbo_backend
-mvn spring-boot:run
+./run-local.sh
 ```
+
+Note: `run-local.sh` loads `.env` first, so Cloudinary-backed upload endpoints work correctly.
 
 ## Project Structure
 

@@ -3,6 +3,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/send_offer_sheet.dart';
@@ -116,6 +117,30 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       _showSnackBar('Offer sent successfully.');
       await _loadFeed();
     }
+  }
+
+  void _openPickupMap(CollectionRequestModel request) {
+    final lat = request.latitude;
+    final lng = request.longitude;
+
+    if (lat == 0 || lng == 0) {
+      _showSnackBar(
+        'Pickup location coordinates are not available.',
+        isError: true,
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LeafletNavigationPage(
+          latitude: lat,
+          longitude: lng,
+          title: '${request.wasteType.replaceAll('_', ' ')} Waste',
+          subtitle: request.addressLine,
+        ),
+      ),
+    );
   }
 
   List<CollectionRequestModel> get _filteredRequests {
@@ -383,8 +408,90 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSecondaryActionButton(
+                        icon: Icons.map_outlined,
+                        label: 'View Map',
+                        onTap: () => _openPickupMap(request),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildPrimaryActionButton(
+                        icon: Icons.local_offer_outlined,
+                        label: 'Send Offer',
+                        onTap: _submittingOffer
+                            ? null
+                            : () => _openSendOfferSheet(request),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: AppColors.emerald600,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.buttonMd.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.emerald50,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppColors.emerald700, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.buttonMd.copyWith(
+                  color: AppColors.emerald700,
+                ),
+              ),
+            ],
           ),
         ),
       ),
