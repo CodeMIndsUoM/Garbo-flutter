@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class ApiService {
@@ -511,5 +512,29 @@ class ApiService {
     }
 
     return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
+  }
+
+  Future<CollectorDashboardModel> getCollectorDashboard(
+    String collectorId,
+  ) async {
+    if (collectorId.isEmpty) {
+      throw Exception('Collector ID is empty. Please log in again.');
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/dashboard',
+    );
+
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load dashboard');
+    }
+
+    return CollectorDashboardModel.fromJson(
+      body['data'] as Map<String, dynamic>,
+    );
   }
 }

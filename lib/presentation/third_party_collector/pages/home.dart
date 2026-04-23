@@ -3,6 +3,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
@@ -19,6 +20,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
   bool _loadingCompleted = false;
   String? _collectorId;
+  CollectorDashboardModel? _dashboardModel;
   List<_Collection> _completedCollections = const [];
 
   @override
@@ -40,6 +42,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
     setState(() => _loadingCompleted = true);
     try {
+      final dashboard = await _apiService.getCollectorDashboard(collectorId);
+
       final completedOffers = await _apiService.getCollectorOffers(
         collectorId,
         status: 'COMPLETED',
@@ -61,7 +65,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       rows.sort((a, b) => b.sortTime.compareTo(a.sortTime));
 
       if (!mounted) return;
-      setState(() => _completedCollections = rows);
+      setState(() {
+        _completedCollections = rows;
+        _dashboardModel = dashboard;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() => _completedCollections = const []);
@@ -171,13 +178,23 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildStatPill('6', 'Available')),
-              const SizedBox(width: 10),
-              Expanded(child: _buildStatPill('7', 'Active')),
+              Expanded(
+                child: _buildStatPill(
+                  _dashboardModel?.availableRequests.toString() ?? '-',
+                  'Available',
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildStatPill(
-                  _completedCollections.length.toString(),
+                  _dashboardModel?.activeJobs.toString() ?? '-',
+                  'Active',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatPill(
+                  _dashboardModel?.completedJobs.toString() ?? '-',
                   'Completed',
                 ),
               ),
@@ -259,7 +276,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "4.8 Today's Rating",
+                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.caption.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -273,9 +290,19 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildImpactTile('1h 20m', 'Working Hours')),
+              Expanded(
+                child: _buildImpactTile(
+                  _formatMinutes(_dashboardModel?.todaysWorkingMinutes ?? 0),
+                  'Working Hours',
+                ),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _buildImpactTile('2.01 Kg', 'Waste Collected')),
+              Expanded(
+                child: _buildImpactTile(
+                  "${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg",
+                  'Waste Collected',
+                ),
+              ),
             ],
           ),
         ],
@@ -428,19 +455,19 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           _buildMetricRow(
             icon: Icons.check_circle_outline_rounded,
             label: 'Response Rate',
-            value: '98%',
+            value: '${_dashboardModel?.responseRate.toInt() ?? 0}%',
           ),
           _buildDivider(),
           _buildMetricRow(
             icon: Icons.access_time_rounded,
             label: 'On-Time Rate',
-            value: '96%',
+            value: '${_dashboardModel?.onTimeRate.toInt() ?? 0}%',
           ),
           _buildDivider(),
           _buildMetricRow(
             icon: Icons.star_border_rounded,
             label: 'Average Rating',
-            value: '4.8 / 5.0',
+            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
           ),
         ],
       ),
@@ -653,7 +680,18 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       ),
     );
   }
+
+  String _formatMinutes(int totalMinutes) {
+    if (totalMinutes == 0) return '0h 0m';
+    final hours = totalMinutes ~/ 60;
+    final mins = totalMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${mins}m';
+    }
+    return '${mins}m';
+  }
 }
+
 
 class _Collection {
   final String? imageUrl;
