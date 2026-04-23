@@ -545,12 +545,20 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                       decoration: BoxDecoration(
                         color: AppColors.grey200,
                         borderRadius: BorderRadius.circular(12),
+                        image: request.photoUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(request.photoUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
-                      child: Icon(
-                        _iconForWasteType(request.wasteType),
-                        color: AppColors.grey700,
-                        size: 28,
-                      ),
+                      child: request.photoUrl == null
+                          ? Icon(
+                              _iconForWasteType(request.wasteType),
+                              color: AppColors.grey700,
+                              size: 28,
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
