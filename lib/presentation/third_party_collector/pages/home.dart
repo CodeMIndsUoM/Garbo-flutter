@@ -7,6 +7,8 @@ import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/browse.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs.dart';
 
 class ThirdPartyHome extends StatefulWidget {
   const ThirdPartyHome({super.key});
@@ -343,7 +345,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           title: 'Browse Requests',
           subtitle: 'See nearby requests to offer on',
           primary: true,
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              SmoothPageRoute(page: ThirdPartyBrowsePage()),
+            );
+          },
         ),
         const SizedBox(height: 10),
         _buildActionButton(
@@ -351,7 +357,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           title: 'My Offers',
           subtitle: 'Track pending and accepted offers',
           primary: false,
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              SmoothPageRoute(page: ThirdPartyMyJobsPage()),
+            );
+          },
         ),
       ],
     );
