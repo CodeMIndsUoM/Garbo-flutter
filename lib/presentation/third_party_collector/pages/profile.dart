@@ -6,11 +6,74 @@ import 'package:garbo_swms/presentation/third_party_collector/pages/app_settings
 import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 
-class ThirdPartyProfilePage extends StatelessWidget {
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
+
+class ThirdPartyProfilePage extends StatefulWidget {
   const ThirdPartyProfilePage({super.key});
 
   @override
+  State<ThirdPartyProfilePage> createState() => _ThirdPartyProfilePageState();
+}
+
+class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
+  final ApiService _apiService = ApiService();
+  CollectorDashboardModel? _dashboardModel;
+  String _empName = 'Collector';
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      final name = await _apiService.getStoredEmpName();
+      final collectorId = await _apiService.getStoredEmpId();
+      
+      if (collectorId.isNotEmpty) {
+        final dashboard = await _apiService.getCollectorDashboard(collectorId);
+        if (mounted) {
+          setState(() {
+            _empName = name.isEmpty ? 'Collector' : name;
+            _dashboardModel = dashboard;
+            _loading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _loading = false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  String _formatMinutes(int totalMinutes) {
+    if (totalMinutes == 0) return '0h 0m';
+    final h = totalMinutes ~/ 60;
+    final m = totalMinutes % 60;
+    if (h == 0) return '${m}m';
+    return '${h}h ${m}m';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: AppColors.grey50,
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.emerald600),
+        ),
+        bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 3),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: CustomScrollView(
@@ -81,7 +144,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sasindu Jayamadu',
+                      _empName,
                       style: AppTypography.h2.copyWith(color: Colors.white),
                     ),
                     const SizedBox(height: 4),
@@ -94,7 +157,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '4.8',
+                          _dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0',
                           style: AppTypography.titleSm.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -124,11 +187,11 @@ class ThirdPartyProfilePage extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _buildHeaderStat(value: '7', label: 'Available jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.availableRequests ?? 0}', label: 'Available jobs')),
               const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '3', label: 'Completed jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.completedJobs ?? 0}', label: 'Completed jobs')),
               const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '127', label: 'Pending jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.activeJobs ?? 0}', label: 'Active jobs')),
             ],
           ),
         ],
@@ -218,7 +281,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "4.8 Today's Rating",
+                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.captionSm.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -232,9 +295,9 @@ class ThirdPartyProfilePage extends StatelessWidget {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildImpactStat(value: '1h 20m', label: 'Working Hours')),
+              Expanded(child: _buildImpactStat(value: _formatMinutes(_dashboardModel?.todaysWorkingMinutes ?? 0), label: 'Working Hours')),
               const SizedBox(width: 12),
-              Expanded(child: _buildImpactStat(value: '2.01 Kg', label: 'Waste Collected')),
+              Expanded(child: _buildImpactStat(value: '${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg', label: 'Waste Collected')),
             ],
           ),
         ],
@@ -295,13 +358,13 @@ class ThirdPartyProfilePage extends StatelessWidget {
           _buildDetailRow(
             icon: Icons.check_circle_outline_rounded,
             label: 'Response Rate',
-            value: '98%',
+            value: '${_dashboardModel?.responseRate.toStringAsFixed(0) ?? '0'}%',
           ),
           const _RowDivider(),
           _buildDetailRow(
             icon: Icons.schedule_rounded,
             label: 'On-Time Rate',
-            value: '96%',
+            value: '${_dashboardModel?.onTimeRate.toStringAsFixed(0) ?? '0'}%',
           ),
         ],
       ),
