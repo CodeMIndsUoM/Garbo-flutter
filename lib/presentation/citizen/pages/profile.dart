@@ -69,7 +69,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald600.withOpacity(0.2),
+            color: AppColors.emerald600.withValues(alpha: 0.2),
             offset: const Offset(0, 4),
             blurRadius: 12,
           ),
@@ -83,7 +83,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
@@ -132,13 +132,13 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
               Container(
                 width: 1,
                 height: 32,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
               buildStatItem('2', 'Events'),
               Container(
                 width: 1,
                 height: 32,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
               buildStatItem('145', 'Points'),
             ],
@@ -147,7 +147,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -190,7 +190,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             fontSize: 12,
             fontWeight: FontWeight.w400,
           ),
@@ -251,7 +251,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 1),
             blurRadius: 6,
             spreadRadius: -1,
@@ -391,7 +391,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               offset: const Offset(0, 1),
               blurRadius: 6,
               spreadRadius: -1,
@@ -493,7 +493,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red,
-          backgroundColor: Colors.red.withOpacity(0.05),
+          backgroundColor: Colors.red.withValues(alpha: 0.05),
           side: const BorderSide(color: Colors.red, width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -512,7 +512,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),

@@ -51,7 +51,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withOpacity(0.3),
+            color: AppColors.emerald700.withValues(alpha: 0.3),
             offset: const Offset(0, 8),
             blurRadius: 16,
             spreadRadius: -4,
@@ -68,7 +68,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -80,7 +80,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
             ),
@@ -96,10 +96,10 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 2,
                         ),
                       ),
@@ -141,7 +141,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                           Text(
                             "Let's make our city cleaner",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                             ),
@@ -152,7 +152,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Container(height: 1, color: Colors.white.withOpacity(0.2)),
+                Container(height: 1, color: Colors.white.withValues(alpha: 0.2)),
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -161,14 +161,14 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                       children: [
                         Icon(
                           Icons.eco,
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                           size: 18,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Eco Points',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -291,7 +291,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
                 offset: const Offset(0, 2),
                 blurRadius: 8,
                 spreadRadius: -1,
@@ -311,7 +311,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.emerald700.withOpacity(0.4),
+                        color: AppColors.emerald700.withValues(alpha: 0.4),
                         offset: const Offset(0, 4),
                         blurRadius: 8,
                         spreadRadius: -2,
@@ -398,7 +398,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 1),
             blurRadius: 6,
             spreadRadius: -1,
@@ -470,7 +470,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         border: Border.all(color: AppColors.emerald200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             offset: const Offset(0, 2),
             blurRadius: 6,
             spreadRadius: -1,
@@ -525,3 +525,4 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 }
+

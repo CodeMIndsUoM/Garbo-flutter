@@ -1,5 +1,3 @@
-/// Data models for the Routes feature.
-
 enum RouteStatus { highPriority, pending, completed }
 
 enum BinFillStatus { full, half }

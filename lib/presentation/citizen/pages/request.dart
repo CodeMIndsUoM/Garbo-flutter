@@ -153,7 +153,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     offset: const Offset(0, 1),
                     blurRadius: 6,
                     spreadRadius: -1,
@@ -271,7 +271,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
               ),
             ),
           );
-        }).toList(),
+        }),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(14),
@@ -335,7 +335,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, 2),
             blurRadius: 8,
           ),
