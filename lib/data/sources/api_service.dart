@@ -123,6 +123,102 @@ class ApiService {
     return prefs.getString('empId') ?? '';
   }
 
+  Future<String> getStoredEmpName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('empName') ?? 'Collector';
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    if (userId.isEmpty) return null;
+    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId');
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      if (body['success'] == true) return body['data'] as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+  Future<bool> updateUserProfile(String userId, Map<String, dynamic> data) async {
+    if (userId.isEmpty) return false;
+    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId');
+    final headers = await _authHeaders();
+    final response = await client.put(
+      url,
+      headers: headers,
+      body: json.encode(data),
+    );
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      if (body['success'] == true) {
+        // Update cached name if it changed
+        if (data['empName'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('empName', data['empName']);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<Map<String, dynamic>?> getThirdPartyCollectorProfile(String collectorId) async {
+    if (collectorId.isEmpty) return null;
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/profile');
+    final headers = await _authHeaders();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      if (body['success'] == true) return body['data'] as Map<String, dynamic>;
+    }
+    return null;
+  }
+
+  Future<bool> updateThirdPartyCollectorProfile(String collectorId, Map<String, dynamic> data) async {
+    if (collectorId.isEmpty) return false;
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/profile');
+    final headers = await _authHeaders();
+    final response = await client.put(
+      url,
+      headers: headers,
+      body: json.encode(data),
+    );
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      if (body['success'] == true) {
+        if (data['empName'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('empName', data['empName']);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<String?> uploadProfilePicture(String userId, File imageFile) async {
+    if (userId.isEmpty) return null;
+    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId/avatar');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    final request = http.MultipartRequest('POST', url);
+    if (token.isNotEmpty) request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('photo', imageFile.path));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      if (body['success'] == true) {
+        final data = body['data'] as Map<String, dynamic>;
+        return data['avatarUrl'] as String?;
+      }
+    }
+    return null;
+  }
+
   Future<List<CollectionRequestModel>> getCitizenCollectionRequests(
     String citizenId, {
     String? status,

@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 
 class ThirdPartyEditProfilePage extends StatefulWidget {
   const ThirdPartyEditProfilePage({super.key});
@@ -10,18 +13,58 @@ class ThirdPartyEditProfilePage extends StatefulWidget {
       _ThirdPartyEditProfilePageState();
 }
 
-class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
-  final _nameController = TextEditingController(text: 'Sasindu Jayamadu');
-  final _emailController = TextEditingController(text: 'demo@garbo.app');
-  final _phoneController = TextEditingController(text: '71229939991');
-  final _addressController = TextEditingController(
-    text: '123 Main Street, City',
-  );
+class _ThirdPartyEditProfilePageState
+    extends State<ThirdPartyEditProfilePage> {
+  final ApiService _apiService = ApiService();
+  final ImagePicker _picker = ImagePicker();
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _nicController = TextEditingController();
+  final _companyController = TextEditingController();
 
   final _nameFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _phoneFocus = FocusNode();
   final _addressFocus = FocusNode();
+  final _nicFocus = FocusNode();
+  final _companyFocus = FocusNode();
+
+  String _userId = '';
+  String? _currentAvatarUrl;
+  File? _pickedImageFile;
+  bool _loading = true;
+  bool _saving = false;
+  bool _uploadingPhoto = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      _userId = await _apiService.getStoredEmpId();
+      if (_userId.isNotEmpty) {
+        final data = await _apiService.getThirdPartyCollectorProfile(_userId);
+        if (data != null && mounted) {
+          setState(() {
+            _nameController.text = data['empName'] ?? '';
+            _emailController.text = data['email'] ?? '';
+            _phoneController.text = data['phone'] ?? '';
+            _addressController.text = data['defaultAddress'] ?? '';
+            _nicController.text = data['nic'] ?? data['NIC'] ?? '';
+            _companyController.text = data['company'] ?? '';
+            _currentAvatarUrl = data['avatarUrl'] as String?;
+          });
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _loading = false);
+  }
 
   @override
   void dispose() {
@@ -29,10 +72,14 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _nicController.dispose();
+    _companyController.dispose();
     _nameFocus.dispose();
     _emailFocus.dispose();
     _phoneFocus.dispose();
     _addressFocus.dispose();
+    _nicFocus.dispose();
+    _companyFocus.dispose();
     super.dispose();
   }
 
@@ -44,19 +91,25 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
         children: [
           _buildHeader(context),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildAvatarCard(),
-                  const SizedBox(height: 16),
-                  _buildPersonalInfoCard(),
-                  const SizedBox(height: 20),
-                  _buildSaveButton(),
-                ],
-              ),
-            ),
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.emerald600,
+                    ),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildAvatarCard(),
+                        const SizedBox(height: 16),
+                        _buildPersonalInfoCard(),
+                        const SizedBox(height: 20),
+                        _buildSaveButton(),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -141,6 +194,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
           Stack(
             clipBehavior: Clip.none,
             children: [
+              // Avatar circle
               Container(
                 width: 96,
                 height: 96,
@@ -148,13 +202,10 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                   color: AppColors.emerald600,
                   shape: BoxShape.circle,
                 ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: Colors.white,
-                  size: 48,
-                ),
+                clipBehavior: Clip.antiAlias,
+                child: _buildAvatarImage(),
               ),
+              // Camera badge
               Positioned(
                 right: -2,
                 bottom: -2,
@@ -165,15 +216,23 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                   ),
                   child: InkWell(
                     customBorder: const CircleBorder(),
-                    onTap: _onChangeAvatar,
-                    child: const SizedBox(
+                    onTap: _uploadingPhoto ? null : _onChangeAvatar,
+                    child: SizedBox(
                       width: 32,
                       height: 32,
-                      child: Icon(
-                        Icons.photo_camera_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                      child: _uploadingPhoto
+                          ? const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.photo_camera_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                     ),
                   ),
                 ),
@@ -182,7 +241,9 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
           ),
           const SizedBox(height: 14),
           Text(
-            'Sasindu Jayamadu',
+            _nameController.text.isNotEmpty
+                ? _nameController.text
+                : 'Your Name',
             style: AppTypography.h3,
           ),
           const SizedBox(height: 2),
@@ -192,6 +253,38 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAvatarImage() {
+    // If user picked a local file, show it
+    if (_pickedImageFile != null) {
+      return Image.file(
+        _pickedImageFile!,
+        fit: BoxFit.cover,
+        width: 96,
+        height: 96,
+      );
+    }
+    // If user has an existing cloud avatar, show it
+    if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty) {
+      return Image.network(
+        _currentAvatarUrl!,
+        fit: BoxFit.cover,
+        width: 96,
+        height: 96,
+        errorBuilder: (_, __, ___) => const Icon(
+          Icons.person_rounded,
+          color: Colors.white,
+          size: 48,
+        ),
+      );
+    }
+    // Default placeholder
+    return const Icon(
+      Icons.person_rounded,
+      color: Colors.white,
+      size: 48,
     );
   }
 
@@ -295,6 +388,23 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                   keyboardType: TextInputType.streetAddress,
                   textCapitalization: TextCapitalization.words,
                 ),
+                const SizedBox(height: 14),
+                _buildField(
+                  label: 'NIC',
+                  hint: 'Your NIC number',
+                  icon: Icons.badge_outlined,
+                  controller: _nicController,
+                  focusNode: _nicFocus,
+                ),
+                const SizedBox(height: 14),
+                _buildField(
+                  label: 'Company Name',
+                  hint: 'Company name (Optional)',
+                  icon: Icons.business_outlined,
+                  controller: _companyController,
+                  focusNode: _companyFocus,
+                  textCapitalization: TextCapitalization.words,
+                ),
               ],
             ),
           ),
@@ -356,9 +466,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                     child: Icon(
                       icon,
                       size: 18,
-                      color: focused
-                          ? AppColors.emerald600
-                          : AppColors.grey400,
+                      color: focused ? AppColors.emerald600 : AppColors.grey400,
                     ),
                   ),
                   Expanded(
@@ -404,7 +512,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
       color: AppColors.emerald600,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: _onSave,
+        onTap: _saving ? null : _onSave,
         borderRadius: BorderRadius.circular(14),
         splashColor: AppColors.emerald700,
         child: Ink(
@@ -424,14 +532,24 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.check_circle_outline_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
+                if (_saving)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                else
+                  const Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 const SizedBox(width: 8),
                 Text(
-                  'Save Details',
+                  _saving ? 'Saving...' : 'Save Details',
                   style: AppTypography.buttonLg.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -447,12 +565,177 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
 
   // ── Actions ──────────────────────────────────────────────────────────
 
-  void _onChangeAvatar() {
+  Future<void> _onChangeAvatar() async {
     FocusScope.of(context).unfocus();
+    final source = await _showImageSourceDialog();
+    if (source == null) return;
+
+    final XFile? picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    if (picked == null || !mounted) return;
+
+    final file = File(picked.path);
+    setState(() {
+      _pickedImageFile = file;
+      _uploadingPhoto = true;
+    });
+
+    try {
+      final url = await _apiService.uploadProfilePicture(_userId, file);
+      if (mounted) {
+        setState(() {
+          _currentAvatarUrl = url;
+          _uploadingPhoto = false;
+        });
+        _showSnack(
+          url != null
+              ? 'Profile photo updated!'
+              : 'Photo saved locally (Cloudinary not configured)',
+          success: url != null,
+        );
+      }
+    } catch (_) {
+      if (mounted) setState(() => _uploadingPhoto = false);
+      _showSnack('Failed to upload photo. Please try again.', success: false);
+    }
   }
 
-  void _onSave() {
+  Future<ImageSource?> _showImageSourceDialog() async {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              Text('Change Profile Photo',
+                  style: AppTypography.titleLg),
+              const SizedBox(height: 16),
+              _sourceOption(
+                ctx: ctx,
+                icon: Icons.camera_alt_rounded,
+                label: 'Take a Photo',
+                source: ImageSource.camera,
+              ),
+              const SizedBox(height: 8),
+              _sourceOption(
+                ctx: ctx,
+                icon: Icons.photo_library_rounded,
+                label: 'Choose from Gallery',
+                source: ImageSource.gallery,
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sourceOption({
+    required BuildContext ctx,
+    required IconData icon,
+    required String label,
+    required ImageSource source,
+  }) {
+    return Material(
+      color: AppColors.grey50,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(ctx).pop(source),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.emerald600, size: 22),
+              const SizedBox(width: 14),
+              Text(label,
+                  style: AppTypography.titleMd
+                      .copyWith(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onSave() async {
     FocusScope.of(context).unfocus();
-    Navigator.of(context).maybePop();
+    if (_nameController.text.trim().isEmpty) {
+      _showSnack('Full name cannot be empty', success: false);
+      return;
+    }
+    setState(() => _saving = true);
+
+    try {
+      final success = await _apiService.updateThirdPartyCollectorProfile(_userId, {
+        'empName': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'defaultAddress': _addressController.text.trim(),
+        'NIC': _nicController.text.trim(),
+        'company': _companyController.text.trim(),
+      });
+
+      if (!mounted) return;
+
+      if (success) {
+        _showSnack('Profile updated successfully!', success: true);
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) Navigator.of(context).maybePop();
+      } else {
+        _showSnack('Failed to save profile. Please try again.', success: false);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showSnack('An error occurred. Please check your connection.',
+            success: false);
+      }
+    }
+    if (mounted) setState(() => _saving = false);
+  }
+
+  void _showSnack(String message, {required bool success}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle_rounded : Icons.error_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor:
+            success ? AppColors.emerald600 : AppColors.red500,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(12),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 }
