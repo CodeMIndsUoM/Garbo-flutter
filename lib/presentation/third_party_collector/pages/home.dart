@@ -731,8 +731,9 @@ class _Collection {
     required CollectionRequestModel? request,
   }) {
     final completedTime = offer.completedAt ?? offer.proposedPickupAt;
+    final photoUrl = offer.completionPhotoUrl?.trim();
     return _Collection(
-      imageUrl: null,
+      imageUrl: photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null,
       title: request == null
           ? 'Request #${offer.requestId}'
           : '${request.wasteType.replaceAll('_', ' ')} Waste',

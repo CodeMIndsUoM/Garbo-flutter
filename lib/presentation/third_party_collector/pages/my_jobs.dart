@@ -515,10 +515,16 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   Future<void> _handleComplete(CollectionOfferModel offer) async {
     try {
       var offerForCompletion = offer;
-      if (offerForCompletion.status == 'ACCEPTED') {
-        offerForCompletion = await _apiService.startOffer(
-          offerForCompletion.id,
-        );
+      if (offerForCompletion.status != 'IN_PROGRESS') {
+        try {
+          offerForCompletion = await _apiService.startOffer(
+            offerForCompletion.id,
+          );
+        } catch (e) {
+          if (!e.toString().contains('Only accepted offers')) {
+            rethrow;
+          }
+        }
         if (!mounted) return;
       }
 
@@ -538,10 +544,6 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       if (completionInput == null) return;
 
       final photoPath = completionInput.photoPath;
-      if (photoPath == null) {
-        _showSnackBar('Completion photo is required.', isError: true);
-        return;
-      }
 
       final fallbackLat = request?.latitude ?? 6.9271;
       final fallbackLng = request?.longitude ?? 79.8612;
