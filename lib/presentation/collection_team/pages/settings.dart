@@ -113,7 +113,7 @@ class SettingsMenuItem extends StatelessWidget {
   final String? badge;
   final VoidCallback onTap;
 
-  const SettingsMenuItem({
+  const SettingsMenuItem({super.key, 
     required this.icon,
     required this.iconBgColor,
     required this.iconColor,

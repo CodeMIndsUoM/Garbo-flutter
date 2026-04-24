@@ -1,0 +1,158 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
+
+/// LeaderboardProvider manages real-time leaderboard data from WebSocket updates
+class LeaderboardProvider extends ChangeNotifier {
+  static const String _baseUrl = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: 'http://localhost:8080',
+  );
+
+  final WebSocketProvider webSocketProvider;
+
+  List<LeaderboardEntryDto> _leaderboardEntries = [];
+  String? _errorMessage;
+  int _lastUpdateTime = 0;
+  LeaderboardChangedUserPayload? _lastChangedUser;
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
+      _messageSubscription;
+
+  List<LeaderboardEntryDto> get leaderboardEntries => _leaderboardEntries;
+  String? get errorMessage => _errorMessage;
+  int get lastUpdateTime => _lastUpdateTime;
+  LeaderboardChangedUserPayload? get lastChangedUser => _lastChangedUser;
+  bool get hasData => _leaderboardEntries.isNotEmpty;
+
+  LeaderboardProvider(this.webSocketProvider) {
+    _listenToLeaderboardUpdates();
+    loadSnapshot();
+  }
+
+  Future<void> loadSnapshot({int limit = 10}) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/api/leaderboard/top?limit=$limit'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode != 200) {
+        return;
+      }
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (body['success'] != true || body['data'] is! Map<String, dynamic>) {
+        return;
+      }
+
+      final payload = body['data'] as Map<String, dynamic>;
+      final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
+      _leaderboardEntries = leaderboardData.entries;
+      _lastUpdateTime = leaderboardData.updatedAt;
+      _lastChangedUser = leaderboardData.changedUser;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load leaderboard snapshot: $e');
+    }
+  }
+
+  /// Listen to LEADERBOARD_UPDATE messages from WebSocket
+  void _listenToLeaderboardUpdates() {
+    _messageSubscription?.cancel();
+    _messageSubscription = webSocketProvider.messageStream.listen((message) {
+      if (message.type == 'LEADERBOARD_UPDATE') {
+        try {
+          // Parse the leaderboard update payload
+          final payload = message.payload;
+          if (payload != null) {
+            final leaderboardData = LeaderboardUpdatePayload.fromJson(
+              payload,
+            );
+            _leaderboardEntries = leaderboardData.entries;
+            _lastUpdateTime = leaderboardData.updatedAt;
+            _lastChangedUser = leaderboardData.changedUser;
+            _errorMessage = null;
+
+            debugPrint(
+              'Leaderboard update received: ${_leaderboardEntries.length} entries, changedUser=${_lastChangedUser?.userId}, rankDelta=${_lastChangedUser?.rankDelta}, scoreDelta=${_lastChangedUser?.scoreDelta}',
+            );
+            notifyListeners();
+          }
+        } catch (e) {
+          debugPrint('Error parsing leaderboard update: $e');
+          _errorMessage = 'Failed to parse leaderboard update: $e';
+          notifyListeners();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription?.cancel();
+    super.dispose();
+  }
+
+  /// Get top N entries
+  List<LeaderboardEntryDto> getTopEntries(int limit) {
+    return _leaderboardEntries.take(limit).toList();
+  }
+
+  /// Get user's rank (returns null if not in top 10)
+  LeaderboardEntryDto? getUserRank(int userId) {
+    try {
+      return _leaderboardEntries.firstWhere(
+        (entry) => entry.userId == userId,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Get last update timestamp formatted
+  String get lastUpdateFormatted {
+    if (_lastUpdateTime == 0) return 'Never';
+    
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(_lastUpdateTime);
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inSeconds < 60) {
+      return '${diff.inSeconds}s ago';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m ago';
+    } else {
+      return '${diff.inHours}h ago';
+    }
+  }
+
+  /// Get rank change indicator (↑, ↓, →)
+  String getRankChangeIndicator(LeaderboardEntryDto entry) {
+    if (entry.rankChangeFromPrevious == null) return '→';
+    if (entry.rankChangeFromPrevious! > 0) return '↑';
+    if (entry.rankChangeFromPrevious! < 0) return '↓';
+    return '→';
+  }
+
+  /// Get rank change color (green for up, red for down, gray for no change)
+  int getRankChangeColor(LeaderboardEntryDto entry) {
+    if (entry.rankChangeFromPrevious == null) return 0xFF808080; // Gray
+    if (entry.rankChangeFromPrevious! > 0) return 0xFF4CAF50; // Green
+    if (entry.rankChangeFromPrevious! < 0) return 0xFFF44336; // Red
+    return 0xFF808080; // Gray
+  }
+
+  /// True when this entry matches the latest user that triggered a realtime update.
+  bool isEntryRecentlyChanged(LeaderboardEntryDto entry) {
+    final changed = _lastChangedUser;
+    if (changed == null || entry.userId == null) {
+      return false;
+    }
+    return changed.userId == entry.userId &&
+        changed.role.toUpperCase() == entry.role.toUpperCase();
+  }
+}

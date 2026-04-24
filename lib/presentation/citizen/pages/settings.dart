@@ -129,7 +129,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
         buildMenuItem(
           icon: Icons.logout,
           title: 'Logout',
-          backgroundColor: Colors.red.withOpacity(0.1),
+          backgroundColor: Colors.red.withValues(alpha: 0.1),
           iconColor: Colors.red,
           onTap: () {
             showDialog(
@@ -184,7 +184,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               offset: const Offset(0, 1),
               blurRadius: 6,
               spreadRadius: -1,
@@ -221,7 +221,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

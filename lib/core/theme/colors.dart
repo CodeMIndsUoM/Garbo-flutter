@@ -42,6 +42,7 @@ abstract final class AppColors {
   // Purples
   static const Color purple50 = Color(0xFFF3E8FF);
   static const Color purple100 = Color(0xFFE9D5FF);
+  static const Color purple500 = Color(0xFFCA8AFC);
   static const Color purple600 = Color(0xFF9810FA);
 
   // Yellows

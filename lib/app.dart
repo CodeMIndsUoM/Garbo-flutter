@@ -2,12 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
-import 'package:garbo_swms/presentation/citizen/pages/report.dart';
-import 'package:garbo_swms/presentation/citizen/pages/request.dart';
-import 'package:garbo_swms/presentation/citizen/pages/events.dart';
-import 'package:garbo_swms/presentation/citizen/pages/profile.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
-import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -21,7 +17,7 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
         fontFamily: 'Arimo',
       ),
-      initialRoute: '/collector/dashboard',
+      initialRoute: '/login',
       routes: {
         '/login': (context) => Login(),
         '/citizen-home': (context) => CitizenHomePage(),
@@ -30,6 +26,7 @@ class App extends StatelessWidget {
         // '/citizen/events': (context) => CitizenPublicEventsPage(),
         // '/citizen/profile': (context) => CitizenProfilePage(),
         '/collector/dashboard': (context) => CollectionTeamDashboard(),
+        '/collector/leaderboard': (context) => LeaderboardPage(),
         // '/collector/routes': (context) => CollectionTeamRoutes(),
       },
     );

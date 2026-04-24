@@ -109,7 +109,7 @@ class BinItemWidget extends StatelessWidget {
                       timestamp: collectedAt!,
                       label: isSkipped ? 'Skipped' : 'Collected',
                       color: isSkipped
-                          ? DesignTokens.orange600
+                          ? DesignTokens.grey600
                           : DesignTokens.green700,
                     ),
                   ],
@@ -155,7 +155,7 @@ class _IndexBadge extends StatelessWidget {
           color: isCollected
               ? DesignTokens.green700
               : isSkipped
-              ? DesignTokens.orange600.withValues(alpha: 0.3)
+              ? DesignTokens.grey400
               : DesignTokens.grey300,
           width: 1.3,
         ),
@@ -164,7 +164,7 @@ class _IndexBadge extends StatelessWidget {
       child: isCollected
           ? const Icon(Icons.check, color: Colors.white, size: 20)
           : isSkipped
-          ? const Icon(Icons.forward, color: DesignTokens.orange600, size: 18)
+          ? const Icon(Icons.forward, color: DesignTokens.grey600, size: 18)
           : Text(
               '$index',
               style: const TextStyle(
@@ -230,18 +230,18 @@ class _BadgeRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: DesignTokens.orange600.withValues(alpha: 0.15),
+              color: DesignTokens.grey200,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.forward, size: 9, color: DesignTokens.orange600),
+                Icon(Icons.forward, size: 9, color: DesignTokens.grey600),
                 const SizedBox(width: 3),
                 Text(
                   'SKIPPED',
                   style: TextStyle(
-                    color: DesignTokens.orange600,
+                    color: DesignTokens.grey600,
                     fontSize: 9,
                     fontWeight: FontWeight.w700,
                   ),

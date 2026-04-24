@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'bin_item_widget.dart';
-import 'high_priority_badge.dart';
+// import 'high_priority_badge.dart';
 
 /// An expandable route card that shows route info, progress, and bin details.
 class RouteCard extends StatelessWidget {
@@ -203,9 +203,9 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (status == RouteStatus.highPriority) {
-      return const HighPriorityBadge();
-    }
+    // if (status == RouteStatus.highPriority) {
+    //   return const HighPriorityBadge();
+    // }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
