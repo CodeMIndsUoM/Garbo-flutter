@@ -96,12 +96,26 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   }
 
   Future<void> _pickCompletionPhoto() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-    if (picked == null || !mounted) return;
-    setState(() => _photoPath = picked.path);
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      if (picked == null || !mounted) return;
+      setState(() => _photoPath = picked.path);
+    } catch (e) {
+      try {
+        final picked = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
+        if (picked == null || !mounted) return;
+        setState(() => _photoPath = picked.path);
+      } catch (_) {
+        if (!mounted) return;
+        _showSnack('Could not open camera or gallery.', isError: true);
+      }
+    }
   }
 
   void _showSnack(String message, {bool isError = false}) {
@@ -177,7 +191,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildFieldLabel('Collected Weight'),
+                              _buildFieldLabel('Collected Weight', isRequired: widget.weightRequired),
                               const SizedBox(height: 10),
                               _buildTextField(
                                 controller: _weight,
@@ -191,7 +205,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                 style: AppTypography.captionSm,
                               ),
                               const SizedBox(height: 20),
-                              _buildFieldLabel('Collection Notes'),
+                              _buildFieldLabel('Collection Notes', isRequired: false),
                               const SizedBox(height: 10),
                               _buildTextField(
                                 controller: _notes,
@@ -201,7 +215,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                 maxLines: 4,
                               ),
                               const SizedBox(height: 20),
-                              _buildFieldLabel('Completion Photo'),
+                              _buildFieldLabel('Completion Photo', isRequired: true),
                               const SizedBox(height: 10),
                               _buildPhotoPicker(),
                               const SizedBox(height: 18),
@@ -343,7 +357,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, {bool isRequired = false}) {
     return RichText(
       text: TextSpan(
         children: [
@@ -356,7 +370,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ),
           ),
           TextSpan(
-            text: widget.weightRequired ? '  (required)' : '  (optional)',
+            text: isRequired ? '  (required)' : '  (optional)',
             style: AppTypography.labelSm.copyWith(color: AppColors.grey400),
           ),
         ],
