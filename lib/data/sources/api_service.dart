@@ -565,7 +565,7 @@ class ApiService {
 
   Future<CollectionOfferModel> completeOffer({
     required int offerId,
-    required String photoPath,
+    String? photoPath,
     required double latitude,
     required double longitude,
     double? weightKg,
@@ -575,9 +575,11 @@ class ApiService {
       '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete',
     );
 
-    final file = File(photoPath);
-    if (!await file.exists()) {
-      throw Exception('Completion photo file not found. Please capture again.');
+    if (photoPath != null && photoPath.trim().isNotEmpty) {
+      final file = File(photoPath);
+      if (!await file.exists()) {
+        throw Exception('Completion photo file not found. Please capture again.');
+      }
     }
 
     final prefs = await SharedPreferences.getInstance();
@@ -597,7 +599,9 @@ class ApiService {
       request.headers['Authorization'] = 'Bearer $token';
     }
 
-    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+    if (photoPath != null && photoPath.trim().isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+    }
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);

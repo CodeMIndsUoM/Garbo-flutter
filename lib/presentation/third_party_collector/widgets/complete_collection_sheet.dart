@@ -81,11 +81,6 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       return;
     }
 
-    if (_photoPath == null) {
-      _showSnack('Please attach a completion photo.', isError: true);
-      return;
-    }
-
     Navigator.of(context).pop(
       CompleteCollectionInput(
         weightKg: parsedWeight,
@@ -96,25 +91,39 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   }
 
   Future<void> _pickCompletionPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
     try {
       final picked = await _picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         imageQuality: 80,
       );
       if (picked == null || !mounted) return;
       setState(() => _photoPath = picked.path);
     } catch (e) {
-      try {
-        final picked = await _picker.pickImage(
-          source: ImageSource.gallery,
-          imageQuality: 80,
-        );
-        if (picked == null || !mounted) return;
-        setState(() => _photoPath = picked.path);
-      } catch (_) {
-        if (!mounted) return;
-        _showSnack('Could not open camera or gallery.', isError: true);
-      }
+      if (!mounted) return;
+      _showSnack('Could not open $source. Please try again.', isError: true);
     }
   }
 
@@ -215,7 +224,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                 maxLines: 4,
                               ),
                               const SizedBox(height: 20),
-                              _buildFieldLabel('Completion Photo', isRequired: true),
+                              _buildFieldLabel('Completion Photo', isRequired: false),
                               const SizedBox(height: 10),
                               _buildPhotoPicker(),
                               const SizedBox(height: 18),
