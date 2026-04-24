@@ -20,6 +20,8 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   final ApiService _apiService = ApiService();
   CollectorDashboardModel? _dashboardModel;
   String _empName = 'Collector';
+  String? _avatarUrl;
+  String? _company;
   bool _loading = true;
 
   @override
@@ -30,28 +32,57 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
   Future<void> _loadProfileData() async {
     try {
-      final name = await _apiService.getStoredEmpName();
       final collectorId = await _apiService.getStoredEmpId();
-      
-      if (collectorId.isNotEmpty) {
-        final dashboard = await _apiService.getCollectorDashboard(collectorId);
-        if (mounted) {
-          setState(() {
-            _empName = name.isEmpty ? 'Collector' : name;
-            _dashboardModel = dashboard;
-            _loading = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() => _loading = false);
-        }
+      if (collectorId.isEmpty) {
+        if (mounted) setState(() => _loading = false);
+        return;
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+
+      final results = await Future.wait([
+        _apiService.getCollectorDashboard(collectorId),
+        _apiService.getThirdPartyCollectorProfile(collectorId),
+      ]);
+
+      final dashboard = results[0] as CollectorDashboardModel;
+      final profile = results[1] as Map<String, dynamic>?;
+      final name = (profile?['empName'] ?? '').toString();
+
+      if (!mounted) return;
+      setState(() {
+        _dashboardModel = dashboard;
+        _empName = name.isEmpty ? 'Collector' : name;
+        _avatarUrl = (profile?['avatarUrl'] as String?)?.trim();
+        _company = (profile?['company'] as String?)?.trim();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
+  }
+
+  String _reviewCountLabel() {
+    final count = _dashboardModel?.totalReviews ?? 0;
+    return '$count review${count == 1 ? '' : 's'}';
+  }
+
+  String _memberSinceLabel() {
+    final date = _dashboardModel?.memberSince?.toLocal();
+    if (date == null) return 'Member since —';
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return 'Member since ${months[date.month - 1]} ${date.year}';
   }
 
   String _formatMinutes(int totalMinutes) {
@@ -127,16 +158,29 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
               Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.white20,
                   shape: BoxShape.circle,
                 ),
+                clipBehavior: Clip.antiAlias,
                 alignment: Alignment.center,
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
+                child: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                    ? Image.network(
+                        _avatarUrl!,
+                        fit: BoxFit.cover,
+                        width: 80,
+                        height: 80,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.person_outline_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.person_outline_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -165,7 +209,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          '• 112 reviews',
+                          '• ${_reviewCountLabel()}',
                           style: AppTypography.bodySm.copyWith(
                             color: AppColors.white80,
                           ),
@@ -174,11 +218,20 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Member since January 2023',
+                      _memberSinceLabel(),
                       style: AppTypography.bodySm.copyWith(
                         color: AppColors.white80,
                       ),
                     ),
+                    if (_company != null && _company!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        _company!,
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.white80,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -350,9 +403,16 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       child: Column(
         children: [
           _buildDetailRow(
-            icon: Icons.inventory_2_outlined,
-            label: 'Vehicle Type',
-            value: 'Pickup Truck',
+            icon: Icons.star_border_rounded,
+            label: 'Average Rating',
+            value:
+                '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+          ),
+          const _RowDivider(),
+          _buildDetailRow(
+            icon: Icons.rate_review_outlined,
+            label: 'Reviews',
+            value: '${_dashboardModel?.totalReviews ?? 0}',
           ),
           const _RowDivider(),
           _buildDetailRow(
@@ -432,11 +492,14 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
           _buildSettingsRow(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const ThirdPartyEditProfilePage(),
-              ),
-            ),
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ThirdPartyEditProfilePage(),
+                ),
+              );
+              if (mounted) await _loadProfileData();
+            },
           ),
           const _RowDivider(),
           _buildSettingsRow(

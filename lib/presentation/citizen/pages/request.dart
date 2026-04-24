@@ -38,6 +38,20 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   String? _requestPhotoPath;
   List<CollectionRequestModel> _requests = const [];
 
+  String _statusFilter = 'ALL';
+  String _wasteTypeFilter = 'ALL';
+  final TextEditingController _requestSearchController =
+      TextEditingController();
+
+  static const List<(String, String)> _statusFilterOptions = [
+    ('ALL', 'All'),
+    ('OPEN', 'Open'),
+    ('ASSIGNED', 'Assigned'),
+    ('COMPLETED', 'Completed'),
+    ('CONFIRMED', 'Confirmed'),
+    ('CANCELLED', 'Cancelled'),
+  ];
+
   static const List<String> _wasteTypeItems = [
     'Plastic',
     'Glass',
@@ -219,16 +233,42 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => _RequestOffersSheet(
+        builder: (sheetCtx) => _RequestOffersSheet(
           request: detail,
           onAccept: (offer) => _handleOfferAction(offer.id, true),
           onReject: (offer) => _handleOfferAction(offer.id, false),
+          onConfirm: (offer) => _handleConfirmOffer(sheetCtx, offer),
         ),
       );
       await _loadRequests();
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not load request offers: $e', isError: true);
+    }
+  }
+
+  Future<void> _handleConfirmOffer(
+    BuildContext sheetCtx,
+    CollectionOfferModel offer,
+  ) async {
+    final result = await showDialog<_RatingResult>(
+      context: sheetCtx,
+      builder: (_) => const _RateOfferDialog(),
+    );
+    if (result == null) return;
+    try {
+      await _apiService.confirmOffer(
+        offerId: offer.id,
+        rating: result.rating,
+        feedback: result.feedback,
+      );
+      if (!mounted) return;
+      Navigator.of(sheetCtx).pop();
+      await _loadRequests();
+      _showSnackBar('Thanks! Your rating was submitted.');
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not submit rating: $e', isError: true);
     }
   }
 
@@ -369,7 +409,471 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
     _addressController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
+    _requestSearchController.dispose();
     super.dispose();
+  }
+
+  List<String> get _availableWasteTypesForFilter {
+    final types = _requests.map((r) => r.wasteType).toSet().toList();
+    types.sort();
+    return types;
+  }
+
+  List<CollectionRequestModel> get _filteredRequests {
+    final query = _requestSearchController.text.trim().toLowerCase();
+    return _requests.where((r) {
+      if (_statusFilter != 'ALL' && r.status != _statusFilter) return false;
+      if (_wasteTypeFilter != 'ALL' && r.wasteType != _wasteTypeFilter) {
+        return false;
+      }
+      if (query.isNotEmpty) {
+        final haystack = [
+          r.wasteType,
+          r.addressLine,
+          '#${r.id}',
+          r.quantityLabel,
+        ].join(' ').toLowerCase();
+        if (!haystack.contains(query)) return false;
+      }
+      return true;
+    }).toList(growable: false);
+  }
+
+  int get _activeFilterCount {
+    var n = 0;
+    if (_statusFilter != 'ALL') n++;
+    if (_wasteTypeFilter != 'ALL') n++;
+    if (_requestSearchController.text.trim().isNotEmpty) n++;
+    return n;
+  }
+
+  Widget _buildRequestsFilterBar() {
+    final activeCount = _activeFilterCount;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _requestSearchController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Search requests, addresses, #id',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _requestSearchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () {
+                            _requestSearchController.clear();
+                            setState(() {});
+                          },
+                        ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: AppColors.emerald600,
+                      width: 1.4,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildFilterIconButton(activeCount),
+          ],
+        ),
+        if (activeCount > 0) ...[
+          const SizedBox(height: 10),
+          _buildActiveFilterRail(),
+        ],
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _buildFilterIconButton(int activeCount) {
+    final hasFilters = activeCount > 0;
+    return Material(
+      color: hasFilters ? AppColors.emerald600 : Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: _openRequestsFilterSheet,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: hasFilters ? AppColors.emerald600 : AppColors.grey300,
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Center(
+                child: Icon(
+                  Icons.tune_rounded,
+                  color: hasFilters ? Colors.white : AppColors.grey700,
+                  size: 20,
+                ),
+              ),
+              if (hasFilters)
+                Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '$activeCount',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.emerald700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveFilterRail() {
+    final chips = <Widget>[];
+
+    if (_statusFilter != 'ALL') {
+      final label = _statusFilterOptions
+          .firstWhere((o) => o.$1 == _statusFilter)
+          .$2;
+      chips.add(
+        _buildRailChip(
+          icon: Icons.flag_outlined,
+          label: label,
+          onRemove: () => setState(() => _statusFilter = 'ALL'),
+        ),
+      );
+    }
+    if (_wasteTypeFilter != 'ALL') {
+      chips.add(
+        _buildRailChip(
+          icon: Icons.category_outlined,
+          label: _wasteTypeFilter.replaceAll('_', ' '),
+          onRemove: () => setState(() => _wasteTypeFilter = 'ALL'),
+        ),
+      );
+    }
+    final searchText = _requestSearchController.text.trim();
+    if (searchText.isNotEmpty) {
+      chips.add(
+        _buildRailChip(
+          icon: Icons.search_rounded,
+          label: '"$searchText"',
+          onRemove: () {
+            _requestSearchController.clear();
+            setState(() {});
+          },
+        ),
+      );
+    }
+    chips.add(
+      TextButton(
+        onPressed: () {
+          _requestSearchController.clear();
+          setState(() {
+            _statusFilter = 'ALL';
+            _wasteTypeFilter = 'ALL';
+          });
+        },
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          minimumSize: const Size(0, 32),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: const Text(
+          'Clear all',
+          style: TextStyle(
+            color: AppColors.emerald700,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (var i = 0; i < chips.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            chips[i],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRailChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onRemove,
+  }) {
+    return Material(
+      color: AppColors.emerald50,
+      borderRadius: BorderRadius.circular(999),
+      child: InkWell(
+        onTap: onRemove,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: AppColors.emerald700, size: 13),
+              const SizedBox(width: 5),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.emerald700,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.emerald600,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white,
+                  size: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openRequestsFilterSheet() async {
+    final wasteTypes = _availableWasteTypesForFilter;
+    var localStatus = _statusFilter;
+    var localWasteType = _wasteTypeFilter;
+
+    final shouldApply = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Filters',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.grey900,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              setSheetState(() {
+                                localStatus = 'ALL';
+                                localWasteType = 'ALL';
+                              });
+                            },
+                            child: const Text('Reset'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Status',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final (value, label) in _statusFilterOptions)
+                            ChoiceChip(
+                              label: Text(label),
+                              selected: localStatus == value,
+                              onSelected: (_) =>
+                                  setSheetState(() => localStatus = value),
+                              selectedColor: AppColors.emerald600,
+                              labelStyle: TextStyle(
+                                color: localStatus == value
+                                    ? Colors.white
+                                    : AppColors.grey700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: localStatus == value
+                                    ? AppColors.emerald600
+                                    : AppColors.grey300,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Waste Type',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (wasteTypes.isEmpty)
+                        const Text(
+                          'No waste types to filter yet',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.grey500,
+                          ),
+                        )
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('All types'),
+                              selected: localWasteType == 'ALL',
+                              onSelected: (_) => setSheetState(
+                                () => localWasteType = 'ALL',
+                              ),
+                              selectedColor: AppColors.emerald600,
+                              labelStyle: TextStyle(
+                                color: localWasteType == 'ALL'
+                                    ? Colors.white
+                                    : AppColors.grey700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                              backgroundColor: Colors.white,
+                              side: BorderSide(
+                                color: localWasteType == 'ALL'
+                                    ? AppColors.emerald600
+                                    : AppColors.grey300,
+                              ),
+                            ),
+                            for (final type in wasteTypes)
+                              ChoiceChip(
+                                label: Text(type.replaceAll('_', ' ')),
+                                selected: localWasteType == type,
+                                onSelected: (_) => setSheetState(
+                                  () => localWasteType = type,
+                                ),
+                                selectedColor: AppColors.emerald600,
+                                labelStyle: TextStyle(
+                                  color: localWasteType == type
+                                      ? Colors.white
+                                      : AppColors.grey700,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                                backgroundColor: Colors.white,
+                                side: BorderSide(
+                                  color: localWasteType == type
+                                      ? AppColors.emerald600
+                                      : AppColors.grey300,
+                                ),
+                              ),
+                          ],
+                        ),
+                      const SizedBox(height: 22),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          icon: const Icon(Icons.check_rounded, size: 18),
+                          label: const Text('Apply Filters'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.emerald600,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (shouldApply != true || !mounted) return;
+    setState(() {
+      _statusFilter = localStatus;
+      _wasteTypeFilter = localWasteType;
+    });
   }
 
   @override
@@ -509,9 +1013,54 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       );
     }
 
+    final filtered = _filteredRequests;
+    if (filtered.isEmpty) {
+      return Column(
+        children: [
+          _buildRequestsFilterBar(),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Column(
+              children: [
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 40,
+                  color: AppColors.grey400,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'No matches',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.grey900,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'Try changing the status, waste type, or search terms.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.grey600,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       children: [
-        ..._requests.map((request) {
+        _buildRequestsFilterBar(),
+        ...filtered.map((request) {
           final statusStyle = _statusStyle(request.status);
           final canOpenOffers =
               request.offersCount > 0 ||
@@ -1423,11 +1972,13 @@ class _RequestOffersSheet extends StatelessWidget {
   final CollectionRequestModel request;
   final Future<void> Function(CollectionOfferModel offer) onAccept;
   final Future<void> Function(CollectionOfferModel offer) onReject;
+  final Future<void> Function(CollectionOfferModel offer) onConfirm;
 
   const _RequestOffersSheet({
     required this.request,
     required this.onAccept,
     required this.onReject,
+    required this.onConfirm,
   });
 
   String _formatDateTime(DateTime dateTime) {
@@ -1522,6 +2073,9 @@ class _RequestOffersSheet extends StatelessWidget {
                   final pending =
                       offer.status == 'PENDING' && request.status == 'OPEN';
                   final accepted = offer.status == 'ACCEPTED';
+                  final completedUnrated =
+                      offer.status == 'COMPLETED' && offer.citizenRating == null;
+                  final rated = offer.citizenRating != null;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -1665,6 +2219,57 @@ class _RequestOffersSheet extends StatelessWidget {
                             ],
                           ),
                         ],
+                        if (completedUnrated) ...[
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => onConfirm(offer),
+                              icon: const Icon(Icons.star_rounded, size: 18),
+                              label: const Text('Rate & Confirm'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.emerald600,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (rated) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              for (var i = 1; i <= 5; i++)
+                                Icon(
+                                  i <= offer.citizenRating!
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  color: AppColors.amber600,
+                                  size: 18,
+                                ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${offer.citizenRating}/5',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.grey900,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if ((offer.citizenFeedback ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              offer.citizenFeedback!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.grey700,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ],
                       ],
                     ),
                   );
@@ -1674,6 +2279,90 @@ class _RequestOffersSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RatingResult {
+  final int rating;
+  final String? feedback;
+  const _RatingResult(this.rating, this.feedback);
+}
+
+class _RateOfferDialog extends StatefulWidget {
+  const _RateOfferDialog();
+
+  @override
+  State<_RateOfferDialog> createState() => _RateOfferDialogState();
+}
+
+class _RateOfferDialogState extends State<_RateOfferDialog> {
+  int _rating = 5;
+  final TextEditingController _feedback = TextEditingController();
+
+  @override
+  void dispose() {
+    _feedback.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rate this collector'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var i = 1; i <= 5; i++)
+                IconButton(
+                  onPressed: () => setState(() => _rating = i),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  icon: Icon(
+                    i <= _rating
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    color: AppColors.amber600,
+                    size: 32,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _feedback,
+            maxLines: 3,
+            maxLength: 2000,
+            decoration: const InputDecoration(
+              hintText: 'Share a few words (optional)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final text = _feedback.text.trim();
+            Navigator.of(context).pop(
+              _RatingResult(_rating, text.isEmpty ? null : text),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.emerald600,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Submit'),
+        ),
+      ],
     );
   }
 }

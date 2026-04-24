@@ -368,6 +368,7 @@ class _ThirdPartyEditProfilePageState
                   controller: _emailController,
                   focusNode: _emailFocus,
                   keyboardType: TextInputType.emailAddress,
+                  readOnly: true,
                 ),
                 const SizedBox(height: 14),
                 _buildField(
@@ -423,6 +424,7 @@ class _ThirdPartyEditProfilePageState
     required FocusNode focusNode,
     TextInputType? keyboardType,
     TextCapitalization textCapitalization = TextCapitalization.none,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,13 +445,17 @@ class _ThirdPartyEditProfilePageState
               duration: const Duration(milliseconds: 160),
               curve: Curves.easeOut,
               decoration: BoxDecoration(
-                color: focused ? Colors.white : AppColors.grey50,
+                color: readOnly
+                    ? AppColors.grey100
+                    : (focused ? Colors.white : AppColors.grey50),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: focused ? AppColors.emerald500 : AppColors.grey200,
-                  width: focused ? 1.4 : 1,
+                  color: focused && !readOnly
+                      ? AppColors.emerald500
+                      : AppColors.grey200,
+                  width: focused && !readOnly ? 1.4 : 1,
                 ),
-                boxShadow: focused
+                boxShadow: focused && !readOnly
                     ? [
                         BoxShadow(
                           color: AppColors.emerald500.withValues(alpha: 0.10),
@@ -466,7 +472,9 @@ class _ThirdPartyEditProfilePageState
                     child: Icon(
                       icon,
                       size: 18,
-                      color: focused ? AppColors.emerald600 : AppColors.grey400,
+                      color: focused && !readOnly
+                          ? AppColors.emerald600
+                          : AppColors.grey400,
                     ),
                   ),
                   Expanded(
@@ -475,9 +483,10 @@ class _ThirdPartyEditProfilePageState
                       focusNode: focusNode,
                       keyboardType: keyboardType,
                       textCapitalization: textCapitalization,
+                      readOnly: readOnly,
                       cursorColor: AppColors.emerald600,
                       style: AppTypography.bodyMd.copyWith(
-                        color: AppColors.grey900,
+                        color: readOnly ? AppColors.grey600 : AppColors.grey900,
                       ),
                       decoration: InputDecoration(
                         hintText: hint,
@@ -495,7 +504,17 @@ class _ThirdPartyEditProfilePageState
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  if (readOnly)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(
+                        Icons.lock_outline_rounded,
+                        size: 16,
+                        color: AppColors.grey400,
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 10),
                 ],
               ),
             );
@@ -586,20 +605,27 @@ class _ThirdPartyEditProfilePageState
 
     try {
       final url = await _apiService.uploadProfilePicture(_userId, file);
-      if (mounted) {
+      if (!mounted) return;
+      if (url == null || url.isEmpty) {
         setState(() {
-          _currentAvatarUrl = url;
+          _pickedImageFile = null;
           _uploadingPhoto = false;
         });
-        _showSnack(
-          url != null
-              ? 'Profile photo updated!'
-              : 'Photo saved locally (Cloudinary not configured)',
-          success: url != null,
-        );
+        _showSnack('Photo upload failed. Please try again.', success: false);
+        return;
       }
+      setState(() {
+        _currentAvatarUrl = url;
+        _pickedImageFile = null;
+        _uploadingPhoto = false;
+      });
+      _showSnack('Profile photo uploaded to Cloudinary.', success: true);
     } catch (_) {
-      if (mounted) setState(() => _uploadingPhoto = false);
+      if (!mounted) return;
+      setState(() {
+        _pickedImageFile = null;
+        _uploadingPhoto = false;
+      });
       _showSnack('Failed to upload photo. Please try again.', success: false);
     }
   }
@@ -689,7 +715,6 @@ class _ThirdPartyEditProfilePageState
     try {
       final success = await _apiService.updateThirdPartyCollectorProfile(_userId, {
         'empName': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
         'phone': _phoneController.text.trim(),
         'defaultAddress': _addressController.text.trim(),
         'NIC': _nicController.text.trim(),

@@ -130,7 +130,7 @@ class ApiService {
 
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     if (userId.isEmpty) return null;
-    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId');
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId');
     final headers = await _authHeaders();
     final response = await client.get(url, headers: headers);
     if (response.statusCode == 200) {
@@ -142,7 +142,7 @@ class ApiService {
 
   Future<bool> updateUserProfile(String userId, Map<String, dynamic> data) async {
     if (userId.isEmpty) return false;
-    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId');
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId');
     final headers = await _authHeaders();
     final response = await client.put(
       url,
@@ -199,7 +199,7 @@ class ApiService {
 
   Future<String?> uploadProfilePicture(String userId, File imageFile) async {
     if (userId.isEmpty) return null;
-    final url = Uri.parse('${ApiConstants.baseUrl}/api/users/$userId/avatar');
+    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId/avatar');
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
@@ -343,6 +343,28 @@ class ApiService {
 
   Future<CollectionOfferModel> rejectOffer(int offerId) async {
     return _offerAction(offerId, 'reject');
+  }
+
+  Future<CollectionOfferModel> confirmOffer({
+    required int offerId,
+    required int rating,
+    String? feedback,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/confirm',
+    );
+    final headers = await _authHeaders();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode({'rating': rating, 'feedback': feedback}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to confirm offer');
+    }
+    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
   Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
