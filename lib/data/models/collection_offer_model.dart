@@ -13,6 +13,7 @@ class CollectionOfferModel {
   final DateTime? createdAt;
   final int? citizenRating;
   final String? citizenFeedback;
+  final String? completionPhotoUrl;
 
   const CollectionOfferModel({
     required this.id,
@@ -29,6 +30,7 @@ class CollectionOfferModel {
     required this.createdAt,
     required this.citizenRating,
     required this.citizenFeedback,
+    required this.completionPhotoUrl,
   });
 
   factory CollectionOfferModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class CollectionOfferModel {
           : DateTime.parse(json['createdAt'] as String),
       citizenRating: (json['citizenRating'] as num?)?.toInt(),
       citizenFeedback: json['citizenFeedback']?.toString(),
+      completionPhotoUrl: json['completionPhotoUrl']?.toString(),
     );
   }
 }
