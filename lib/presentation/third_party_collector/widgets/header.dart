@@ -27,7 +27,7 @@ class ThirdPartyHeader extends StatelessWidget {
         18,
       ),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),

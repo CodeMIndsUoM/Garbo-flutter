@@ -94,7 +94,7 @@ class _ThirdPartyEditProfilePageState
             child: _loading
                 ? const Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.emerald600,
+                      color: AppColors.green700,
                     ),
                   )
                 : SingleChildScrollView(
@@ -127,7 +127,7 @@ class _ThirdPartyEditProfilePageState
         20,
         18,
       ),
-      decoration: const BoxDecoration(color: AppColors.emerald600),
+      decoration: const BoxDecoration(color: AppColors.green700),
       child: Row(
         children: [
           Material(
@@ -199,7 +199,7 @@ class _ThirdPartyEditProfilePageState
                 width: 96,
                 height: 96,
                 decoration: const BoxDecoration(
-                  color: AppColors.emerald600,
+                  color: AppColors.green700,
                   shape: BoxShape.circle,
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -210,7 +210,7 @@ class _ThirdPartyEditProfilePageState
                 right: -2,
                 bottom: -2,
                 child: Material(
-                  color: AppColors.emerald600,
+                  color: AppColors.green700,
                   shape: const CircleBorder(
                     side: BorderSide(color: Colors.white, width: 3),
                   ),
@@ -322,7 +322,7 @@ class _ThirdPartyEditProfilePageState
                   alignment: Alignment.center,
                   child: const Icon(
                     Icons.person_outline_rounded,
-                    color: AppColors.emerald600,
+                    color: AppColors.green700,
                     size: 18,
                   ),
                 ),
@@ -451,14 +451,14 @@ class _ThirdPartyEditProfilePageState
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: focused && !readOnly
-                      ? AppColors.emerald500
+                      ? AppColors.green700
                       : AppColors.grey200,
                   width: focused && !readOnly ? 1.4 : 1,
                 ),
                 boxShadow: focused && !readOnly
                     ? [
                         BoxShadow(
-                          color: AppColors.emerald500.withValues(alpha: 0.10),
+                          color: AppColors.green700.withValues(alpha: 0.10),
                           blurRadius: 0,
                           spreadRadius: 3,
                         ),
@@ -473,7 +473,7 @@ class _ThirdPartyEditProfilePageState
                       icon,
                       size: 18,
                       color: focused && !readOnly
-                          ? AppColors.emerald600
+                          ? AppColors.green700
                           : AppColors.grey400,
                     ),
                   ),
@@ -484,7 +484,7 @@ class _ThirdPartyEditProfilePageState
                       keyboardType: keyboardType,
                       textCapitalization: textCapitalization,
                       readOnly: readOnly,
-                      cursorColor: AppColors.emerald600,
+                      cursorColor: AppColors.green700,
                       style: AppTypography.bodyMd.copyWith(
                         color: readOnly ? AppColors.grey600 : AppColors.grey900,
                       ),
@@ -528,18 +528,18 @@ class _ThirdPartyEditProfilePageState
 
   Widget _buildSaveButton() {
     return Material(
-      color: AppColors.emerald600,
+      color: AppColors.green700,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: _saving ? null : _onSave,
         borderRadius: BorderRadius.circular(14),
-        splashColor: AppColors.emerald700,
+        splashColor: AppColors.green800,
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: AppColors.emerald600.withValues(alpha: 0.25),
+                color: AppColors.green700.withValues(alpha: 0.25),
                 offset: const Offset(0, 4),
                 blurRadius: 12,
                 spreadRadius: -2,
@@ -692,7 +692,7 @@ class _ThirdPartyEditProfilePageState
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.emerald600, size: 22),
+              Icon(icon, color: AppColors.green700, size: 22),
               const SizedBox(width: 14),
               Text(label,
                   style: AppTypography.titleMd
@@ -755,7 +755,7 @@ class _ThirdPartyEditProfilePageState
           ],
         ),
         backgroundColor:
-            success ? AppColors.emerald600 : AppColors.red500,
+            success ? AppColors.green700 : AppColors.red500,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(12),

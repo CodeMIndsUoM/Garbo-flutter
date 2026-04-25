@@ -426,7 +426,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         child: ElevatedButton.icon(
                           onPressed: () => Navigator.of(ctx).pop(true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.emerald600,
+                            backgroundColor: AppColors.green700,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -479,7 +479,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.emerald600,
+              backgroundColor: AppColors.green700,
               foregroundColor: Colors.white,
             ),
             child: const Text('Clear All'),
@@ -595,7 +595,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? AppColors.redDark2 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
       ),
     );
   }
@@ -721,7 +721,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.emerald600 : Colors.transparent,
+          color: selected ? AppColors.green700 : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
@@ -815,7 +815,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 180),
               style: AppTypography.titleSm.copyWith(
-                color: selected ? AppColors.emerald700 : AppColors.grey600,
+                color: selected ? AppColors.green800 : AppColors.grey600,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 fontSize: 13,
               ),
@@ -831,7 +831,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               child: Text(
                 '$count',
                 style: AppTypography.captionSm.copyWith(
-                  color: selected ? AppColors.emerald700 : AppColors.grey600,
+                  color: selected ? AppColors.green800 : AppColors.grey600,
                   fontWeight: FontWeight.w700,
                   fontSize: 10,
                   height: 1.1,
@@ -850,16 +850,16 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: hasFilters ? AppColors.emerald600 : Colors.white,
+        color: hasFilters ? AppColors.green700 : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: hasFilters ? AppColors.emerald600 : AppColors.grey200,
+          color: hasFilters ? AppColors.green700 : AppColors.grey200,
           width: 1,
         ),
         boxShadow: hasFilters
             ? [
                 BoxShadow(
-                  color: AppColors.emerald600.withValues(alpha: 0.25),
+                  color: AppColors.green700.withValues(alpha: 0.25),
                   offset: const Offset(0, 2),
                   blurRadius: 6,
                   spreadRadius: -1,
@@ -906,7 +906,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                         color: Colors.white,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.emerald600,
+                          color: AppColors.green700,
                           width: 1.5,
                         ),
                       ),
@@ -1006,7 +1006,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   Widget _buildClearRejectedAction() {
     return Material(
-      color: _clearingRejected ? AppColors.grey100 : AppColors.emerald600,
+      color: _clearingRejected ? AppColors.grey100 : AppColors.green700,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: _clearingRejected ? null : _clearRejectedOffers,
@@ -1023,7 +1023,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.emerald600,
+                      AppColors.green700,
                     ),
                   ),
                 )
@@ -1108,7 +1108,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           child: Text(
             'Clear all',
             style: AppTypography.captionSm.copyWith(
-              color: AppColors.emerald700,
+              color: AppColors.green800,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1149,7 +1149,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppColors.emerald700, size: 13),
+              Icon(icon, color: AppColors.green800, size: 13),
               const SizedBox(width: 5),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 140),
@@ -1157,7 +1157,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                   label,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.captionSm.copyWith(
-                    color: AppColors.emerald700,
+                    color: AppColors.green800,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
@@ -1169,7 +1169,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 height: 18,
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
-                  color: AppColors.emerald600,
+                  color: AppColors.green700,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1217,7 +1217,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             ),
             child: Icon(
               filtered ? Icons.search_off_rounded : Icons.work_off_outlined,
-              color: filtered ? AppColors.emerald600 : AppColors.grey400,
+              color: filtered ? AppColors.green700 : AppColors.grey400,
               size: 30,
             ),
           ),
@@ -1244,8 +1244,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 });
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.emerald700,
-                side: const BorderSide(color: AppColors.emerald600, width: 1),
+                foregroundColor: AppColors.green800,
+                side: const BorderSide(color: AppColors.green700, width: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -1270,7 +1270,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       OfferStatus.pending => (AppColors.grey100, AppColors.grey600, 'Pending'),
       OfferStatus.accepted => (
         AppColors.emerald50,
-        AppColors.emerald700,
+        AppColors.green800,
         'Accepted',
       ),
       OfferStatus.rejected => (
@@ -1350,7 +1350,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       children: [
                         const Icon(
                           Icons.location_on_outlined,
-                          color: AppColors.emerald600,
+                          color: AppColors.green700,
                           size: 13,
                         ),
                         const SizedBox(width: 4),
@@ -1432,7 +1432,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       children: [
                         const Icon(
                           Icons.location_on_outlined,
-                          color: AppColors.emerald600,
+                          color: AppColors.green700,
                           size: 13,
                         ),
                         const SizedBox(width: 4),
@@ -1574,7 +1574,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: AppColors.emerald600,
+      color: AppColors.green700,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -1613,12 +1613,12 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.emerald700, size: 16),
+              Icon(icon, color: AppColors.green800, size: 16),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTypography.buttonMd.copyWith(
-                  color: AppColors.emerald700,
+                  color: AppColors.green800,
                 ),
               ),
             ],

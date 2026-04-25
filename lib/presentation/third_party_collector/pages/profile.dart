@@ -99,7 +99,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       return Scaffold(
         backgroundColor: AppColors.grey50,
         body: const Center(
-          child: CircularProgressIndicator(color: AppColors.emerald600),
+          child: CircularProgressIndicator(color: AppColors.green700),
         ),
         bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 3),
       );
@@ -148,7 +148,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
         20,
         22,
       ),
-      decoration: const BoxDecoration(color: AppColors.emerald600),
+      decoration: const BoxDecoration(color: AppColors.green700),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -295,11 +295,11 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.18),
+            color: AppColors.green800.withValues(alpha: 0.18),
             offset: const Offset(0, 4),
             blurRadius: 12,
             spreadRadius: -3,
@@ -448,7 +448,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.emerald600, size: 20),
+            child: Icon(icon, color: AppColors.green700, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -537,7 +537,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
-                child: Icon(icon, color: AppColors.emerald600, size: 20),
+                child: Icon(icon, color: AppColors.green700, size: 20),
               ),
               const SizedBox(width: 14),
               Expanded(

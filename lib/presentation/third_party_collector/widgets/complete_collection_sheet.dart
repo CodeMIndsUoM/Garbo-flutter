@@ -131,7 +131,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? AppColors.redDark2 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
       ),
     );
   }
@@ -254,11 +254,11 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.emerald600,
+            color: AppColors.green700,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.emerald600.withValues(alpha: 0.25),
+                color: AppColors.green700.withValues(alpha: 0.25),
                 offset: const Offset(0, 3),
                 blurRadius: 8,
               ),
@@ -325,7 +325,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             alignment: Alignment.center,
             child: const Icon(
               Icons.inventory_2_outlined,
-              color: AppColors.emerald700,
+              color: AppColors.green800,
               size: 20,
             ),
           ),
@@ -405,13 +405,13 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: focused ? AppColors.emerald500 : AppColors.grey200,
+              color: focused ? AppColors.green700 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
             boxShadow: focused
                 ? [
                     BoxShadow(
-                      color: AppColors.emerald500.withValues(alpha: 0.10),
+                      color: AppColors.green700.withValues(alpha: 0.10),
                       blurRadius: 0,
                       spreadRadius: 3,
                     ),
@@ -423,7 +423,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             focusNode: focusNode,
             maxLines: maxLines,
             keyboardType: keyboardType,
-            cursorColor: AppColors.emerald600,
+            cursorColor: AppColors.green700,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: hint,
@@ -496,7 +496,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: AppColors.emerald600.withValues(alpha: 0.28),
+              color: AppColors.green700.withValues(alpha: 0.28),
               offset: const Offset(0, 6),
               blurRadius: 16,
               spreadRadius: -2,
@@ -504,13 +504,13 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           ],
         ),
         child: Material(
-          color: AppColors.emerald600,
+          color: AppColors.green700,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _submit,
             borderRadius: BorderRadius.circular(14),
-            splashColor: AppColors.emerald700.withValues(alpha: 0.3),
-            highlightColor: AppColors.emerald700.withValues(alpha: 0.15),
+            splashColor: AppColors.green800.withValues(alpha: 0.3),
+            highlightColor: AppColors.green800.withValues(alpha: 0.15),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
