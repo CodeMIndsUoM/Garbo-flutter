@@ -29,7 +29,7 @@ class LeafletNavigationPage extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Could not open map application.'),
-          backgroundColor: Colors.red.shade600,
+          backgroundColor: AppColors.redDark2,
         ),
       );
     }
