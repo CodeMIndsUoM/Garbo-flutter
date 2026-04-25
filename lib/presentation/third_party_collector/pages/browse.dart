@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
@@ -22,6 +23,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   String _searchQuery = '';
   bool _loading = false;
   bool _submittingOffer = false;
+  bool _usingLiveLocation = false;
   String? _collectorId;
   List<CollectionRequestModel> _allRequests = const [];
 
@@ -56,13 +58,17 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
 
     setState(() => _loading = true);
     try {
+      final currentPosition = await _tryGetCurrentPosition();
       final requests = await _apiService.getCollectorFeed(
         collectorId,
-        lat: 6.9271,
-        lng: 79.8612,
+        lat: currentPosition?.latitude,
+        lng: currentPosition?.longitude,
       );
       if (!mounted) return;
-      setState(() => _allRequests = requests);
+      setState(() {
+        _allRequests = requests;
+        _usingLiveLocation = currentPosition != null;
+      });
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not load request feed: $e', isError: true);
@@ -70,6 +76,29 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       if (mounted) {
         setState(() => _loading = false);
       }
+    }
+  }
+
+  Future<Position?> _tryGetCurrentPosition() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -210,6 +239,13 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                           Text(
                             '${results.length} request${results.length == 1 ? '' : 's'} available',
                             style: AppTypography.bodySm,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _usingLiveLocation
+                                ? 'Using live GPS for nearby requests'
+                                : 'Location unavailable: showing general open requests',
+                            style: AppTypography.captionSm,
                           ),
                           const SizedBox(height: 12),
                         ],
