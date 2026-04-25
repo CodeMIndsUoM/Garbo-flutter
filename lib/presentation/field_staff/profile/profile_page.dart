@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_performance_grid.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
@@ -9,7 +10,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF9FAFB),
+      color: AppColors.grey50,
       child: SingleChildScrollView(
         child: Column(
           children: [

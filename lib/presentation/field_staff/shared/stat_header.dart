@@ -17,7 +17,7 @@ class StatHeader extends StatelessWidget {
         color: AppColors.green700,
         boxShadow: [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 6,
             offset: Offset(0, 4),
           ),

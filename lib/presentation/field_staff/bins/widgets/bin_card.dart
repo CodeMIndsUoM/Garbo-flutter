@@ -41,7 +41,7 @@ class BinCard extends StatelessWidget {
         border: Border.all(width: 1, color: _borderColor),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 3,
             offset: Offset(0, 1),
           ),
@@ -177,7 +177,7 @@ class BinCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x19000000),
+              color: AppColors.shadowSm,
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -216,7 +216,7 @@ class BinCard extends StatelessWidget {
           border: Border.all(color: AppColors.grey200),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: AppColors.shadowXs,
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -250,11 +250,11 @@ class BinCard extends StatelessWidget {
       case BinStatus.notChecked:
         return Colors.white;
       case BinStatus.full:
-        return const Color(0xFFFEF2F2); // light red
+        return AppColors.red50;
       case BinStatus.half:
-        return const Color(0xFFFFFBEB); // light yellow/cream
+        return AppColors.amberSurface;
       case BinStatus.empty:
-        return const Color(0xFFECFDF5); // light green
+        return AppColors.emerald50;
     }
   }
 
@@ -263,11 +263,11 @@ class BinCard extends StatelessWidget {
       case BinStatus.notChecked:
         return AppColors.grey200;
       case BinStatus.full:
-        return const Color(0xFFFECACA); // red border
+        return AppColors.redBorder;
       case BinStatus.half:
-        return const Color(0xFFFDE68A); // amber border
+        return AppColors.amberBorder;
       case BinStatus.empty:
-        return const Color(0xFFA7F3D0); // green border
+        return AppColors.emerald200;
     }
   }
 
