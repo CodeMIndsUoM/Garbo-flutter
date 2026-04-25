@@ -175,7 +175,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? AppColors.redDark2 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
       ),
     );
   }
@@ -293,7 +293,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppColors.emerald600 : AppColors.grey100,
+                color: selected ? AppColors.green700 : AppColors.grey100,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Text(
@@ -403,7 +403,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                     Text(
                       _submittingOffer ? 'Sending...' : 'Tap to offer',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.emerald700,
+                        color: AppColors.green800,
                       ),
                     ),
                   ],
@@ -444,7 +444,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     required VoidCallback? onTap,
   }) {
     return Material(
-      color: AppColors.emerald600,
+      color: AppColors.green700,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -483,12 +483,12 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.emerald700, size: 16),
+              Icon(icon, color: AppColors.green800, size: 16),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: AppTypography.buttonMd.copyWith(
-                  color: AppColors.emerald700,
+                  color: AppColors.green800,
                 ),
               ),
             ],

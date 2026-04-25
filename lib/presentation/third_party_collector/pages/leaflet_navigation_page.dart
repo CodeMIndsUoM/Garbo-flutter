@@ -42,7 +42,7 @@ class LeafletNavigationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: AppColors.emerald600,
+        backgroundColor: AppColors.green700,
         foregroundColor: Colors.white,
         title: const Text('Navigation'),
       ),
@@ -97,7 +97,7 @@ class LeafletNavigationPage extends StatelessWidget {
                   icon: const Icon(Icons.navigation_rounded),
                   label: const Text('Open In Maps'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.emerald600,
+                    backgroundColor: AppColors.green700,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

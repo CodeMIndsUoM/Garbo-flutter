@@ -154,11 +154,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.15),
+            color: AppColors.green800.withValues(alpha: 0.15),
             offset: const Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
@@ -237,11 +237,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.15),
+            color: AppColors.green800.withValues(alpha: 0.15),
             offset: const Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
@@ -374,11 +374,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     required bool primary,
     required VoidCallback onTap,
   }) {
-    final bgColor = primary ? AppColors.emerald600 : Colors.white;
-    final titleColor = primary ? Colors.white : AppColors.emerald500;
-    final subColor = primary ? AppColors.white80 : AppColors.emerald500;
+    final bgColor = primary ? AppColors.green700 : Colors.white;
+    final titleColor = primary ? Colors.white : AppColors.green700;
+    final subColor = primary ? AppColors.white80 : AppColors.green700;
     final iconBg = primary ? AppColors.white20 : AppColors.emerald50;
-    final iconColor = primary ? Colors.white : AppColors.emerald500;
+    final iconColor = primary ? Colors.white : AppColors.green700;
 
     return Material(
       color: Colors.transparent,
@@ -395,7 +395,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
             boxShadow: [
               BoxShadow(
                 color: primary
-                    ? AppColors.emerald700.withValues(alpha: 0.15)
+                    ? AppColors.green800.withValues(alpha: 0.15)
                     : Colors.black.withValues(alpha: 0.04),
                 offset: const Offset(0, 2),
                 blurRadius: primary ? 8 : 6,
@@ -435,7 +435,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primary ? Colors.white : AppColors.emerald500,
+                color: primary ? Colors.white : AppColors.green700,
                 size: 22,
               ),
             ],
@@ -497,17 +497,17 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.emerald500, size: 20),
+          Icon(icon, color: AppColors.green700, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: AppTypography.bodySm.copyWith(color: AppColors.emerald500),
+              style: AppTypography.bodySm.copyWith(color: AppColors.green700),
             ),
           ),
           Text(
             value,
-            style: AppTypography.titleLg.copyWith(color: AppColors.emerald500),
+            style: AppTypography.titleLg.copyWith(color: AppColors.green700),
           ),
         ],
       ),
