@@ -79,7 +79,7 @@ class BinListSection extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey200),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
@@ -155,7 +155,7 @@ class BinListSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x19000000),
+                    color: AppColors.shadowSm,
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),

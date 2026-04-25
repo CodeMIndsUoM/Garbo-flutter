@@ -11,12 +11,12 @@ class ProfilePerformanceGrid extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.analytics_outlined, color: Color(0xFF101727), size: 20),
+            const Icon(Icons.analytics_outlined, color: AppColors.grey900, size: 20),
             const SizedBox(width: 8),
             const Text(
               'Performance Stats',
               style: TextStyle(
-                color: Color(0xFF101727),
+                color: AppColors.grey900,
                 fontSize: 16,
                 fontFamily: 'Arimo',
                 fontWeight: FontWeight.w700,
@@ -78,18 +78,18 @@ class ProfilePerformanceGrid extends StatelessWidget {
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1.27, color: Color(0xFFF2F4F6)),
+          side: const BorderSide(width: 1.27, color: AppColors.grey100),
           borderRadius: BorderRadius.circular(14),
         ),
         shadows: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
             spreadRadius: -1,
           ),
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 3,
             offset: Offset(0, 1),
             spreadRadius: 0,
@@ -112,7 +112,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFF495565),
+              color: AppColors.grey600,
               fontSize: 12,
               fontFamily: 'Arimo',
               fontWeight: FontWeight.w400,

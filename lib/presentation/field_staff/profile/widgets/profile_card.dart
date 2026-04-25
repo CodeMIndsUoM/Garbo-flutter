@@ -38,13 +38,13 @@ class ProfileCard extends StatelessWidget {
         ),
         shadows: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 10,
             offset: Offset(0, 8),
             spreadRadius: -6,
           ),
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 25,
             offset: Offset(0, 20),
             spreadRadius: -5,
@@ -95,7 +95,7 @@ class ProfileCard extends StatelessWidget {
                     Text(
                       role,
                       style: const TextStyle(
-                        color: Color(0xE5FFFEFE),
+                        color: AppColors.white90,
                         fontSize: 13,
                         fontFamily: 'Arimo',
                         fontWeight: FontWeight.w400,
@@ -105,7 +105,7 @@ class ProfileCard extends StatelessWidget {
                     Text(
                       'ID: $employeeId',
                       style: const TextStyle(
-                        color: Color(0xCCFFFEFE),
+                        color: AppColors.white80,
                         fontSize: 11,
                         fontFamily: 'Arimo',
                         fontWeight: FontWeight.w400,

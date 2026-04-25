@@ -31,7 +31,7 @@ class SettingsOverlay extends StatelessWidget {
                   const Text(
                     'Settings & More',
                     style: TextStyle(
-                      color: Color(0xFF101727),
+                      color: AppColors.grey900,
                       fontSize: 20,
                       fontFamily: 'Arimo',
                       fontWeight: FontWeight.w700,
@@ -43,14 +43,14 @@ class SettingsOverlay extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: AppColors.grey100,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: const Icon(
                         Icons.close,
-                        color: Color(0xFF495565),
+                        color: AppColors.grey600,
                         size: 20,
                       ),
                     ),
@@ -63,7 +63,7 @@ class SettingsOverlay extends StatelessWidget {
               const Text(
                 'Settings & More',
                 style: TextStyle(
-                  color: Color(0xFF101727),
+                  color: AppColors.grey900,
                   fontSize: 24,
                   fontFamily: 'Arimo',
                   fontWeight: FontWeight.w700,
@@ -73,7 +73,7 @@ class SettingsOverlay extends StatelessWidget {
               const Text(
                 'Manage your account and app preferences',
                 style: TextStyle(
-                  color: Color(0xFF495565),
+                  color: AppColors.grey600,
                   fontSize: 14,
                   fontFamily: 'Arimo',
                   fontWeight: FontWeight.w400,
@@ -149,13 +149,13 @@ class SettingsOverlay extends StatelessWidget {
         ),
         shadows: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
             spreadRadius: -1,
           ),
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 3,
             offset: Offset(0, 1),
             spreadRadius: 0,
@@ -193,7 +193,7 @@ class SettingsOverlay extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Color(0xFF101727),
+                        color: AppColors.grey900,
                         fontSize: 15,
                         fontFamily: 'Arimo',
                         fontWeight: FontWeight.w700,
@@ -204,7 +204,7 @@ class SettingsOverlay extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: ShapeDecoration(
-                          color: const Color(0xFFAD46FF),
+                          color: AppColors.purple500,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -226,7 +226,7 @@ class SettingsOverlay extends StatelessWidget {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFF697282),
+                    color: AppColors.grey500,
                     fontSize: 12,
                     fontFamily: 'Arimo',
                     fontWeight: FontWeight.w400,
@@ -237,7 +237,7 @@ class SettingsOverlay extends StatelessWidget {
           ),
           const Icon(
             Icons.chevron_right,
-            color: Color(0xFF9CA3AF),
+            color: AppColors.grey400,
             size: 20,
           ),
         ],

@@ -14,12 +14,12 @@ class ProfileAchievementList extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.stars_outlined, color: Color(0xFF101727), size: 24),
+                const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
                 const SizedBox(width: 8),
                 const Text(
                   'Achievements',
                   style: TextStyle(
-                    color: Color(0xFF101727),
+                    color: AppColors.grey900,
                     fontSize: 16,
                     fontFamily: 'Arimo',
                     fontWeight: FontWeight.w700,
@@ -30,7 +30,7 @@ class ProfileAchievementList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: ShapeDecoration(
-                color: const Color(0xFFFEF9C2),
+                color: AppColors.yellow,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -38,7 +38,7 @@ class ProfileAchievementList extends StatelessWidget {
               child: const Text(
                 '3/6',
                 style: TextStyle(
-                  color: Color(0xFFA65F00),
+                  color: AppColors.yellowDark,
                   fontSize: 11,
                   fontFamily: 'Arimo',
                   fontWeight: FontWeight.w700,
@@ -79,7 +79,7 @@ class ProfileAchievementList extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey100),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
@@ -110,7 +110,7 @@ class ProfileAchievementList extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Color(0xFF101727),
+                        color: AppColors.grey900,
                         fontSize: 14,
                         fontFamily: 'Arimo',
                         fontWeight: FontWeight.w700,
@@ -123,7 +123,7 @@ class ProfileAchievementList extends StatelessWidget {
                 Text(
                   description,
                   style: const TextStyle(
-                    color: Color(0xFF495565),
+                    color: AppColors.grey600,
                     fontSize: 12,
                     fontFamily: 'Arimo',
                     fontWeight: FontWeight.w400,

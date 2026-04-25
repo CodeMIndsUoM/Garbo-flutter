@@ -100,6 +100,7 @@ abstract final class AppColors {
   static const Color amberDark2 = Color(0xFFE2A000);
   static const Color greenDark  = Color(0xFF007A2E);
   static const Color greenDark2 = Color(0xFF00A63E);
+  static const Color yellowDark = Color(0xFFA65F00);
 
   // Extra purple shade (settings overlay)
   static const Color purple500 = Color(0xFFAD46FF);

@@ -36,7 +36,7 @@ class BinFilterChips extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF10B981) : AppColors.grey50,
+                  color: isSelected ? AppColors.emerald500 : AppColors.grey50,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(

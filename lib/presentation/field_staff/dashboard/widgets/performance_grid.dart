@@ -111,7 +111,7 @@ class PerformanceGrid extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey100),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
