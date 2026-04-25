@@ -144,7 +144,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.emerald600,
       ),
     );
   }
@@ -185,7 +185,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0x1F000000),
+                        color: AppColors.shadowMd,
                         offset: Offset(0, -6),
                         blurRadius: 28,
                       ),
@@ -634,7 +634,7 @@ class _SendOfferRoute<T> extends PageRouteBuilder<T> {
     : super(
         opaque: false,
         barrierDismissible: true,
-        barrierColor: const Color(0x66000000),
+        barrierColor: AppColors.scrim,
         barrierLabel: 'Dismiss',
         transitionDuration: const Duration(milliseconds: 420),
         reverseTransitionDuration: const Duration(milliseconds: 280),

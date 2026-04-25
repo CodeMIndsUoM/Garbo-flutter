@@ -175,7 +175,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.emerald600,
       ),
     );
   }
