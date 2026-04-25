@@ -74,6 +74,35 @@ abstract final class AppColors {
   static const Color white70 = Color(0xB3FFFFFF);
   static const Color white20 = Color(0x33FFFFFF);
   static const Color white10 = Color(0x1AFFFFFF);
+
+  // Shadows / scrims (black with opacity)
+  static const Color shadowXs = Color(0x0A000000); //  4% — subtle elevation
+  static const Color shadowSm = Color(0x19000000); // 10% — card / chip
+  static const Color shadowMd = Color(0x1F000000); // 12% — sheet / overlay
+  static const Color scrim    = Color(0x66000000); // 40% — modal barrier
+
+  // Status surfaces — fill-level / report severity backgrounds & borders
+  static const Color amberSurface  = Color(0xFFFFFBEB);
+  static const Color amberSurface2 = Color(0xFFFFF6D8);
+  static const Color amberSurface3 = Color(0xFFFFF8E1);
+  static const Color amberBorder   = Color(0xFFFDE68A);
+  static const Color amberBorder2  = Color(0xFFFFECAA);
+  static const Color redBorder     = Color(0xFFFECACA);
+  static const Color redSurface2   = Color(0xFFFFE2E2);
+  static const Color greenSurface2 = Color(0xFFE2FBE9);
+  static const Color greenSurface3 = Color(0xFFE8FDF0);
+  static const Color greenBorder2  = Color(0xFFB0F1C3);
+
+  // "Dark" status text (used over light status surfaces)
+  static const Color redDark    = Color(0xFFC10007);
+  static const Color redDark2   = Color(0xFFE7000A);
+  static const Color amberDark  = Color(0xFFCC7A00);
+  static const Color amberDark2 = Color(0xFFE2A000);
+  static const Color greenDark  = Color(0xFF007A2E);
+  static const Color greenDark2 = Color(0xFF00A63E);
+
+  // Extra purple shade (settings overlay)
+  static const Color purple500 = Color(0xFFAD46FF);
 }
 
 typedef DesignTokens = AppColors;
