@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/send_offer_sheet.dart';
@@ -13,87 +16,168 @@ class ThirdPartyBrowsePage extends StatefulWidget {
 }
 
 class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
+  final ApiService _apiService = ApiService();
+
   String _selectedFilter = 'All';
   String _searchQuery = '';
+  bool _loading = false;
+  bool _submittingOffer = false;
+  String? _collectorId;
+  List<CollectionRequestModel> _allRequests = const [];
 
   static const List<String> _filters = [
     'All',
     'Plastic',
     'Organic',
-    'Electronic',
+    'E-Waste',
     'Paper',
+    'Metal',
+    'Glass',
+    'Textile',
+    'Mixed',
   ];
 
-  static final List<_Request> _allRequests = [
-    _Request(
-      title: 'Plastic Waste',
-      category: 'Plastic',
-      person: 'Sarah Miller',
-      rating: 4.9,
-      location: 'Downtown Area',
-      distance: '1.4 km',
-      date: 'Tomorrow',
-      timeRange: '10:00 AM - 12:00 PM',
-      postedAgo: '2 hours ago',
-    ),
-    _Request(
-      title: 'Organic Waste',
-      category: 'Organic',
-      person: 'Michael Chen',
-      rating: 5.0,
-      location: 'Green Valley',
-      distance: '2.1 km',
-      date: 'Tomorrow',
-      timeRange: '10:00 AM - 12:00 PM',
-      postedAgo: '4 hours ago',
-    ),
-    _Request(
-      title: 'Electronic Waste',
-      category: 'Electronic',
-      person: 'Emma Thompson',
-      rating: 4.7,
-      location: 'Tech District',
-      distance: '3.8 km',
-      date: 'Today',
-      timeRange: '5:00 PM - 7:00 PM',
-      postedAgo: '1 hour ago',
-    ),
-    _Request(
-      title: 'Paper Waste',
-      category: 'Paper',
-      person: 'David Wilson',
-      rating: 4.8,
-      location: 'Riverside',
-      distance: '2.6 km',
-      date: 'Tomorrow',
-      timeRange: '3:00 PM - 5:00 PM',
-      postedAgo: '30 minutes ago',
-    ),
-    _Request(
-      title: 'Plastic Waste',
-      category: 'Plastic',
-      person: 'Olivia Park',
-      rating: 4.6,
-      location: 'Eastside',
-      distance: '5.0 km',
-      date: 'Tomorrow',
-      timeRange: '9:00 AM - 11:00 AM',
-      postedAgo: '6 hours ago',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _bootstrap();
+  }
 
-  List<_Request> get _filteredRequests {
+  Future<void> _bootstrap() async {
+    final collectorId = await _apiService.getStoredEmpId();
+    if (!mounted) return;
+    setState(() => _collectorId = collectorId);
+    await _loadFeed();
+  }
+
+  Future<void> _loadFeed() async {
+    final collectorId = _collectorId;
+    if (collectorId == null || collectorId.isEmpty) return;
+
+    setState(() => _loading = true);
+    try {
+      final requests = await _apiService.getCollectorFeed(
+        collectorId,
+        lat: 6.9271,
+        lng: 79.8612,
+      );
+      if (!mounted) return;
+      setState(() => _allRequests = requests);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Could not load request feed: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _openSendOfferSheet(CollectionRequestModel request) async {
+    if (_collectorId == null || _collectorId!.isEmpty) {
+      _showSnackBar('Please log in again to continue.', isError: true);
+      return;
+    }
+
+    final sent = await SendOfferSheet.show(
+      context,
+      wasteType: request.wasteType.replaceAll('_', ' '),
+      location: request.addressLine,
+      preferredTime: _preferredTimeLabel(request),
+      onSubmit:
+          ({
+            required double pricePerUnit,
+            required String priceUnit,
+            required DateTime proposedPickupAt,
+            String? messageToCitizen,
+          }) async {
+            if (_submittingOffer) return;
+            setState(() => _submittingOffer = true);
+            try {
+              await _apiService.sendCollectorOffer(
+                requestId: request.id,
+                payload: {
+                  'pricePerUnit': pricePerUnit,
+                  'priceUnit': priceUnit,
+                  'proposedPickupAt': proposedPickupAt
+                      .toUtc()
+                      .toIso8601String(),
+                  'messageToCitizen': messageToCitizen,
+                },
+              );
+            } finally {
+              if (mounted) {
+                setState(() => _submittingOffer = false);
+              }
+            }
+          },
+    );
+
+    if (sent == true && mounted) {
+      _showSnackBar('Offer sent successfully.');
+      await _loadFeed();
+    }
+  }
+
+  void _openPickupMap(CollectionRequestModel request) {
+    final lat = request.latitude;
+    final lng = request.longitude;
+
+    if (lat == 0 || lng == 0) {
+      _showSnackBar(
+        'Pickup location coordinates are not available.',
+        isError: true,
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LeafletNavigationPage(
+          latitude: lat,
+          longitude: lng,
+          title: '${request.wasteType.replaceAll('_', ' ')} Waste',
+          subtitle: request.addressLine,
+        ),
+      ),
+    );
+  }
+
+  List<CollectionRequestModel> get _filteredRequests {
     return _allRequests.where((r) {
+      final prettyWasteType = r.wasteType.replaceAll('_', ' ').toLowerCase();
       final matchesFilter =
-          _selectedFilter == 'All' || r.category == _selectedFilter;
+          _selectedFilter == 'All' ||
+          prettyWasteType == _selectedFilter.toLowerCase();
       final q = _searchQuery.trim().toLowerCase();
       final matchesQuery =
           q.isEmpty ||
-          r.title.toLowerCase().contains(q) ||
-          r.location.toLowerCase().contains(q) ||
-          r.category.toLowerCase().contains(q);
+          prettyWasteType.contains(q) ||
+          r.addressLine.toLowerCase().contains(q) ||
+          r.citizenName.toLowerCase().contains(q);
       return matchesFilter && matchesQuery;
     }).toList();
+  }
+
+  String _preferredTimeLabel(CollectionRequestModel request) {
+    final day = _formatDate(request.preferredDate);
+    return '$day, ${request.preferredSlot}';
+  }
+
+  String _formatDate(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+      ),
+    );
   }
 
   @override
@@ -109,40 +193,51 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
             notificationCount: 1,
           ),
           Expanded(
-            child: CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSearchBar(),
-                        const SizedBox(height: 14),
-                        _buildFilterChips(),
-                        const SizedBox(height: 18),
-                        Text(
-                          '${results.length} request${results.length == 1 ? '' : 's'} available',
-                          style: AppTypography.bodySm,
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+            child: RefreshIndicator(
+              onRefresh: _loadFeed,
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSearchBar(),
+                          const SizedBox(height: 14),
+                          _buildFilterChips(),
+                          const SizedBox(height: 18),
+                          Text(
+                            '${results.length} request${results.length == 1 ? '' : 's'} available',
+                            style: AppTypography.bodySm,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: results.isEmpty
-                      ? SliverToBoxAdapter(child: _buildEmptyState())
-                      : SliverList.separated(
-                          itemCount: results.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (_, i) => _buildRequestCard(results[i]),
-                        ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              ],
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: _loading
+                        ? const SliverToBoxAdapter(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 64),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                          )
+                        : results.isEmpty
+                        ? SliverToBoxAdapter(child: _buildEmptyState())
+                        : SliverList.separated(
+                            itemCount: results.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (_, i) =>
+                                _buildRequestCard(results[i]),
+                          ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                ],
+              ),
             ),
           ),
         ],
@@ -170,8 +265,6 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
             size: 20,
           ),
           border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 14,
@@ -217,7 +310,8 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
   }
 
-  Widget _buildRequestCard(_Request r) {
+  Widget _buildRequestCard(CollectionRequestModel request) {
+    final wasteType = request.wasteType.replaceAll('_', ' ');
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -234,15 +328,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         child: InkWell(
-          onTap: () => SendOfferSheet.show(
-            context,
-            wasteType: r.title,
-            location: r.location,
-            preferredTime: '${r.date}, ${r.timeRange}',
-          ),
+          onTap: _submittingOffer ? null : () => _openSendOfferSheet(request),
           borderRadius: BorderRadius.circular(14),
           splashColor: AppColors.emerald50,
-          highlightColor: AppColors.emerald50.withValues(alpha: 0.4),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -251,13 +339,16 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildImageSlot(r.imageUrl),
+                    _buildIconSlot(wasteType, request.photoUrl),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(r.title, style: AppTypography.titleMd),
+                          Text(
+                            '$wasteType Waste',
+                            style: AppTypography.titleMd,
+                          ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
@@ -269,24 +360,24 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  r.person,
+                                  request.citizenName.isEmpty
+                                      ? 'Citizen'
+                                      : request.citizenName,
                                   style: AppTypography.bodySm,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              _buildRatingPill(r.rating),
                             ],
                           ),
                           const SizedBox(height: 6),
                           _buildMetaItem(
                             Icons.location_on_outlined,
-                            '${r.location} · ${r.distance}',
+                            request.addressLine,
                           ),
                           const SizedBox(height: 4),
                           _buildMetaItem(
                             Icons.access_time_rounded,
-                            '${r.date}, ${r.timeRange}',
+                            _preferredTimeLabel(request),
                           ),
                         ],
                       ),
@@ -299,12 +390,44 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 Row(
                   children: [
                     const Icon(
-                      Icons.schedule_rounded,
+                      Icons.local_offer_outlined,
                       color: AppColors.grey400,
                       size: 13,
                     ),
                     const SizedBox(width: 4),
-                    Text(r.postedAgo, style: AppTypography.caption),
+                    Text(
+                      '${request.offersCount} offer${request.offersCount == 1 ? '' : 's'} so far',
+                      style: AppTypography.caption,
+                    ),
+                    const Spacer(),
+                    Text(
+                      _submittingOffer ? 'Sending...' : 'Tap to offer',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.emerald700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSecondaryActionButton(
+                        icon: Icons.map_outlined,
+                        label: 'View Map',
+                        onTap: () => _openPickupMap(request),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildPrimaryActionButton(
+                        icon: Icons.local_offer_outlined,
+                        label: 'Send Offer',
+                        onTap: _submittingOffer
+                            ? null
+                            : () => _openSendOfferSheet(request),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -315,7 +438,77 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
   }
 
-  Widget _buildImageSlot(String? imageUrl) {
+  Widget _buildPrimaryActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: AppColors.emerald600,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.buttonMd.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppColors.emerald50,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppColors.emerald700, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.buttonMd.copyWith(
+                  color: AppColors.emerald700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconSlot(String wasteType, String? imageUrl) {
+    final icon = switch (wasteType) {
+      'E WASTE' => Icons.electrical_services_rounded,
+      'METAL' => Icons.precision_manufacturing_outlined,
+      'ORGANIC' => Icons.eco_outlined,
+      'PAPER' => Icons.description_outlined,
+      'TEXTILE' => Icons.checkroom_outlined,
+      'GLASS' => Icons.wine_bar_outlined,
+      _ => Icons.delete_outline_rounded,
+    };
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -323,47 +516,16 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
         height: 72,
         color: AppColors.grey100,
         alignment: Alignment.center,
-        child: imageUrl == null
-            ? const Icon(
-                Icons.image_rounded,
-                color: AppColors.grey300,
-                size: 28,
-              )
+        child: imageUrl == null || imageUrl.trim().isEmpty
+            ? Icon(icon, color: AppColors.grey500, size: 28)
             : Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.broken_image_rounded,
-                  color: AppColors.grey300,
-                  size: 28,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    Icon(icon, color: AppColors.grey500, size: 28),
               ),
-      ),
-    );
-  }
-
-  Widget _buildRatingPill(double rating) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.yellow,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.star_rounded, color: AppColors.amber600, size: 11),
-          const SizedBox(width: 2),
-          Text(
-            rating.toStringAsFixed(1),
-            style: AppTypography.captionSm.copyWith(
-              color: AppColors.amber600,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -406,38 +568,11 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
           Text('No requests found', style: AppTypography.titleMd),
           const SizedBox(height: 4),
           Text(
-            'Try a different filter or search term',
+            'Try a different filter or pull to refresh',
             style: AppTypography.bodySm,
           ),
         ],
       ),
     );
   }
-}
-
-class _Request {
-  final String? imageUrl;
-  final String title;
-  final String category;
-  final String person;
-  final double rating;
-  final String location;
-  final String distance;
-  final String date;
-  final String timeRange;
-  final String postedAgo;
-
-  _Request({
-    // ignore: unused_element_parameter
-    this.imageUrl,
-    required this.title,
-    required this.category,
-    required this.person,
-    required this.rating,
-    required this.location,
-    required this.distance,
-    required this.date,
-    required this.timeRange,
-    required this.postedAgo,
-  });
 }

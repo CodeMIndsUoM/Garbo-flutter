@@ -1,31 +1,38 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CompleteCollectionSheet extends StatefulWidget {
   final String title;
   final String address;
   final String person;
+  final bool weightRequired;
 
   const CompleteCollectionSheet({
     super.key,
     required this.title,
     required this.address,
     required this.person,
+    required this.weightRequired,
   });
 
-  static Future<bool?> show(
+  static Future<CompleteCollectionInput?> show(
     BuildContext context, {
     required String title,
     required String address,
     required String person,
+    required bool weightRequired,
   }) {
-    return Navigator.of(context).push<bool>(
+    return Navigator.of(context).push<CompleteCollectionInput>(
       _CompleteCollectionRoute(
         child: CompleteCollectionSheet(
           title: title,
           address: address,
           person: person,
+          weightRequired: weightRequired,
         ),
       ),
     );
@@ -41,6 +48,9 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   final TextEditingController _notes = TextEditingController();
   final FocusNode _weightFocus = FocusNode();
   final FocusNode _notesFocus = FocusNode();
+  final ImagePicker _picker = ImagePicker();
+
+  String? _photoPath;
 
   @override
   void dispose() {
@@ -55,6 +65,52 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.length == 1) return parts.first;
     return '${parts.first} ${parts.last.substring(0, 1)}.';
+  }
+
+  void _submit() {
+    final weightText = _weight.text.trim();
+    final parsedWeight = weightText.isEmpty
+        ? null
+        : double.tryParse(weightText);
+    if (widget.weightRequired && (parsedWeight == null || parsedWeight <= 0)) {
+      _showSnack('Weight is required for this waste type.', isError: true);
+      return;
+    }
+    if (weightText.isNotEmpty && (parsedWeight == null || parsedWeight <= 0)) {
+      _showSnack('Weight must be a positive number.', isError: true);
+      return;
+    }
+
+    if (_photoPath == null) {
+      _showSnack('Please attach a completion photo.', isError: true);
+      return;
+    }
+
+    Navigator.of(context).pop(
+      CompleteCollectionInput(
+        weightKg: parsedWeight,
+        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+        photoPath: _photoPath,
+      ),
+    );
+  }
+
+  Future<void> _pickCompletionPhoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+    if (picked == null || !mounted) return;
+    setState(() => _photoPath = picked.path);
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+      ),
+    );
   }
 
   @override
@@ -76,9 +132,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
                       color: Color(0x1F000000),
@@ -113,10 +167,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                           child: _buildHeader(),
                         ),
                         const SizedBox(height: 18),
-                        Container(
-                          height: 1,
-                          color: AppColors.grey100,
-                        ),
+                        Container(height: 1, color: AppColors.grey100),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
                           child: _buildJobCard(),
@@ -149,6 +200,10 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                     'Add any observations, conditions, or special notes about the collection',
                                 maxLines: 4,
                               ),
+                              const SizedBox(height: 20),
+                              _buildFieldLabel('Completion Photo'),
+                              const SizedBox(height: 10),
+                              _buildPhotoPicker(),
                               const SizedBox(height: 18),
                               _buildDisclaimer(),
                               const SizedBox(height: 20),
@@ -187,11 +242,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ],
           ),
           alignment: Alignment.center,
-          child: const Icon(
-            Icons.check_rounded,
-            color: Colors.white,
-            size: 18,
-          ),
+          child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -305,7 +356,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ),
           ),
           TextSpan(
-            text: '  (optional)',
+            text: widget.weightRequired ? '  (required)' : '  (optional)',
             style: AppTypography.labelSm.copyWith(color: AppColors.grey400),
           ),
         ],
@@ -433,7 +484,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           color: AppColors.emerald600,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
-            onTap: () => Navigator.of(context).pop(true),
+            onTap: _submit,
             borderRadius: BorderRadius.circular(14),
             splashColor: AppColors.emerald700.withValues(alpha: 0.3),
             highlightColor: AppColors.emerald700.withValues(alpha: 0.15),
@@ -469,6 +520,65 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       ),
     );
   }
+
+  Widget _buildPhotoPicker() {
+    return InkWell(
+      onTap: _pickCompletionPhoto,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey200, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_photoPath == null)
+              Row(
+                children: [
+                  const Icon(
+                    Icons.camera_alt_outlined,
+                    color: AppColors.grey500,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Tap to capture photo',
+                    style: AppTypography.bodyMd.copyWith(
+                      color: AppColors.grey600,
+                    ),
+                  ),
+                ],
+              )
+            else
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(_photoPath!),
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CompleteCollectionInput {
+  final double? weightKg;
+  final String? notes;
+  final String? photoPath;
+
+  const CompleteCollectionInput({
+    required this.weightKg,
+    required this.notes,
+    required this.photoPath,
+  });
 }
 
 class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
@@ -492,11 +602,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
           final fade = CurvedAnimation(
             parent: animation,
             curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
-            reverseCurve: const Interval(
-              0.3,
-              1.0,
-              curve: Curves.easeInCubic,
-            ),
+            reverseCurve: const Interval(0.3, 1.0, curve: Curves.easeInCubic),
           );
           return FadeTransition(
             opacity: fade,
@@ -506,10 +612,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
                 end: Offset.zero,
               ).animate(motion),
               child: ScaleTransition(
-                scale: Tween<double>(
-                  begin: 0.97,
-                  end: 1.0,
-                ).animate(motion),
+                scale: Tween<double>(begin: 0.97, end: 1.0).animate(motion),
                 alignment: Alignment.bottomCenter,
                 child: child,
               ),
