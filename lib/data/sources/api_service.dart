@@ -52,11 +52,12 @@ class ApiService {
   }
 
   /// Reports the status of a bin.
-  Future<bool> reportBinStatus(
-    String empId,
-    String binId,
-    Map<String, dynamic> reportData,
-  ) async {
+  Future<bool> reportBinStatus({
+    required String empId,
+    required String binId,
+    required Map<String, dynamic> reportData,
+    String? photoPath,
+  }) async {
     if (empId.isEmpty) {
       throw Exception('Employee ID is empty. Please log in again.');
     }
@@ -64,12 +65,32 @@ class ApiService {
       '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins/$binId/report',
     );
     try {
-      final headers = await _authHeaders();
-      final response = await client.post(
-        url,
-        headers: headers,
-        body: json.encode(reportData),
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+
+      final request = http.MultipartRequest('POST', url);
+      
+      if (token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      // Add text fields
+      reportData.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
+
+      // Add photo if provided
+      if (photoPath != null && photoPath.trim().isNotEmpty) {
+        final file = File(photoPath);
+        if (await file.exists()) {
+          request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+        } else {
+          throw Exception('Selected image file was not found.');
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> body = json.decode(response.body);
@@ -84,13 +105,17 @@ class ApiService {
 
   /// Undoes a bin report, resetting it to notChecked.
   Future<bool> undoBinReport(String empId, String binId) async {
-    return reportBinStatus(empId, binId, {
-      "status": "notChecked",
-      "fillLevel": 0,
-      "notes": "Undo report",
-      "latitude": 6.9,
-      "longitude": 79.8,
-    });
+    return reportBinStatus(
+      empId: empId,
+      binId: binId,
+      reportData: {
+        "status": "notChecked",
+        "fillLevel": 0,
+        "notes": "Undo report",
+        "latitude": 6.9,
+        "longitude": 79.8,
+      },
+    );
   }
 
   /// Fetches the name of a specific field mentor.
