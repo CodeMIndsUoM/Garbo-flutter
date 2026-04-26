@@ -559,6 +559,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
+                cacheWidth: 216,
+                cacheHeight: 216,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
                 errorBuilder: (_, __, ___) =>
                     Icon(icon, color: AppColors.grey500, size: 28),
               ),

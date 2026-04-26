@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,7 +19,8 @@ class CitizenRequestPage extends StatefulWidget {
   State<CitizenRequestPage> createState() => CitizenRequestPageState();
 }
 
-class CitizenRequestPageState extends State<CitizenRequestPage> {
+class CitizenRequestPageState extends State<CitizenRequestPage>
+    with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -37,6 +39,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   String? _citizenId;
   String? _requestPhotoPath;
   List<CollectionRequestModel> _requests = const [];
+  Timer? _pollTimer;
+  bool _backgroundRefreshInFlight = false;
+  static const Duration _pollInterval = Duration(seconds: 15);
 
   String _statusFilter = 'ALL';
   String _wasteTypeFilter = 'ALL';
@@ -79,7 +84,48 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _bootstrap();
+    _startPolling();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshSilently();
+      _startPolling();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _stopPolling();
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _refreshSilently());
+  }
+
+  void _stopPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+  }
+
+  Future<void> _refreshSilently() async {
+    if (_backgroundRefreshInFlight || !mounted) return;
+    final citizenId = _citizenId;
+    if (citizenId == null || citizenId.isEmpty) return;
+    _backgroundRefreshInFlight = true;
+    try {
+      final requests = await _apiService.getCitizenCollectionRequests(
+        citizenId,
+      );
+      if (!mounted) return;
+      setState(() => _requests = requests);
+    } catch (_) {
+      // Silent — keep last good list; the next tick will retry.
+    } finally {
+      _backgroundRefreshInFlight = false;
+    }
   }
 
   Future<void> _bootstrap() async {
@@ -205,7 +251,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
   Future<void> _pickRequestPhoto() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 70,
+      maxWidth: 1280,
+      maxHeight: 1280,
     );
     if (picked == null || !mounted) return;
     setState(() => _requestPhotoPath = picked.path);
@@ -235,20 +283,43 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
         backgroundColor: Colors.transparent,
         builder: (sheetCtx) => _RequestOffersSheet(
           request: detail,
-          onAccept: (offer) => _handleOfferAction(offer.id, true),
-          onReject: (offer) => _handleOfferAction(offer.id, false),
-          onConfirm: (offer) => _handleConfirmOffer(sheetCtx, offer),
+          onAccept: (offer) => _handleOfferAction(detail.id, offer.id, true),
+          onReject: (offer) => _handleOfferAction(detail.id, offer.id, false),
+          onConfirm: (offer) => _handleConfirmOffer(sheetCtx, detail.id, offer),
         ),
       );
-      await _loadRequests();
+      unawaited(_loadRequests());
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not load request offers: $e', isError: true);
     }
   }
 
+  void _patchRequestStatus(
+    int requestId, {
+    String? status,
+    int? acceptedOfferId,
+    int? offersCount,
+  }) {
+    final index = _requests.indexWhere((r) => r.id == requestId);
+    if (index == -1) return;
+    final updated = _requests[index].copyWith(
+      status: status,
+      acceptedOfferId: acceptedOfferId,
+      offersCount: offersCount,
+    );
+    setState(() {
+      _requests = [
+        ..._requests.sublist(0, index),
+        updated,
+        ..._requests.sublist(index + 1),
+      ];
+    });
+  }
+
   Future<void> _handleConfirmOffer(
     BuildContext sheetCtx,
+    int requestId,
     CollectionOfferModel offer,
   ) async {
     final result = await showDialog<_RatingResult>(
@@ -264,15 +335,20 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       );
       if (!mounted) return;
       Navigator.of(sheetCtx).pop();
-      await _loadRequests();
+      _patchRequestStatus(requestId, status: 'CONFIRMED');
       _showSnackBar('Thanks! Your rating was submitted.');
+      unawaited(_loadRequests());
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not submit rating: $e', isError: true);
     }
   }
 
-  Future<void> _handleOfferAction(int offerId, bool accept) async {
+  Future<void> _handleOfferAction(
+    int requestId,
+    int offerId,
+    bool accept,
+  ) async {
     try {
       if (accept) {
         await _apiService.acceptOffer(offerId);
@@ -281,12 +357,28 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
       }
       if (!mounted) return;
       Navigator.of(context).pop();
-      await _loadRequests();
+      if (accept) {
+        _patchRequestStatus(
+          requestId,
+          status: 'ASSIGNED',
+          acceptedOfferId: offerId,
+        );
+      } else {
+        final current = _requests.firstWhere(
+          (r) => r.id == requestId,
+          orElse: () => _requests.first,
+        );
+        _patchRequestStatus(
+          requestId,
+          offersCount: (current.offersCount - 1).clamp(0, 1 << 30),
+        );
+      }
       _showSnackBar(
         accept
             ? 'Offer accepted successfully.'
             : 'Offer rejected successfully.',
       );
+      unawaited(_loadRequests());
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not update offer: $e', isError: true);
@@ -406,6 +498,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
 
   @override
   void dispose() {
+    _stopPolling();
+    WidgetsBinding.instance.removeObserver(this);
     _addressController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
@@ -1825,6 +1919,10 @@ class CitizenRequestPageState extends State<CitizenRequestPage> {
                       : Image.file(
                           File(_requestPhotoPath!),
                           fit: BoxFit.cover,
+                          cacheWidth: 192,
+                          cacheHeight: 192,
+                          gaplessPlayback: true,
+                          filterQuality: FilterQuality.low,
                           errorBuilder: (_, __, ___) => const Icon(
                             Icons.image_not_supported_outlined,
                             color: AppColors.grey500,
