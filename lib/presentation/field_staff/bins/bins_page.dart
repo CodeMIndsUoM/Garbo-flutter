@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_card.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_filter_chips.dart';
@@ -150,7 +151,7 @@ class _BinsPageState extends State<BinsPage> {
           children: [
             Text(
               'Error loading bins: $_error',
-              style: const TextStyle(color: Colors.red),
+              style: AppTypography.bodyMd.copyWith(color: AppColors.red500),
             ),
             ElevatedButton(onPressed: _fetchBins, child: const Text('Retry')),
           ],
@@ -242,20 +243,12 @@ class _BinsPageState extends State<BinsPage> {
               onChanged: (value) {
                 setState(() => _searchQuery = value);
               },
-              style: const TextStyle(
-                fontFamily: 'Arimo',
-                fontSize: 14,
-                color: AppColors.grey900,
-              ),
-              decoration: const InputDecoration(
+              style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
+              decoration: InputDecoration(
                 hintText: 'Search bins by location or ID...',
-                hintStyle: TextStyle(
-                  fontFamily: 'Arimo',
-                  fontSize: 14,
-                  color: Colors.black38,
-                ),
+                hintStyle: AppTypography.bodyMd.copyWith(color: Colors.black38),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.only(bottom: 6),
+                contentPadding: const EdgeInsets.only(bottom: 6),
                 isDense: true,
               ),
             ),
@@ -273,15 +266,7 @@ class _BinsPageState extends State<BinsPage> {
         children: [
           Icon(Icons.check_circle_outline, size: 64, color: AppColors.grey300),
           const SizedBox(height: 16),
-          Text(
-            'No bins found',
-            style: TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppColors.grey500,
-            ),
-          ),
+          Text('No bins found', style: AppTypography.bodyLg.copyWith(fontWeight: FontWeight.w500, color: AppColors.grey500)),
         ],
       ),
     );
@@ -305,16 +290,16 @@ class _BinsPageState extends State<BinsPage> {
       builder: (context) => AlertDialog(
         title: const Text('Undo Report?'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Text(
+        content: Text(
           'This will reset the bin status to Not Checked. You can then report it again safely.',
-          style: TextStyle(fontFamily: 'Arimo', fontSize: 14),
+          style: AppTypography.bodyMd,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.grey600),
+              style: AppTypography.buttonMd.copyWith(color: AppColors.grey600),
             ),
           ),
           ElevatedButton(
@@ -325,7 +310,7 @@ class _BinsPageState extends State<BinsPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Undo', style: TextStyle(color: Colors.white)),
+            child: Text('Undo', style: AppTypography.buttonMd.copyWith(color: Colors.white)),
           ),
         ],
       ),

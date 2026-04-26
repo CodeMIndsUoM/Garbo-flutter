@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class ProfileAchievementList extends StatelessWidget {
   const ProfileAchievementList({super.key});
@@ -16,15 +17,7 @@ class ProfileAchievementList extends StatelessWidget {
               children: [
                 const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
                 const SizedBox(width: 8),
-                const Text(
-                  'Achievements',
-                  style: TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 16,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                Text('Achievements', style: AppTypography.titleLg),
               ],
             ),
             Container(
@@ -35,15 +28,7 @@ class ProfileAchievementList extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                '3/6',
-                style: TextStyle(
-                  color: AppColors.yellowDark,
-                  fontSize: 11,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: Text('3/6', style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.yellowDark)),
             ),
           ],
         ),
@@ -107,42 +92,18 @@ class ProfileAchievementList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppColors.grey900,
-                        fontSize: 14,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700)),
                     const Icon(Icons.check_circle, color: AppColors.green700, size: 20),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 12,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                Text(description, style: AppTypography.caption.copyWith(color: AppColors.grey600)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(Icons.star, color: AppColors.green700, size: 14),
                     const SizedBox(width: 4),
-                    Text(
-                      earnedText,
-                      style: const TextStyle(
-                        color: AppColors.green700,
-                        fontSize: 11,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text(earnedText, style: AppTypography.captionSm.copyWith(color: AppColors.green700)),
                   ],
                 ),
               ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class LevelProgressCard extends StatelessWidget {
   const LevelProgressCard({super.key});
@@ -47,26 +48,8 @@ class LevelProgressCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Level 8',
-                        style: const TextStyle(
-                          fontFamily: 'Arimo',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.grey900,
-                          height: 1.5,
-                        ),
-                      ),
-                      Text(
-                        'Monitor Expert',
-                        style: const TextStyle(
-                          fontFamily: 'Arimo',
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                          color: AppColors.grey600,
-                          height: 1.33,
-                        ),
-                      ),
+                      Text('Level 8', style: AppTypography.h3),
+                      Text('Monitor Expert', style: AppTypography.caption.copyWith(color: AppColors.grey600)),
                     ],
                   ),
                 ],
@@ -74,26 +57,8 @@ class LevelProgressCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '1847 pts',
-                    style: const TextStyle(
-                      fontFamily: 'Arimo',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.purple600,
-                      height: 1.5,
-                    ),
-                  ),
-                  Text(
-                    '153 to Level 9',
-                    style: const TextStyle(
-                      fontFamily: 'Arimo',
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: AppColors.grey500,
-                      height: 1.33,
-                    ),
-                  ),
+                  Text('1847 pts', style: AppTypography.titleLg.copyWith(color: AppColors.purple600)),
+                  Text('153 to Level 9', style: AppTypography.caption),
                 ],
               ),
             ],

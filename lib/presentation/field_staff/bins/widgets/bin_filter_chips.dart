@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 /// Filter chip model for Bins page filters.
 class BinFilterItem {
@@ -41,9 +42,7 @@ class BinFilterChips extends StatelessWidget {
                 ),
                 child: Text(
                   isSelected ? '${filter.label} (${filter.count})' : filter.label,
-                  style: TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 13,
+                  style: AppTypography.labelMd.copyWith(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                     color: isSelected ? Colors.white : AppColors.grey600,
                   ),

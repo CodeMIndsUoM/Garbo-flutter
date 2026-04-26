@@ -26,6 +26,7 @@ class _DashboardState extends State<Dashboard> {
   List<BinModel> _bins = [];
   String _userName = 'Field Staff';
   String _empId = '';
+  int _dayStreak = 0;
   bool _isLoading = true;
 
   @override
@@ -38,6 +39,7 @@ class _DashboardState extends State<Dashboard> {
     final prefs = await SharedPreferences.getInstance();
     _empId = prefs.getString('empId') ?? '';
     _userName = prefs.getString('empName') ?? 'Field Staff';
+    _dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
     if (_empId.isEmpty) {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -49,13 +51,16 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _fetchDashboardData() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final bins = await _apiService.getAssignedBins(_empId);
       final name = await _apiService.getFieldMentorName(_empId);
+      final dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
 
       if (mounted) {
         setState(() {
           _bins = bins;
           _userName = name;
+          _dayStreak = dayStreak;
           _isLoading = false;
         });
       }
@@ -91,12 +96,24 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final int pendingBins = _bins
+        .where((b) => b.status == BinStatus.notChecked)
+        .length;
+    final int? avgResponseMinutes = _calculateAvgResponseMinutes(_bins);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           // Shared header across all tabs
-          StatHeader(userName: _userName),
+          StatHeader(
+            userName: _userName,
+            toCheckCount: pendingBins,
+            dayStreak: _dayStreak,
+            avgResponseLabel: avgResponseMinutes == null
+                ? '--'
+                : '${avgResponseMinutes}m',
+          ),
           // Main content area — switches based on bottom nav
           Expanded(child: _buildPage()),
           // Bottom navigation bar
@@ -131,13 +148,18 @@ class _DashboardState extends State<Dashboard> {
     final int pendingBins = _bins
         .where((b) => b.status == BinStatus.notChecked)
         .length;
+    final int? avgResponseMinutes = _calculateAvgResponseMinutes(_bins);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PerformanceGrid(totalBins: totalBins, pendingBins: pendingBins),
+          PerformanceGrid(
+            totalBins: totalBins,
+            pendingBins: pendingBins,
+            avgResponseMinutes: avgResponseMinutes,
+          ),
           const SizedBox(height: 24),
           BinListSection(bins: _bins, onReport: _handleReport),
           const AchievementListSection(),
@@ -145,5 +167,30 @@ class _DashboardState extends State<Dashboard> {
         ],
       ),
     );
+  }
+
+  int? _calculateAvgResponseMinutes(List<BinModel> bins) {
+    final now = DateTime.now();
+    final checkedToday = bins.where((bin) {
+      final lastChecked = bin.lastChecked;
+      if (lastChecked == null) return false;
+      return lastChecked.year == now.year &&
+          lastChecked.month == now.month &&
+          lastChecked.day == now.day;
+    }).toList();
+
+    if (checkedToday.isEmpty) {
+      return null;
+    }
+
+    final totalMinutes = checkedToday
+        .map((bin) => now.difference(bin.lastChecked!.toLocal()).inMinutes)
+        .fold<int>(0, (sum, item) => sum + item);
+
+    final avg = totalMinutes / checkedToday.length;
+    if (avg.isNaN || avg.isInfinite) {
+      return null;
+    }
+    return avg.round();
   }
 }

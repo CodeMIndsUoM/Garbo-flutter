@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class BinDetailsOverlay extends StatelessWidget {
@@ -42,15 +43,7 @@ class BinDetailsOverlay extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          bin.id,
-                          style: const TextStyle(
-                            color: AppColors.grey600,
-                            fontSize: 11,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(bin.id, style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey600)),
                       ),
                       const SizedBox(width: 8),
                       // Status Badge
@@ -62,15 +55,7 @@ class BinDetailsOverlay extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          bin.status.label.toUpperCase(),
-                          style: TextStyle(
-                            color: _getStatusTextColor(),
-                            fontSize: 11,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(bin.status.label.toUpperCase(), style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: _getStatusTextColor())),
                       ),
                     ],
                   ),
@@ -86,25 +71,9 @@ class BinDetailsOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // Title & Subtitle
-              Text(
-                bin.location,
-                style: const TextStyle(
-                  color: AppColors.grey900,
-                  fontSize: 20,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text(bin.location, style: AppTypography.h2),
               const SizedBox(height: 4),
-              Text(
-                bin.address,
-                style: const TextStyle(
-                  color: AppColors.grey600,
-                  fontSize: 13,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              Text(bin.address, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
               const SizedBox(height: 24),
               
               // Status Large Card
@@ -135,15 +104,7 @@ class BinDetailsOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      bin.status.label,
-                      style: TextStyle(
-                        color: _getCardTextColor(),
-                        fontSize: 24,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(bin.status.label, style: AppTypography.h1.copyWith(color: _getCardTextColor())),
                   ],
                 ),
               ),
@@ -170,22 +131,10 @@ class BinDetailsOverlay extends StatelessWidget {
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.grey700,
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'View on Map',
-                      style: TextStyle(
-                        color: AppColors.grey700,
-                        fontSize: 14,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: AppColors.grey700, size: 20),
+                    const SizedBox(width: 8),
+                    Text('View on Map', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey700)),
                   ],
                 ),
               ),
@@ -200,24 +149,8 @@ class BinDetailsOverlay extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.grey600,
-            fontSize: 13,
-            fontFamily: 'Arimo',
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.grey900,
-            fontSize: 13,
-            fontFamily: 'Arimo',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text(label, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
+        Text(value, style: AppTypography.bodySm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey900)),
       ],
     );
   }
