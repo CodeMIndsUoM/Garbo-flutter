@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class ProfileCard extends StatelessWidget {
   final String name;
@@ -67,50 +68,18 @@ class ProfileCard extends StatelessWidget {
                   ),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  _initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: Text(_initials, style: AppTypography.displayLg.copyWith(color: Colors.white)),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(name, style: AppTypography.h2.copyWith(color: Colors.white)),
                     const SizedBox(height: 2),
-                    Text(
-                      role,
-                      style: const TextStyle(
-                        color: AppColors.white90,
-                        fontSize: 13,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text(role, style: AppTypography.bodySm.copyWith(color: AppColors.white90)),
                     const SizedBox(height: 2),
-                    Text(
-                      'ID: $employeeId',
-                      style: const TextStyle(
-                        color: AppColors.white80,
-                        fontSize: 11,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text('ID: $employeeId', style: AppTypography.captionSm.copyWith(color: AppColors.white80)),
                   ],
                 ),
               ),
@@ -154,24 +123,11 @@ class ProfileCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontFamily: 'Arimo',
-              fontWeight: FontWeight.w400,
-            ),
-          ),
+          Text(label, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: Colors.white)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontFamily: 'Arimo',
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
         ],

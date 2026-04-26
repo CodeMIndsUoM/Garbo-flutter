@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReportBinPage extends StatefulWidget {
   final BinModel bin;
@@ -40,24 +43,40 @@ class _ReportBinPageState extends State<ReportBinPage> {
       return;
     }
 
+    final position = await _tryGetCurrentPosition();
+    if (position == null) {
+      if (mounted) {
+        _showError(
+          'Current GPS location is unavailable. Enable location services and try again.',
+        );
+      }
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
+      final payload = {
+        "status": _statusToString(_selectedStatus!),
+        "fillLevel": _statusToFillLevel(_selectedStatus!),
+        "notes": _notesController.text,
+        "latitude": position.latitude,
+        "longitude": position.longitude,
+      };
+
+      debugPrint(
+        'Submitting bin report with GPS lat=${position.latitude}, lng=${position.longitude}',
+      );
+
       final success = await _apiService.reportBinStatus(
         widget.empId,
         widget.bin.id,
-        {
-          "status": _statusToString(_selectedStatus!),
-          "fillLevel": _statusToFillLevel(_selectedStatus!),
-          "notes": _notesController.text,
-          // Sending dummy coordinates for now as we don't have GPS package
-          "latitude": 6.9, 
-          "longitude": 79.8,
-        },
+        payload,
       );
 
       if (mounted) {
         if (success) {
+          await _updateDayStreak();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Report submitted for ${widget.bin.id}'),
@@ -89,6 +108,68 @@ class _ReportBinPageState extends State<ReportBinPage> {
     );
   }
 
+  Future<Position?> _tryGetCurrentPosition() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _updateDayStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final lastDateString = prefs.getString('field_staff_last_report_date');
+    final currentStreak = prefs.getInt('field_staff_day_streak') ?? 0;
+
+    int nextStreak;
+    if (lastDateString == null || lastDateString.isEmpty) {
+      nextStreak = 1;
+    } else {
+      DateTime? lastDate;
+      try {
+        lastDate = DateTime.parse(lastDateString);
+      } catch (_) {
+        lastDate = null;
+      }
+
+      if (lastDate == null) {
+        nextStreak = 1;
+      } else {
+        final normalizedLast = DateTime(lastDate.year, lastDate.month, lastDate.day);
+        final dayDiff = today.difference(normalizedLast).inDays;
+
+        if (dayDiff <= 0) {
+          nextStreak = currentStreak > 0 ? currentStreak : 1;
+        } else if (dayDiff == 1) {
+          nextStreak = currentStreak + 1;
+        } else {
+          nextStreak = 1;
+        }
+      }
+    }
+
+    await prefs.setInt('field_staff_day_streak', nextStreak);
+    await prefs.setString('field_staff_last_report_date', today.toIso8601String());
+  }
+
   String _statusToString(BinStatus status) {
     switch (status) {
       case BinStatus.empty: return 'empty';
@@ -112,14 +193,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Report Bin Status',
-          style: TextStyle(
-            color: AppColors.grey900,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: Text('Report Bin Status', style: AppTypography.h3),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -145,11 +219,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       ),
                       child: Text(
                         widget.bin.location,
-                        style: const TextStyle(
-                          color: AppColors.grey700,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: AppTypography.bodyMd.copyWith(fontWeight: FontWeight.w500, color: AppColors.grey700),
                       ),
                     ),
                   ),
@@ -195,7 +265,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     maxLines: 4,
                     decoration: InputDecoration(
                       hintText: 'Add notes about damage, overflow, or other issues...',
-                      hintStyle: const TextStyle(color: AppColors.grey500),
+                      hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
                       filled: true,
                       fillColor: AppColors.grey50,
                       border: OutlineInputBorder(
@@ -235,14 +305,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Submit Report',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: Text('Submit Report', style: AppTypography.titleLg.copyWith(color: Colors.white)),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -259,14 +322,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: AppColors.red500,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: Text('Cancel', style: AppTypography.titleLg.copyWith(color: AppColors.red500)),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -277,14 +333,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: AppColors.grey900,
-      ),
-    );
+    return Text(title, style: AppTypography.titleLg);
   }
 
   Widget _buildStatusOption({
@@ -327,22 +376,9 @@ class _ReportBinPageState extends State<ReportBinPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.grey900,
-                    ),
-                  ),
+                  Text(label, style: AppTypography.titleLg),
                   const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.grey600,
-                    ),
-                  ),
+                  Text(description, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
                 ],
               ),
             ),
@@ -363,25 +399,12 @@ class _ReportBinPageState extends State<ReportBinPage> {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          Icon(Icons.camera_alt_outlined, size: 40, color: AppColors.blue600),
-          SizedBox(height: 12),
-          Text(
-            'Take Photo',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
-            ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Document damage or issues',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.grey600,
-            ),
-          ),
+        children: [
+          const Icon(Icons.camera_alt_outlined, size: 40, color: AppColors.blue600),
+          const SizedBox(height: 12),
+          Text('Take Photo', style: AppTypography.titleLg),
+          const SizedBox(height: 4),
+          Text('Document damage or issues', style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
         ],
       ),
     );

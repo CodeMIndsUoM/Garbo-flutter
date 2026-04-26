@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class SettingsOverlay extends StatelessWidget {
   const SettingsOverlay({super.key});
@@ -28,15 +29,7 @@ class SettingsOverlay extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Settings & More',
-                    style: TextStyle(
-                      color: AppColors.grey900,
-                      fontSize: 20,
-                      fontFamily: 'Arimo',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  Text('Settings & More', style: AppTypography.h2),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
@@ -60,25 +53,9 @@ class SettingsOverlay extends StatelessWidget {
               const SizedBox(height: 16),
               
               // Big Title & Subtitle
-              const Text(
-                'Settings & More',
-                style: TextStyle(
-                  color: AppColors.grey900,
-                  fontSize: 24,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text('Settings & More', style: AppTypography.h1),
               const SizedBox(height: 4),
-              const Text(
-                'Manage your account and app preferences',
-                style: TextStyle(
-                  color: AppColors.grey600,
-                  fontSize: 14,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              Text('Manage your account and app preferences', style: AppTypography.bodyMd.copyWith(color: AppColors.grey600)),
               const SizedBox(height: 24),
               
               // Menu Options
@@ -190,15 +167,7 @@ class SettingsOverlay extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppColors.grey900,
-                        fontSize: 15,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.titleMd),
                     if (badgeCount != null) ...[
                       const SizedBox(width: 8),
                       Container(
@@ -209,29 +178,13 @@ class SettingsOverlay extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          badgeCount,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(badgeCount, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0, color: Colors.white)),
                       ),
                     ]
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 12,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                Text(subtitle, style: AppTypography.caption),
               ],
             ),
           ),

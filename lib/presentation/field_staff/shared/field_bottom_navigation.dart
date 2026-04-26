@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class FieldBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -28,16 +29,8 @@ class FieldBottomNavigation extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.green700,
           unselectedItemColor: AppColors.grey500,
-          selectedLabelStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 12,
-            fontWeight: FontWeight.normal,
-          ),
+          selectedLabelStyle: AppTypography.labelSm,
+          unselectedLabelStyle: AppTypography.caption,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),

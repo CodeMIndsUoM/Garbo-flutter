@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class AchievementListSection extends StatelessWidget {
   const AchievementListSection({super.key});
@@ -13,15 +14,7 @@ class AchievementListSection extends StatelessWidget {
           children: [
             const Icon(Icons.emoji_events_outlined, color: AppColors.grey900, size: 24),
             const SizedBox(width: 8),
-            const Text(
-              'Recent Achievements',
-              style: TextStyle(
-                fontFamily: 'Arimo',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.grey900,
-              ),
-            ),
+            Text('Recent Achievements', style: AppTypography.titleLg),
           ],
         ),
         const SizedBox(height: 12),
@@ -84,24 +77,8 @@ class AchievementListSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 12,
-                    fontWeight: FontWeight.normal,
-                    color: AppColors.grey500,
-                  ),
-                ),
+                Text(title, style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold)),
+                Text(subtitle, style: AppTypography.caption),
               ],
             ),
           ),
