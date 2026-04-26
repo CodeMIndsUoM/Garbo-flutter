@@ -41,9 +41,17 @@ class StatHeader extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Field Monitor', style: AppTypography.h1.copyWith(color: Colors.white)),
+                  Text(
+                    'Field Monitor',
+                    style: AppTypography.h1.copyWith(color: Colors.white),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Hello, $userName!', style: AppTypography.bodyMd.copyWith(color: AppColors.white90)),
+                  Text(
+                    'Hello, $userName!',
+                    style: AppTypography.bodyMd.copyWith(
+                      color: AppColors.white90,
+                    ),
+                  ),
                 ],
               ),
               GestureDetector(
@@ -116,11 +124,17 @@ class StatHeader extends StatelessWidget {
                 Icon(icon, color: Colors.white, size: 18),
                 const SizedBox(width: 4),
               ],
-              Text(value, style: AppTypography.displaySm.copyWith(color: Colors.white)),
+              Text(
+                value,
+                style: AppTypography.displaySm.copyWith(color: Colors.white),
+              ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(label, style: AppTypography.caption.copyWith(color: AppColors.white90)),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(color: AppColors.white90),
+          ),
         ],
       ),
     );

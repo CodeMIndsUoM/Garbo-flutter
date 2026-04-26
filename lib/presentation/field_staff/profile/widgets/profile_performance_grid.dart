@@ -22,7 +22,9 @@ class ProfilePerformanceGrid extends StatelessWidget {
       final bins = await apiService.getAssignedBins(empId);
       final now = DateTime.now();
 
-      final binsReported = bins.where((bin) => bin.status != BinStatus.notChecked).length;
+      final binsReported = bins
+          .where((bin) => bin.status != BinStatus.notChecked)
+          .length;
       final reportsTodayBins = bins.where((bin) {
         final checkedAt = bin.lastChecked;
         if (checkedAt == null) return false;
@@ -59,7 +61,8 @@ class ProfilePerformanceGrid extends StatelessWidget {
     return FutureBuilder<_PerformanceStats>(
       future: _loadPerformanceStats(),
       builder: (context, snapshot) {
-        final stats = snapshot.data ??
+        final stats =
+            snapshot.data ??
             const _PerformanceStats(
               binsReported: 0,
               reportsToday: 0,
@@ -71,7 +74,11 @@ class ProfilePerformanceGrid extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.analytics_outlined, color: AppColors.grey900, size: 20),
+                const Icon(
+                  Icons.analytics_outlined,
+                  color: AppColors.grey900,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Text('Performance Stats', style: AppTypography.titleLg),
               ],
@@ -150,7 +157,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
             blurRadius: 3,
             offset: Offset(0, 1),
             spreadRadius: 0,
-          )
+          ),
         ],
       ),
       child: Column(
@@ -158,7 +165,11 @@ class ProfilePerformanceGrid extends StatelessWidget {
         children: [
           Text(value, style: AppTypography.h1.copyWith(color: valueColor)),
           const SizedBox(height: 4),
-          Text(label, style: AppTypography.caption.copyWith(color: AppColors.grey600), textAlign: TextAlign.center),
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(color: AppColors.grey600),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
