@@ -23,6 +23,9 @@ class ApiService {
     };
   }
 
+  // ===== Field staff flow =====
+  // Mentor opens BinsPage -> getAssignedBins -> taps a bin ->
+  // ReportBinPage -> reportBinStatus (multipart, with photo + GPS).
   /// Fetches bins assigned to a specific field mentor.
   Future<List<BinModel>> getAssignedBins(String empId) async {
     if (empId.isEmpty) {
@@ -295,6 +298,10 @@ class ApiService {
     );
   }
 
+  // ===== Citizen request flow =====
+  // RequestPage submits createCollectionRequest -> polls
+  // getCitizenCollectionRequests / getCollectionRequestDetail to see
+  // incoming offers -> accept/reject/confirm via the offer endpoints below.
   Future<CollectionRequestModel> createCollectionRequest({
     required String citizenId,
     required Map<String, dynamic> payload,
@@ -407,6 +414,10 @@ class ApiService {
     return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
+  // ===== Third-party collector flow =====
+  // Browse: getCollectorFeed -> sendCollectorOffer for an open request.
+  // My jobs: getCollectorOffers / getCollectorActiveJobs ->
+  // start/complete/withdraw/cancel via the offer endpoints.
   Future<List<CollectionRequestModel>> getCollectorFeed(
     String collectorId, {
     double? lat,
