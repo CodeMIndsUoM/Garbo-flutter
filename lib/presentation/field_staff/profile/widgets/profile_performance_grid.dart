@@ -118,7 +118,6 @@ class ProfilePerformanceGrid extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildStatCard(
-                    // TODO(next phase): Integrate backend endpoint for field mentor team ranking.
                     value: '--',
                     label: 'Team Rank',
                     valueColor: AppColors.green700,
