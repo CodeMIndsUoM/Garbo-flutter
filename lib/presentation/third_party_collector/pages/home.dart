@@ -85,6 +85,57 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
   }
 
+  Widget _buildCompletedSectionHeader() {
+    final hasMore = _completedCollections.length > 2;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: _buildSectionTitle('Completed Collections', big: true),
+        ),
+        if (hasMore)
+          TextButton(
+            onPressed: _openAllCompleted,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.green700,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'See all (${_completedCollections.length})',
+                  style: AppTypography.titleSm.copyWith(
+                    color: AppColors.green700,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: AppColors.green700,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _openAllCompleted() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _AllCompletedCollectionsPage(
+          collections: _completedCollections,
+          cardBuilder: _buildCollectionCard,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,7 +170,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                     const SizedBox(height: 12),
                     _buildPerformanceMetrics(),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('Completed Collections', big: true),
+                    _buildCompletedSectionHeader(),
                     const SizedBox(height: 12),
                     if (_loadingCompleted)
                       const Padding(
@@ -604,6 +655,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
+                cacheWidth: 216,
+                cacheHeight: 216,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.broken_image_rounded,
                   color: AppColors.grey300,
@@ -772,5 +827,58 @@ class _Collection {
     final minute = date.minute.toString().padLeft(2, '0');
     final meridiem = date.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $meridiem';
+  }
+}
+
+class _AllCompletedCollectionsPage extends StatelessWidget {
+  final List<_Collection> collections;
+  final Widget Function(_Collection) cardBuilder;
+
+  const _AllCompletedCollectionsPage({
+    required this.collections,
+    required this.cardBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.grey50,
+      appBar: AppBar(
+        backgroundColor: AppColors.green700,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          'Completed Collections',
+          style: AppTypography.h3.copyWith(color: Colors.white),
+        ),
+      ),
+      body: collections.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.assignment_turned_in_outlined,
+                      color: AppColors.grey400,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No completed collections yet',
+                      style: AppTypography.titleMd,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: collections.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) => cardBuilder(collections[i]),
+            ),
+    );
   }
 }
