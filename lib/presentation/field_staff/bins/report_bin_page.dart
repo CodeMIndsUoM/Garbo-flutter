@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -25,6 +27,58 @@ class _ReportBinPageState extends State<ReportBinPage> {
   BinStatus? _selectedStatus; // null means none selected
   bool _isSubmitting = false;
 
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _processImagePicker(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _processImagePicker(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _processImagePicker(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to pick image: $e');
+      }
+    }
+  }
+
   @override
   void dispose() {
     _notesController.dispose();
@@ -39,15 +93,12 @@ class _ReportBinPageState extends State<ReportBinPage> {
       return;
     }
 
+    // TODO: Re-enable GPS requirement for production.
+    // Currently using a default location as fallback so the flow works on
+    // simulators without location services.
     final position = await _tryGetCurrentPosition();
-    if (position == null) {
-      if (mounted) {
-        _showError(
-          'Current GPS location is unavailable. Enable location services and try again.',
-        );
-      }
-      return;
-    }
+    final double reportLat = position?.latitude ?? 6.9271;
+    final double reportLng = position?.longitude ?? 79.8612;
 
     setState(() => _isSubmitting = true);
 
@@ -56,14 +107,15 @@ class _ReportBinPageState extends State<ReportBinPage> {
         "status": _statusToString(_selectedStatus!),
         "fillLevel": _statusToFillLevel(_selectedStatus!),
         "notes": _notesController.text,
-        "latitude": position.latitude,
-        "longitude": position.longitude,
+        "latitude": reportLat,
+        "longitude": reportLng,
       };
 
       final success = await _apiService.reportBinStatus(
-        widget.empId,
-        widget.bin.id,
-        payload,
+        empId: widget.empId,
+        binId: widget.bin.id,
+        reportData: payload,
+        photoPath: _selectedImage?.path,
       );
 
       if (mounted) {
@@ -423,30 +475,67 @@ class _ReportBinPageState extends State<ReportBinPage> {
   }
 
   Widget _buildPhotoPlaceholder() {
-    return Container(
-      width: double.infinity,
-      height: 160,
-      decoration: BoxDecoration(
-        color: AppColors.blue50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.blue200),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.camera_alt_outlined,
-            size: 40,
-            color: AppColors.blue600,
-          ),
-          const SizedBox(height: 12),
-          Text('Take Photo', style: AppTypography.titleLg),
-          const SizedBox(height: 4),
-          Text(
-            'Document damage or issues',
-            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
-          ),
-        ],
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        width: double.infinity,
+        height: 160,
+        decoration: BoxDecoration(
+          color: _selectedImage == null ? AppColors.blue50 : Colors.black12,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.blue200),
+          image: _selectedImage != null
+              ? DecorationImage(
+                  image: FileImage(_selectedImage!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: _selectedImage == null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.camera_alt_outlined,
+                    size: 40,
+                    color: AppColors.blue600,
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Take Photo', style: AppTypography.titleLg),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Document damage or issues',
+                    style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+                  ),
+                ],
+              )
+            : Stack(
+                children: [
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedImage = null;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
