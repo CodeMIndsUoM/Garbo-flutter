@@ -69,7 +69,6 @@ class PerformanceGrid extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildGridItem(
-                    // TODO(next phase): Replace this placeholder with backend-powered points/day metric.
                     title: '--',
                     subtitle: 'Points Today',
                     status: null,
