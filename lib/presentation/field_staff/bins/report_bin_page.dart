@@ -39,15 +39,12 @@ class _ReportBinPageState extends State<ReportBinPage> {
       return;
     }
 
+    // TODO: Re-enable GPS requirement for production.
+    // Currently using a default location as fallback so the flow works on
+    // simulators without location services.
     final position = await _tryGetCurrentPosition();
-    if (position == null) {
-      if (mounted) {
-        _showError(
-          'Current GPS location is unavailable. Enable location services and try again.',
-        );
-      }
-      return;
-    }
+    final double reportLat = position?.latitude ?? 6.9271;
+    final double reportLng = position?.longitude ?? 79.8612;
 
     setState(() => _isSubmitting = true);
 
@@ -56,8 +53,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
         "status": _statusToString(_selectedStatus!),
         "fillLevel": _statusToFillLevel(_selectedStatus!),
         "notes": _notesController.text,
-        "latitude": position.latitude,
-        "longitude": position.longitude,
+        "latitude": reportLat,
+        "longitude": reportLng,
       };
 
       final success = await _apiService.reportBinStatus(
