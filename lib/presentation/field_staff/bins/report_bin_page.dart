@@ -10,11 +10,7 @@ class ReportBinPage extends StatefulWidget {
   final BinModel bin;
   final String empId;
 
-  const ReportBinPage({
-    super.key,
-    required this.bin,
-    required this.empId,
-  });
+  const ReportBinPage({super.key, required this.bin, required this.empId});
 
   @override
   State<ReportBinPage> createState() => _ReportBinPageState();
@@ -23,8 +19,8 @@ class ReportBinPage extends StatefulWidget {
 class _ReportBinPageState extends State<ReportBinPage> {
   final ApiService _apiService = ApiService();
   final TextEditingController _notesController = TextEditingController();
-  
-  // Default to notChecked or null, but UI requires selection. 
+
+  // Default to notChecked or null, but UI requires selection.
   // Let's assume user must select one.
   BinStatus? _selectedStatus; // null means none selected
   bool _isSubmitting = false;
@@ -83,7 +79,9 @@ class _ReportBinPageState extends State<ReportBinPage> {
               backgroundColor: AppColors.green700,
             ),
           );
-          Navigator.of(context).pop(true); // Return true to indicate refresh needed
+          Navigator.of(
+            context,
+          ).pop(true); // Return true to indicate refresh needed
         } else {
           _showError('Failed to submit report. Please try again.');
         }
@@ -101,10 +99,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.red500,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.red500),
     );
   }
 
@@ -153,7 +148,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
       if (lastDate == null) {
         nextStreak = 1;
       } else {
-        final normalizedLast = DateTime(lastDate.year, lastDate.month, lastDate.day);
+        final normalizedLast = DateTime(
+          lastDate.year,
+          lastDate.month,
+          lastDate.day,
+        );
         final dayDiff = today.difference(normalizedLast).inDays;
 
         if (dayDiff <= 0) {
@@ -167,24 +166,35 @@ class _ReportBinPageState extends State<ReportBinPage> {
     }
 
     await prefs.setInt('field_staff_day_streak', nextStreak);
-    await prefs.setString('field_staff_last_report_date', today.toIso8601String());
+    await prefs.setString(
+      'field_staff_last_report_date',
+      today.toIso8601String(),
+    );
   }
 
   String _statusToString(BinStatus status) {
     switch (status) {
-      case BinStatus.empty: return 'empty';
-      case BinStatus.half: return 'half';
-      case BinStatus.full: return 'full';
-      default: return 'notChecked';
+      case BinStatus.empty:
+        return 'empty';
+      case BinStatus.half:
+        return 'half';
+      case BinStatus.full:
+        return 'full';
+      default:
+        return 'notChecked';
     }
   }
 
   int _statusToFillLevel(BinStatus status) {
     switch (status) {
-      case BinStatus.empty: return 0;
-      case BinStatus.half: return 50;
-      case BinStatus.full: return 100;
-      default: return 0;
+      case BinStatus.empty:
+        return 0;
+      case BinStatus.half:
+        return 50;
+      case BinStatus.full:
+        return 100;
+      default:
+        return 0;
     }
   }
 
@@ -212,14 +222,20 @@ class _ReportBinPageState extends State<ReportBinPage> {
                   // Location Subtitle
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.grey100,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         widget.bin.location,
-                        style: AppTypography.bodyMd.copyWith(fontWeight: FontWeight.w500, color: AppColors.grey700),
+                        style: AppTypography.bodyMd.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.grey700,
+                        ),
                       ),
                     ),
                   ),
@@ -264,8 +280,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     controller: _notesController,
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'Add notes about damage, overflow, or other issues...',
-                      hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
+                      hintText:
+                          'Add notes about damage, overflow, or other issues...',
+                      hintStyle: AppTypography.bodyMd.copyWith(
+                        color: AppColors.grey500,
+                      ),
                       filled: true,
                       fillColor: AppColors.grey50,
                       border: OutlineInputBorder(
@@ -278,7 +297,10 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.green700, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: AppColors.green700,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -305,11 +327,16 @@ class _ReportBinPageState extends State<ReportBinPage> {
                         ),
                         elevation: 0,
                       ),
-                      child: Text('Submit Report', style: AppTypography.titleLg.copyWith(color: Colors.white)),
+                      child: Text(
+                        'Submit Report',
+                        style: AppTypography.titleLg.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Cancel Button
                   SizedBox(
                     width: double.infinity,
@@ -317,12 +344,18 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     child: TextButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: TextButton.styleFrom(
-                        backgroundColor: AppColors.red100, // Light red background like screenshot
+                        backgroundColor: AppColors
+                            .red100, // Light red background like screenshot
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text('Cancel', style: AppTypography.titleLg.copyWith(color: AppColors.red500)),
+                      child: Text(
+                        'Cancel',
+                        style: AppTypography.titleLg.copyWith(
+                          color: AppColors.red500,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -378,7 +411,12 @@ class _ReportBinPageState extends State<ReportBinPage> {
                 children: [
                   Text(label, style: AppTypography.titleLg),
                   const SizedBox(height: 4),
-                  Text(description, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
+                  Text(
+                    description,
+                    style: AppTypography.bodySm.copyWith(
+                      color: AppColors.grey600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -400,11 +438,18 @@ class _ReportBinPageState extends State<ReportBinPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.camera_alt_outlined, size: 40, color: AppColors.blue600),
+          const Icon(
+            Icons.camera_alt_outlined,
+            size: 40,
+            color: AppColors.blue600,
+          ),
           const SizedBox(height: 12),
           Text('Take Photo', style: AppTypography.titleLg),
           const SizedBox(height: 4),
-          Text('Document damage or issues', style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
+          Text(
+            'Document damage or issues',
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+          ),
         ],
       ),
     );
