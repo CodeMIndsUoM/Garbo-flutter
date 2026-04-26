@@ -41,6 +41,33 @@ class CollectionRequestModel {
     this.offers = const [],
   });
 
+  CollectionRequestModel copyWith({
+    String? status,
+    int? acceptedOfferId,
+    int? offersCount,
+  }) {
+    return CollectionRequestModel(
+      id: id,
+      citizenId: citizenId,
+      citizenName: citizenName,
+      wasteType: wasteType,
+      quantityLabel: quantityLabel,
+      quantityKgEstimate: quantityKgEstimate,
+      addressLine: addressLine,
+      latitude: latitude,
+      longitude: longitude,
+      preferredDate: preferredDate,
+      preferredSlot: preferredSlot,
+      contactPhone: contactPhone,
+      notes: notes,
+      photoUrl: photoUrl,
+      status: status ?? this.status,
+      acceptedOfferId: acceptedOfferId ?? this.acceptedOfferId,
+      offersCount: offersCount ?? this.offersCount,
+      offers: offers,
+    );
+  }
+
   factory CollectionRequestModel.fromSummaryJson(Map<String, dynamic> json) {
     return CollectionRequestModel(
       id: (json['id'] as num).toInt(),

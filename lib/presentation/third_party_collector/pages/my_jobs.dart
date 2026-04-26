@@ -225,7 +225,12 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   }
 
   bool _weightRequired(String wasteType) {
-    return const {'METAL', 'E_WASTE', 'PAPER', 'ORGANIC'}.contains(wasteType);
+    final normalized = wasteType
+        .trim()
+        .toUpperCase()
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_');
+    return const {'METAL', 'E_WASTE', 'PAPER', 'ORGANIC'}.contains(normalized);
   }
 
   Future<void> _openOfferDetails(CollectionOfferModel offer) async {
@@ -561,8 +566,16 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       );
 
       if (!mounted) return;
+      setState(() {
+        _activeJobs = _activeJobs
+            .where((job) => job.id != offerForCompletion.id)
+            .toList(growable: false);
+        _offers = _offers
+            .where((o) => o.id != offerForCompletion.id)
+            .toList(growable: false);
+      });
       _showSnackBar('Collection marked as completed.');
-      await _loadData();
+      unawaited(_loadData());
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not complete collection: $e', isError: true);
@@ -1647,6 +1660,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
+                cacheWidth: 216,
+                cacheHeight: 216,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.broken_image_rounded,
                   color: AppColors.grey300,

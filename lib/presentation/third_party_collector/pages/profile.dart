@@ -170,6 +170,10 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                         fit: BoxFit.cover,
                         width: 80,
                         height: 80,
+                        cacheWidth: 240,
+                        cacheHeight: 240,
+                        gaplessPlayback: true,
+                        filterQuality: FilterQuality.low,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.person_outline_rounded,
                           color: Colors.white,
