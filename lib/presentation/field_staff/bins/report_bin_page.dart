@@ -64,10 +64,6 @@ class _ReportBinPageState extends State<ReportBinPage> {
         "longitude": position.longitude,
       };
 
-      debugPrint(
-        'Submitting bin report with GPS lat=${position.latitude}, lng=${position.longitude}',
-      );
-
       final success = await _apiService.reportBinStatus(
         widget.empId,
         widget.bin.id,
