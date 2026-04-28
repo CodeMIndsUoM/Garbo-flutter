@@ -19,7 +19,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
         );
       }
 
-      final bins = await apiService.getAssignedBins(empId);
+      final bins = await apiService.getAssignedBins();
       final now = DateTime.now();
 
       final binsReported = bins
