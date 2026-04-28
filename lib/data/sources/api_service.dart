@@ -108,17 +108,27 @@ class ApiService {
 
   /// Undoes a bin report, resetting it to notChecked.
   Future<bool> undoBinReport(String empId, String binId) async {
-    return reportBinStatus(
-      empId: empId,
-      binId: binId,
-      reportData: {
-        "status": "notChecked",
-        "fillLevel": 0,
-        "notes": "Undo report",
-        "latitude": 6.9,
-        "longitude": 79.8,
-      },
+    if (empId.isEmpty) {
+      throw Exception('Employee ID is empty. Please log in again.');
+    }
+
+    // Uses dedicated backend endpoint; avoids re-submitting synthetic report payload.
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins/$binId/undo',
     );
+
+    try {
+      final headers = await _authHeaders();
+      final response = await client.post(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = json.decode(response.body);
+        return body['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      throw Exception('Error undoing bin report: $e');
+    }
   }
 
   /// Fetches the name of a specific field mentor.

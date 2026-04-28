@@ -25,7 +25,7 @@ class BinModel {
   /// Uncomment and adapt when backend is ready.
   factory BinModel.fromJson(Map<String, dynamic> json) {
     return BinModel(
-      id: json['id'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
       location: json['location'] as String? ?? 'Unknown',
       address:
           json['address'] as String? ??
