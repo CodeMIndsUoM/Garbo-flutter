@@ -93,7 +93,18 @@ class WebSocketService {
   String _toWebSocketUrl(String baseUrl) {
     final uri = Uri.parse(baseUrl);
     final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
-    final basePath = uri.path.endsWith('/') ? uri.path.substring(0, uri.path.length - 1) : uri.path;
+    String basePath = uri.path;
+    
+    // Strip trailing slash
+    if (basePath.endsWith('/')) {
+      basePath = basePath.substring(0, basePath.length - 1);
+    }
+    
+    // Strip '/api' if it exists at the end of the path
+    if (basePath.endsWith('/api')) {
+      basePath = basePath.substring(0, basePath.length - 4);
+    }
+    
     final wsPath = '$basePath/ws'.replaceAll('//', '/');
     return uri.replace(scheme: wsScheme, path: wsPath).toString();
   }

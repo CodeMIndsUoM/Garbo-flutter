@@ -112,7 +112,6 @@ class _ReportBinPageState extends State<ReportBinPage> {
       };
 
       final success = await _apiService.reportBinStatus(
-        empId: widget.empId,
         binId: widget.bin.id,
         reportData: payload,
         photoPath: _selectedImage?.path,
