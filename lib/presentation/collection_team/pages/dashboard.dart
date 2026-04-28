@@ -307,10 +307,10 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     );
 
     final lastTaskDelta = completedToday.isEmpty
-        ? completedToday
+        ? 0.0
+        : completedToday
             .map((task) => task.pointsEarned)
-            .reduce((a, b) => math.max(a, b))
-        : 0.0;
+            .reduce((a, b) => math.max(a, b));
 
     final todayLabel = _formatDateShort(now);
 

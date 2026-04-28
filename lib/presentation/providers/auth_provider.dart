@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/sources/websocket_service.dart';
 
 /// User entity model for authentication state
@@ -38,10 +39,7 @@ class AppUser {
 
 /// AuthProvider manages login, logout, and WebSocket connection lifecycle
 class AuthProvider extends ChangeNotifier {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   AppUser? _currentUser;
   String? _errorMessage;
