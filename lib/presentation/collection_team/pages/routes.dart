@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/providers/route_provider.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
+import 'map.dart';
 import '../widgets/route_card.dart';
 import '../widgets/collecting_bin_sheet.dart';
 import '../widgets/bottom_navigation.dart';
@@ -14,40 +18,115 @@ class CollectionTeamRoutes extends StatefulWidget {
 }
 
 class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
-
   final Map<String, bool> expandedRoutes = {};
-
   final Set<String> startedRoutes = {};
+  final Map<String, List<BinData>> routeBinsById = {};
+  final List<RouteData> routes = [];
 
-  final Map<String, List<BinCollectionStatus>> binStatuses = {};
+  RouteProvider? _routeProvider;
+  bool _providerListenerAttached = false;
+  String _lastSnapshotToken = '';
 
-  final Map<String, Map<int, DateTime>> collectedTimestamps = {};
+  @override
+  void initState() {
+    super.initState();
+  }
 
-  final List<RouteData> routes = [
-    const RouteData(
-      id: 'ROUTE-001',
-      name: 'Downtown Circuit',
-      bins: 5,
-      distance: 8.5,
-      duration: 45,
-      progress: 0,
-      totalBins: 5,
-      status: RouteStatus.highPriority,
-    ),
-    const RouteData(
-      id: 'ROUTE-002',
-      name: 'Residential North',
-      bins: 3,
-      distance: 6.2,
-      duration: 30,
-      progress: 0,
-      totalBins: 3,
-      status: RouteStatus.pending,
-    ),
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_providerListenerAttached) {
+      _routeProvider = context.read<RouteProvider>();
+      _routeProvider!.addListener(_syncFromWebSocket);
+      _providerListenerAttached = true;
+      _syncFromWebSocket();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_providerListenerAttached && _routeProvider != null) {
+      _routeProvider!.removeListener(_syncFromWebSocket);
+    }
+    super.dispose();
+  }
+
+  void _syncFromWebSocket() {
+    final provider = _routeProvider;
+    if (provider == null) return;
+
+    final history = provider.routeHistory;
+    if (history.isEmpty) return;
+
+    final newest = history.last;
+    final snapshotToken =
+        '${history.length}:${newest.sessionId}:${newest.generatedAt.millisecondsSinceEpoch}';
+    if (snapshotToken == _lastSnapshotToken) return;
+
+    final nextRoutes = <RouteData>[];
+    final nextBinsByRoute = <String, List<BinData>>{};
+
+    for (final session in history) {
+      final routeId = session.sessionId;
+      final bins = <BinData>[];
+
+      for (final stop in session.stops) {
+        bins.add(
+          BinData(
+            id: 'BIN-${stop.binId}',
+            name: 'Bin ${stop.binId}',
+            address:
+                stop.address ??
+                'Lat ${stop.lat.toStringAsFixed(4)}, Lng ${stop.lng.toStringAsFixed(4)}',
+            distance: 0,
+            duration: (stop.durationFromPrevStopSeconds / 60).ceil(),
+            fillStatus: BinFillStatus.half,
+            isUrgent: false,
+          ),
+        );
+      }
+
+      final existing = routes.where((r) => r.id == routeId).firstOrNull;
+      final previousProgress = existing?.progress ?? 0;
+      final clampedProgress = previousProgress.clamp(0, session.totalStops);
+
+      nextRoutes.add(
+        RouteData(
+          id: routeId,
+          name: session.title,
+          bins: session.totalStops,
+          distance: 0,
+          duration: session.estimatedMinutes,
+          progress: clampedProgress,
+          totalBins: session.totalStops,
+          status: clampedProgress >= session.totalStops
+              ? RouteStatus.completed
+              : RouteStatus.pending,
+        ),
+      );
+      nextBinsByRoute[routeId] = bins;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _lastSnapshotToken = snapshotToken;
+      routes
+        ..clear()
+        ..addAll(nextRoutes);
+
+      routeBinsById
+        ..clear()
+        ..addAll(nextBinsByRoute);
+
+      cleanupStateForRemovedRoutes(routes.map((route) => route.id).toSet());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    context.watch<RouteProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
@@ -62,28 +141,36 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                   const SizedBox(height: 24),
                   buildSectionTitle(),
                   const SizedBox(height: 12),
-                  ...routes.map(
-                    (route) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: RouteCard(
-                        route: route,
-                        isExpanded: expandedRoutes[route.id] ?? false,
-                        isStarted: startedRoutes.contains(route.id),
-                        bins: getSampleBinsForRoute(route),
-                        binStatuses: binStatuses[route.id],
-                        collectedTimestamps: collectedTimestamps[route.id],
-                        onToggleExpand: () => setState(() {
-                          expandedRoutes[route.id] =
-                              !(expandedRoutes[route.id] ?? false);
-                        }),
-                        onStartRoute: () => handleStartRoute(route),
-                        onNavigate: () => handleNavigate(route),
-                        onCollectNext: () => handleCollectNext(route),
-                        onSkipBin: () => handleSkipBin(route),
-                        onUndoBin: () => handleUndoBin(route),
-                      ),
-                    ),
-                  ),
+                  if (routes.isEmpty)
+                    buildNoRoutesCard()
+                  else
+                    ...routes.map((route) {
+                      final bins = getBinsForRoute(route);
+                      final displayRoute = _buildDisplayRoute(route, bins);
+                      final statuses = _buildDisplayStatuses(route, bins);
+                      final timestamps = _buildDisplayTimestamps(route, bins);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: RouteCard(
+                          route: displayRoute,
+                          isExpanded: expandedRoutes[route.id] ?? false,
+                          isStarted: startedRoutes.contains(route.id),
+                          bins: bins,
+                          binStatuses: statuses,
+                          collectedTimestamps: timestamps,
+                          onToggleExpand: () => setState(() {
+                            expandedRoutes[route.id] =
+                                !(expandedRoutes[route.id] ?? false);
+                          }),
+                          onStartRoute: () => handleStartRoute(route),
+                          onNavigate: () => handleNavigate(route),
+                          onCollectNext: () => handleCollectNext(route),
+                          onSkipBin: () => handleSkipBin(route),
+                          onUndoBin: () => handleUndoBin(route),
+                        ),
+                      );
+                    }),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -96,16 +183,10 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   void handleStartRoute(RouteData route) {
-    final bins = getSampleBinsForRoute(route);
+    _routeProvider?.markRouteStarted(route.id);
     setState(() {
       startedRoutes.add(route.id);
       expandedRoutes[route.id] = true;
-      binStatuses[route.id] = List.generate(
-        bins.length,
-        (i) => i == 0
-            ? BinCollectionStatus.collecting
-            : BinCollectionStatus.pending,
-      );
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -117,6 +198,23 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   void handleNavigate(RouteData route) {
+    final provider = _routeProvider;
+    if (provider == null) {
+      return;
+    }
+
+    provider.selectNavigationSession(route.id, startNavigation: true);
+    provider.markRouteStarted(route.id);
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CollectionTeamMap(
+          initialSessionId: route.id,
+          autoStartNavigation: true,
+        ),
+      ),
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Navigating to ${route.name}...'),
@@ -127,21 +225,35 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   void handleSkipBin(RouteData route) {
-    final statuses = binStatuses[route.id];
-    if (statuses == null) return;
+    final provider = _routeProvider;
+    if (provider == null) {
+      return;
+    }
 
+    final bins = getBinsForRoute(route);
+    final statuses = _buildDisplayStatuses(route, bins);
     final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
-    if (collectingIndex == -1) return;
+    if (collectingIndex == -1 || collectingIndex >= bins.length) {
+      return;
+    }
 
-    setState(() {
-      statuses[collectingIndex] = BinCollectionStatus.skipped;
-      collectedTimestamps[route.id] ??= {};
-      collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
-      final nextIndex = collectingIndex + 1;
-      if (nextIndex < statuses.length) {
-        statuses[nextIndex] = BinCollectionStatus.collecting;
-      }
-    });
+    final binId = _extractBinId(bins[collectingIndex]);
+    if (binId == null) {
+      return;
+    }
+
+    provider.markBinSkipped(route.id, binId);
+
+    final currentUserId = context.read<AuthProvider>().currentUser?.empId;
+    if (currentUserId != null) {
+      provider
+          .reportRouteCompletionIfEligible(
+            userId: currentUserId,
+            sessionId: route.id,
+          )
+          .catchError((_) {});
+    }
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -154,16 +266,19 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   Future<void> handleCollectNext(RouteData route) async {
+    int? updatedBinId;
     try {
-      final bins = getSampleBinsForRoute(route);
-      final statuses = binStatuses[route.id];
-      if (statuses == null) return;
+      final provider = _routeProvider;
+      if (provider == null) {
+        return;
+      }
 
+      final bins = getBinsForRoute(route);
+      final statuses = _buildDisplayStatuses(route, bins);
       final collectingIndex = statuses.indexOf(BinCollectionStatus.collecting);
-      if (collectingIndex == -1) return; 
+      if (collectingIndex == -1 || collectingIndex >= bins.length) return;
 
       final currentBin = bins[collectingIndex];
-
       final collected = await CollectingBinSheet.show(
         context,
         bin: currentBin,
@@ -171,34 +286,31 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       );
 
       if (collected == true && mounted) {
-        setState(() {
-          statuses[collectingIndex] = BinCollectionStatus.collected;
-
-          collectedTimestamps[route.id] ??= {};
-          collectedTimestamps[route.id]![collectingIndex] = DateTime.now();
-
-          final nextIndex = collectingIndex + 1;
-          if (nextIndex < statuses.length) {
-            statuses[nextIndex] = BinCollectionStatus.collecting;
-          }
-
-          final routeIndex = routes.indexWhere((r) => r.id == route.id);
-          if (routeIndex != -1) {
-            final current = routes[routeIndex];
-            final newProgress = (current.progress + 1).clamp(
-              0,
-              current.totalBins,
+        final authProvider = context.read<AuthProvider>();
+        final messenger = ScaffoldMessenger.of(context);
+        updatedBinId = _extractBinId(currentBin);
+        if (updatedBinId != null) {
+          provider.markBinCollected(route.id, updatedBinId);
+          final currentUserId = authProvider.currentUser?.empId;
+          if (currentUserId != null) {
+            await provider.reportBinCollected(
+              userId: currentUserId,
+              sessionId: route.id,
+              binId: updatedBinId,
             );
-            routes[routeIndex] = current.copyWith(
-              progress: newProgress,
-              status: newProgress >= current.totalBins
-                  ? RouteStatus.completed
-                  : current.status,
-            );
+            try {
+              await provider.reportRouteCompletionIfEligible(
+                userId: currentUserId,
+                sessionId: route.id,
+              );
+            } catch (e) {
+              debugPrint('Route completion reporting skipped after collect: $e');
+            }
           }
-        });
+        }
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text('${currentBin.name} marked as collected!'),
               duration: const Duration(seconds: 1),
@@ -207,12 +319,15 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
           );
         }
       }
-    } catch (e) {
+    } catch (_) {
+      if (updatedBinId != null) {
+        _routeProvider?.markBinPending(route.id, updatedBinId);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Failed to process collection. Please try again.'),
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
             backgroundColor: AppColors.red500,
           ),
         );
@@ -221,50 +336,43 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   }
 
   void handleUndoBin(RouteData route) {
-    final statuses = binStatuses[route.id];
-    if (statuses == null) return;
+    final provider = _routeProvider;
+    if (provider == null) {
+      return;
+    }
+
+    final bins = getBinsForRoute(route);
+    if (bins.isEmpty) {
+      return;
+    }
+
+    final statuses = bins
+        .map((bin) {
+          final binId = _extractBinId(bin);
+          if (binId == null) {
+            return BinCollectionStatus.pending;
+          }
+          return provider.getBinStatus(route.id, binId);
+        })
+        .toList(growable: false);
 
     int lastCompletedIndex = -1;
-    BinCollectionStatus? lastCompletedStatus;
-    for (int i = statuses.length - 1; i >= 0; i--) {
-      if (statuses[i] == BinCollectionStatus.collected ||
-          statuses[i] == BinCollectionStatus.skipped) {
-        lastCompletedIndex = i;
-        lastCompletedStatus = statuses[i];
+    for (int index = statuses.length - 1; index >= 0; index--) {
+      if (statuses[index] == BinCollectionStatus.collected ||
+          statuses[index] == BinCollectionStatus.skipped) {
+        lastCompletedIndex = index;
         break;
       }
     }
 
     if (lastCompletedIndex == -1) return;
 
-    final currentCollectingIndex = statuses.indexOf(
-      BinCollectionStatus.collecting,
-    );
+    final binId = _extractBinId(bins[lastCompletedIndex]);
+    if (binId == null) {
+      return;
+    }
 
-    setState(() {
-      statuses[lastCompletedIndex] = BinCollectionStatus.collecting;
-
-      if (currentCollectingIndex != -1) {
-        statuses[currentCollectingIndex] = BinCollectionStatus.pending;
-      }
-
-      collectedTimestamps[route.id]?.remove(lastCompletedIndex);
-
-      if (lastCompletedStatus == BinCollectionStatus.collected) {
-        final routeIndex = routes.indexWhere((r) => r.id == route.id);
-        if (routeIndex != -1) {
-          final current = routes[routeIndex];
-          final newProgress = (current.progress - 1).clamp(
-            0,
-            current.totalBins,
-          );
-          routes[routeIndex] = current.copyWith(
-            progress: newProgress,
-            status: RouteStatus.highPriority,
-          );
-        }
-      }
-    });
+    provider.markBinPending(route.id, binId);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -288,96 +396,110 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  List<BinData> getSampleBinsForRoute(RouteData route) {
-    if (route.status == RouteStatus.highPriority) {
-      return const [
-        BinData(
-          id: 'BIN-101',
-          name: 'Main Street Plaza',
-          address: '123 Main St',
-          distance: 0.5,
-          duration: 3,
-          fillStatus: BinFillStatus.full,
-          isUrgent: true,
-          nextDistance: 1.2,
-          nextEta: 5,
+  Widget buildNoRoutesCard() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: const Text(
+        'No optimized routes yet. Trigger /api/routes/optimize to receive routes in real-time.',
+        style: TextStyle(
+          color: AppColors.grey700,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
         ),
-        BinData(
-          id: 'BIN-102',
-          name: 'Central Park',
-          address: '45 Park Ave',
-          distance: 1.2,
-          duration: 5,
-          fillStatus: BinFillStatus.full,
-          isUrgent: true,
-          nextDistance: 0.8,
-          nextEta: 4,
-        ),
-        BinData(
-          id: 'BIN-103',
-          name: 'Downtown Mall',
-          address: '789 Commerce Blvd',
-          distance: 0.8,
-          duration: 4,
-          fillStatus: BinFillStatus.half,
-          isUrgent: false,
-          nextDistance: 1.5,
-          nextEta: 6,
-        ),
-        BinData(
-          id: 'BIN-104',
-          name: 'Central Library',
-          address: '321 Book Lane',
-          distance: 1.5,
-          duration: 6,
-          fillStatus: BinFillStatus.half,
-          isUrgent: false,
-          nextDistance: 2.0,
-          nextEta: 8,
-        ),
-        BinData(
-          id: 'BIN-105',
-          name: 'Tech Hub Center',
-          address: '555 Innovation Dr',
-          distance: 2.0,
-          duration: 8,
-          fillStatus: BinFillStatus.half,
-          isUrgent: false,
-        ),
-      ];
+      ),
+    );
+  }
+
+  List<BinData> getBinsForRoute(RouteData route) {
+    return routeBinsById[route.id] ?? const [];
+  }
+
+  void cleanupStateForRemovedRoutes(Set<String> activeRouteIds) {
+    expandedRoutes.removeWhere(
+      (routeId, _) => !activeRouteIds.contains(routeId),
+    );
+    startedRoutes.removeWhere((routeId) => !activeRouteIds.contains(routeId));
+  }
+
+  RouteData _buildDisplayRoute(RouteData route, List<BinData> bins) {
+    final provider = _routeProvider;
+    if (provider == null) {
+      return route;
     }
-    return const [
-      BinData(
-        id: 'BIN-201',
-        name: 'Residential Block A',
-        address: '10 Oak Street',
-        distance: 0.3,
-        duration: 2,
-        fillStatus: BinFillStatus.half,
-        isUrgent: false,
-        nextDistance: 0.5,
-        nextEta: 3,
-      ),
-      BinData(
-        id: 'BIN-202',
-        name: 'Maple Gardens',
-        address: '25 Garden Way',
-        distance: 0.5,
-        duration: 3,
-        fillStatus: BinFillStatus.half,
-        isUrgent: false,
-        nextDistance: 0.7,
-        nextEta: 4,
-      ),
-      BinData(
-        id: 'BIN-203',
-        name: 'Sunset Apartments',
-        address: '88 Sunset Blvd',
-        distance: 0.7,
-        duration: 4,
-        fillStatus: BinFillStatus.half,
-        isUrgent: false,
-      ),
-    ];
+
+    final collected = provider.getCollectedCount(route.id);
+    final status = bins.isNotEmpty && collected >= bins.length
+        ? RouteStatus.completed
+        : RouteStatus.highPriority;
+
+    return route.copyWith(
+      progress: collected,
+      totalBins: bins.length,
+      bins: bins.length,
+      status: status,
+    );
+  }
+
+  List<BinCollectionStatus> _buildDisplayStatuses(
+    RouteData route,
+    List<BinData> bins,
+  ) {
+    final provider = _routeProvider;
+    if (provider == null) {
+      return List.filled(bins.length, BinCollectionStatus.pending);
+    }
+
+    final resolvedStatuses = bins.map((bin) {
+      final binId = _extractBinId(bin);
+      if (binId == null) {
+        return BinCollectionStatus.pending;
+      }
+      return provider.getBinStatus(route.id, binId);
+    }).toList();
+
+    final nextPendingIndex = resolvedStatuses.indexOf(
+      BinCollectionStatus.pending,
+    );
+    if (nextPendingIndex != -1) {
+      resolvedStatuses[nextPendingIndex] = BinCollectionStatus.collecting;
+    }
+
+    return resolvedStatuses;
+  }
+
+  Map<int, DateTime> _buildDisplayTimestamps(
+    RouteData route,
+    List<BinData> bins,
+  ) {
+    final provider = _routeProvider;
+    if (provider == null) {
+      return {};
+    }
+
+    final timestamps = <int, DateTime>{};
+    for (int index = 0; index < bins.length; index++) {
+      final binId = _extractBinId(bins[index]);
+      if (binId == null) {
+        continue;
+      }
+      final timestamp = provider.getBinTimestamp(route.id, binId);
+      if (timestamp != null) {
+        timestamps[index] = timestamp;
+      }
+    }
+    return timestamps;
+  }
+
+  int? _extractBinId(BinData bin) {
+    final raw = bin.id.trim();
+    final numeric = raw.startsWith('BIN-') ? raw.substring(4) : raw;
+    return int.tryParse(numeric);
   }
 }
