@@ -51,5 +51,7 @@
 	<string>Garbo may access photos to attach evidence for completed collections.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Garbo uses your location to record collection completion coordinates and assist navigation.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Garbo SWMS needs your location to track whether you are following the selected route.</string>
 </dict>
 </plist>

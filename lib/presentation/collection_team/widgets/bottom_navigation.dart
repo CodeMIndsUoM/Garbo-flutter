@@ -336,3 +336,4 @@ class _NavItemWidgetState extends State<_NavItemWidget>
     );
   }
 }
+

@@ -526,3 +526,4 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     );
   }
 }
+

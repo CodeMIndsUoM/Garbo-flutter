@@ -4,7 +4,9 @@ import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/presentation/auth/pages/forgot_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/register.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -101,6 +103,16 @@ class _LoginState extends State<Login> {
 
         // Save credentials if remember me is checked
         await _saveCredentials();
+
+        // Bridge: sync AuthProvider state so collection team providers work
+        if (mounted) {
+          try {
+            final authProvider = context.read<AuthProvider>();
+            authProvider.setUserFromLoginResponse(body);
+          } catch (e) {
+            debugPrint('AuthProvider bridge skipped: $e');
+          }
+        }
 
         final nextRoute = AppRouter.routeForRole(role);
         if (mounted) {
