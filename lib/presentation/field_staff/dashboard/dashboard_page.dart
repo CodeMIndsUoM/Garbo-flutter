@@ -52,7 +52,7 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _fetchDashboardData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final bins = await _apiService.getAssignedBins(_empId);
+      final bins = await _apiService.getAssignedBins();
       final name = await _apiService.getFieldMentorName(_empId);
       final dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
 

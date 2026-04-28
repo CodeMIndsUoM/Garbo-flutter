@@ -27,13 +27,8 @@ class ApiService {
   // Mentor opens BinsPage -> getAssignedBins -> taps a bin ->
   // ReportBinPage -> reportBinStatus (multipart, with photo + GPS).
   /// Fetches bins assigned to a specific field mentor.
-  Future<List<BinModel>> getAssignedBins(String empId) async {
-    if (empId.isEmpty) {
-      throw Exception('Employee ID is empty. Please log in again.');
-    }
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins',
-    );
+  Future<List<BinModel>> getAssignedBins() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/me/bins');
     try {
       final headers = await _authHeaders();
       final response = await client.get(url, headers: headers);
@@ -56,16 +51,12 @@ class ApiService {
 
   /// Reports the status of a bin.
   Future<bool> reportBinStatus({
-    required String empId,
     required String binId,
     required Map<String, dynamic> reportData,
     String? photoPath,
   }) async {
-    if (empId.isEmpty) {
-      throw Exception('Employee ID is empty. Please log in again.');
-    }
     final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins/$binId/report',
+      '${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/report',
     );
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -107,14 +98,10 @@ class ApiService {
   }
 
   /// Undoes a bin report, resetting it to notChecked.
-  Future<bool> undoBinReport(String empId, String binId) async {
-    if (empId.isEmpty) {
-      throw Exception('Employee ID is empty. Please log in again.');
-    }
-
+  Future<bool> undoBinReport(String binId) async {
     // Uses dedicated backend endpoint; avoids re-submitting synthetic report payload.
     final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins/$binId/undo',
+      '${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/undo',
     );
 
     try {

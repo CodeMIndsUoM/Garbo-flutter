@@ -57,7 +57,7 @@ class _BinsPageState extends State<BinsPage> {
       _error = null;
     });
     try {
-      final bins = await _apiService.getAssignedBins(_empId);
+      final bins = await _apiService.getAssignedBins();
       setState(() {
         _bins = bins;
         _isLoading = false;
@@ -320,7 +320,7 @@ class _BinsPageState extends State<BinsPage> {
 
     setState(() => _isLoading = true);
     try {
-      final success = await _apiService.undoBinReport(_empId, bin.id);
+      final success = await _apiService.undoBinReport(bin.id);
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
