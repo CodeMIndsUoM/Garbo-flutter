@@ -34,13 +34,18 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   final TextEditingController _addressController = TextEditingController();
 
   // State
-  File? _idPhotoFile;
-  String? _idPhotoUrl;
-  bool _uploadingPhoto = false;
+  File? _idPhotoFrontFile;
+  String? _idPhotoFrontUrl;
+  File? _idPhotoBackFile;
+  String? _idPhotoBackUrl;
+  bool _uploadingFrontPhoto = false;
+  bool _uploadingBackPhoto = false;
   bool _submitting = false;
   List<String> _councils = [];
   String? _selectedCouncil;
   bool _loadingCouncils = true;
+  int _currentStep = 1;
+  final int _totalSteps = 3;
 
   @override
   void initState() {
@@ -80,7 +85,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     super.dispose();
   }
 
-  Future<void> _pickIdPhoto() async {
+  Future<void> _pickIdPhotoFront() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -89,24 +94,55 @@ class _CollectorRegisterState extends State<CollectorRegister> {
 
       if (image != null) {
         setState(() {
-          _idPhotoFile = File(image.path);
-          _uploadingPhoto = true;
+          _idPhotoFrontFile = File(image.path);
+          _uploadingFrontPhoto = true;
         });
 
         // Upload photo
-        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoFile!);
+        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoFrontFile!);
 
         if (mounted) {
           setState(() {
-            _idPhotoUrl = photoUrl;
-            _uploadingPhoto = false;
+            _idPhotoFrontUrl = photoUrl;
+            _uploadingFrontPhoto = false;
           });
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _uploadingPhoto = false);
-        _showSnackBar('Failed to upload photo: $e', isError: true);
+        setState(() => _uploadingFrontPhoto = false);
+        _showSnackBar('Failed to upload front photo: $e', isError: true);
+      }
+    }
+  }
+
+  Future<void> _pickIdPhotoBack() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          _idPhotoBackFile = File(image.path);
+          _uploadingBackPhoto = true;
+        });
+
+        // Upload photo
+        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoBackFile!);
+
+        if (mounted) {
+          setState(() {
+            _idPhotoBackUrl = photoUrl;
+            _uploadingBackPhoto = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _uploadingBackPhoto = false);
+        _showSnackBar('Failed to upload back photo: $e', isError: true);
       }
     }
   }
@@ -160,8 +196,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       _showSnackBar('Please select a council', isError: true);
       return;
     }
-    if (_idPhotoUrl == null || _idPhotoUrl!.isEmpty) {
-      _showSnackBar('Please upload your ID photo', isError: true);
+    if (_idPhotoFrontUrl == null || _idPhotoFrontUrl!.isEmpty) {
+      _showSnackBar('Please upload your ID front photo', isError: true);
       return;
     }
 
@@ -185,7 +221,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
             ? null
             : _contractEndController.text.trim(),
         defaultAddress: _addressController.text.trim(),
-        idPhotoUrl: _idPhotoUrl!,
+        idPhotoUrl: _idPhotoFrontUrl!,
+        idPhotoBackUrl: _idPhotoBackUrl,
         assignedCouncil: _selectedCouncil!,
       );
 
@@ -333,137 +370,16 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                 ),
                 const SizedBox(height: 24),
 
-                // ID Photo Upload
-                _buildIdPhotoSection(),
+                // Step Indicator
+                _buildStepIndicator(),
                 const SizedBox(height: 24),
 
-                // Personal Information
-                _buildSectionTitle('Personal Information'),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  controller: _nameController,
-                  label: 'Full Name',
-                  hint: 'Enter your full name',
-                  icon: Icons.person_outline,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'Enter your email',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  hint: 'Enter your phone number',
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _nicController,
-                  label: 'NIC Number',
-                  hint: 'Enter your NIC',
-                  icon: Icons.badge_outlined,
-                ),
-                const SizedBox(height: 16),
-                _buildDateField(
-                  controller: _dobController,
-                  label: 'Date of Birth',
-                  hint: 'Select your date of birth',
-                  icon: Icons.cake_outlined,
-                ),
+                // Step Content
+                _buildStepContent(),
                 const SizedBox(height: 24),
 
-                // Company Information
-                _buildSectionTitle('Company Information'),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  controller: _companyController,
-                  label: 'Company Name',
-                  hint: 'Enter company name',
-                  icon: Icons.business_outlined,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _contractIdController,
-                  label: 'Contract ID (Optional)',
-                  hint: 'Enter contract ID if applicable',
-                  icon: Icons.description_outlined,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDateField(
-                        controller: _contractStartController,
-                        label: 'Contract Start (Optional)',
-                        hint: 'Select start date',
-                        icon: Icons.calendar_today_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildDateField(
-                        controller: _contractEndController,
-                        label: 'Contract End (Optional)',
-                        hint: 'Select end date',
-                        icon: Icons.calendar_today_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Council Selection
-                _buildSectionTitle('Council'),
-                const SizedBox(height: 12),
-                _buildCouncilDropdown(),
-                const SizedBox(height: 24),
-
-                // Address
-                _buildSectionTitle('Address'),
-                const SizedBox(height: 12),
-                _buildTextField(
-                  controller: _addressController,
-                  label: 'Address',
-                  hint: 'Enter your address',
-                  icon: Icons.location_on_outlined,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 32),
-
-                // Submit Button
-                ElevatedButton(
-                  onPressed: _submitting ? null : _submitRegistration,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.green700,
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _submitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'Submit Registration',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                ),
+                // Navigation Buttons
+                _buildNavigationButtons(),
               ],
             ),
           ),
@@ -480,6 +396,326 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         fontWeight: FontWeight.w600,
       ),
     );
+  }
+
+  Widget _buildStepIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: List.generate(_totalSteps, (index) {
+          final stepNumber = index + 1;
+          final isCompleted = stepNumber < _currentStep;
+          final isCurrent = stepNumber == _currentStep;
+          final isFuture = stepNumber > _currentStep;
+
+          return Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isCompleted
+                              ? AppColors.green700
+                              : isCurrent
+                                  ? AppColors.green700
+                                  : AppColors.grey300,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: isCompleted
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 18,
+                                )
+                              : Text(
+                                  '$stepNumber',
+                                  style: TextStyle(
+                                    color: isCurrent
+                                        ? Colors.white
+                                        : AppColors.grey600,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _getStepTitle(stepNumber),
+                        style: AppTypography.bodySm.copyWith(
+                          color: isCurrent
+                              ? AppColors.green700
+                              : AppColors.grey500,
+                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                if (index < _totalSteps - 1)
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      color: isCompleted ? AppColors.green700 : AppColors.grey300,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  String _getStepTitle(int step) {
+    switch (step) {
+      case 1:
+        return 'Personal';
+      case 2:
+        return 'Company';
+      case 3:
+        return 'ID & Address';
+      default:
+        return '';
+    }
+  }
+
+  Widget _buildStepContent() {
+    switch (_currentStep) {
+      case 1:
+        return _buildStep1Content();
+      case 2:
+        return _buildStep2Content();
+      case 3:
+        return _buildStep3Content();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildStep1Content() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionTitle('Personal Information'),
+        const SizedBox(height: 12),
+        _buildTextField(
+          controller: _nameController,
+          label: 'Full Name',
+          hint: 'Enter your full name',
+          icon: Icons.person_outline,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _emailController,
+          label: 'Email',
+          hint: 'Enter your email',
+          icon: Icons.email_outlined,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _phoneController,
+          label: 'Phone Number',
+          hint: 'Enter your phone number',
+          icon: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _nicController,
+          label: 'NIC Number',
+          hint: 'Enter your NIC',
+          icon: Icons.badge_outlined,
+        ),
+        const SizedBox(height: 16),
+        _buildDateField(
+          controller: _dobController,
+          label: 'Date of Birth',
+          hint: 'Select your date of birth',
+          icon: Icons.cake_outlined,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2Content() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionTitle('Company Information'),
+        const SizedBox(height: 12),
+        _buildTextField(
+          controller: _companyController,
+          label: 'Company Name',
+          hint: 'Enter company name',
+          icon: Icons.business_outlined,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _contractIdController,
+          label: 'Contract ID (Optional)',
+          hint: 'Enter contract ID if applicable',
+          icon: Icons.description_outlined,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDateField(
+                controller: _contractStartController,
+                label: 'Contract Start (Optional)',
+                hint: 'Select start date',
+                icon: Icons.calendar_today_outlined,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildDateField(
+                controller: _contractEndController,
+                label: 'Contract End (Optional)',
+                hint: 'Select end date',
+                icon: Icons.calendar_today_outlined,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildSectionTitle('Council'),
+        const SizedBox(height: 12),
+        _buildCouncilDropdown(),
+      ],
+    );
+  }
+
+  Widget _buildStep3Content() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionTitle('Address'),
+        const SizedBox(height: 12),
+        _buildTextField(
+          controller: _addressController,
+          label: 'Address',
+          hint: 'Enter your address',
+          icon: Icons.location_on_outlined,
+          maxLines: 3,
+        ),
+        const SizedBox(height: 24),
+        _buildIdPhotoSection(),
+      ],
+    );
+  }
+
+  Widget _buildNavigationButtons() {
+    return Row(
+      children: [
+        if (_currentStep > 1)
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep--;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.grey200,
+                foregroundColor: AppColors.grey700,
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Previous',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        if (_currentStep > 1) const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _currentStep == _totalSteps
+                ? (_submitting ? null : _submitRegistration)
+                : _nextStep,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.green700,
+              minimumSize: const Size(double.infinity, 52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: _currentStep == _totalSteps && _submitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                    ),
+                  )
+                : Text(
+                    _currentStep == _totalSteps ? 'Submit Registration' : 'Next',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _nextStep() {
+    // Validate current step before proceeding
+    if (_currentStep == 1) {
+      if (_nameController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your name', isError: true);
+        return;
+      }
+      if (_emailController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your email', isError: true);
+        return;
+      }
+      if (_phoneController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your phone number', isError: true);
+        return;
+      }
+      if (_nicController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your NIC', isError: true);
+        return;
+      }
+      if (_dobController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your date of birth', isError: true);
+        return;
+      }
+    }
+    if (_currentStep == 2) {
+      if (_companyController.text.trim().isEmpty) {
+        _showSnackBar('Please enter your company name', isError: true);
+        return;
+      }
+      if (_selectedCouncil == null || _selectedCouncil!.isEmpty) {
+        _showSnackBar('Please select a council', isError: true);
+        return;
+      }
+    }
+    
+    setState(() {
+      _currentStep++;
+    });
   }
 
   Widget _buildCouncilDropdown() {
@@ -547,85 +783,116 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'ID Photo',
+          'ID Photos',
           style: AppTypography.titleSm.copyWith(
             color: AppColors.grey700,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
-        GestureDetector(
-          onTap: _uploadingPhoto ? null : _pickIdPhoto,
-          child: Container(
-            height: 150,
-            decoration: BoxDecoration(
-              color: _idPhotoFile != null
-                  ? AppColors.emerald50
-                  : AppColors.grey100,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _idPhotoFile != null
-                    ? AppColors.green700
-                    : AppColors.grey300,
-                width: 2,
-              ),
-            ),
-            child: _uploadingPhoto
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : _idPhotoFile != null
-                    ? Stack(
-                        children: [
-                          Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.file(
-                                _idPhotoFile!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            size: 48,
-                            color: AppColors.grey400,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tap to upload ID photo',
-                            style: AppTypography.bodySm.copyWith(
-                              color: AppColors.grey600,
-                            ),
-                          ),
-                        ],
-                      ),
-          ),
+        // Front ID Photo
+        _buildPhotoUploadCard(
+          title: 'Front ID Photo',
+          file: _idPhotoFrontFile,
+          url: _idPhotoFrontUrl,
+          uploading: _uploadingFrontPhoto,
+          onTap: _pickIdPhotoFront,
+        ),
+        const SizedBox(height: 16),
+        // Back ID Photo
+        _buildPhotoUploadCard(
+          title: 'Back ID Photo',
+          file: _idPhotoBackFile,
+          url: _idPhotoBackUrl,
+          uploading: _uploadingBackPhoto,
+          onTap: _pickIdPhotoBack,
+          isOptional: true,
         ),
       ],
+    );
+  }
+
+  Widget _buildPhotoUploadCard({
+    required String title,
+    required File? file,
+    required String? url,
+    required bool uploading,
+    required VoidCallback onTap,
+    bool isOptional = false,
+  }) {
+    return GestureDetector(
+      onTap: uploading ? null : onTap,
+      child: Container(
+        height: 150,
+        decoration: BoxDecoration(
+          color: file != null ? AppColors.emerald50 : AppColors.grey100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: file != null ? AppColors.green700 : AppColors.grey300,
+            width: 2,
+          ),
+        ),
+        child: uploading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : file != null
+                ? Stack(
+                    children: [
+                      Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            file,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 48,
+                        color: AppColors.grey400,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap to upload $title',
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.grey600,
+                        ),
+                      ),
+                      if (isOptional)
+                        Text(
+                          '(Optional)',
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.grey500,
+                          ),
+                        ),
+                    ],
+                  ),
+      ),
     );
   }
 

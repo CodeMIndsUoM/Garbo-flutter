@@ -226,6 +226,7 @@ class ApiService {
     String? contractEnd,
     required String defaultAddress,
     required String idPhotoUrl,
+    String? idPhotoBackUrl,
     required String assignedCouncil,
   }) => _thirdPartyCollectorApi.registerThirdPartyCollector(
     empName: empName,
@@ -239,6 +240,7 @@ class ApiService {
     contractEnd: contractEnd,
     defaultAddress: defaultAddress,
     idPhotoUrl: idPhotoUrl,
+    idPhotoBackUrl: idPhotoBackUrl,
     assignedCouncil: assignedCouncil,
   );
 
