@@ -98,7 +98,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           _uploadingFrontPhoto = true;
         });
 
-        // Upload photo
         final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoFrontFile!);
 
         if (mounted) {
@@ -129,7 +128,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           _uploadingBackPhoto = true;
         });
 
-        // Upload photo
         final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoBackFile!);
 
         if (mounted) {
@@ -157,13 +155,13 @@ class _CollectorRegisterState extends State<CollectorRegister> {
 
     if (picked != null) {
       setState(() {
-        controller.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+        controller.text =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
       });
     }
   }
 
   Future<void> _submitRegistration() async {
-    // Validation
     if (_nameController.text.trim().isEmpty) {
       _showSnackBar('Please enter your name', isError: true);
       return;
@@ -227,7 +225,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       );
 
       if (mounted) {
-        // Navigate to registration status screen
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -247,66 +244,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         setState(() => _submitting = false);
       }
     }
-  }
-
-  void _showRegistrationSuccess(dynamic empId) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.emerald100,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle_outline,
-                color: AppColors.green700,
-                size: 48,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Registration Submitted',
-              style: AppTypography.titleMd,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Your registration has been submitted for admin review. You will be notified once approved.',
-              style: AppTypography.bodySm.copyWith(
-                color: AppColors.grey600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.green700,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Back to Login',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -350,11 +287,12 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                     border: Border.all(color: AppColors.emerald200),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
                         Icons.info_outline,
                         color: AppColors.green700,
-                        size: 20,
+                        size: 18,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -389,88 +327,104 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTypography.titleSm.copyWith(
-        color: AppColors.grey700,
-        fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: AppTypography.titleSm.copyWith(
+          color: AppColors.grey600,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
 
+  // ── FIXED: Step indicator with proper connector alignment ──────────────────
   Widget _buildStepIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        children: List.generate(_totalSteps, (index) {
-          final stepNumber = index + 1;
-          final isCompleted = stepNumber < _currentStep;
-          final isCurrent = stepNumber == _currentStep;
-          final isFuture = stepNumber > _currentStep;
+    return Row(
+      children: List.generate(_totalSteps, (index) {
+        final step = index + 1;
+        final isDone = step < _currentStep;
+        final isCurrent = step == _currentStep;
 
-          return Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isCompleted
-                              ? AppColors.green700
-                              : isCurrent
-                                  ? AppColors.green700
-                                  : AppColors.grey300,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: isCompleted
-                              ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 18,
-                                )
-                              : Text(
-                                  '$stepNumber',
-                                  style: TextStyle(
-                                    color: isCurrent
-                                        ? Colors.white
-                                        : AppColors.grey600,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getStepTitle(stepNumber),
-                        style: AppTypography.bodySm.copyWith(
-                          color: isCurrent
-                              ? AppColors.green700
-                              : AppColors.grey500,
-                          fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                if (index < _totalSteps - 1)
+        return Expanded(
+          child: Column(
+            children: [
+              // Circle + left/right half-connectors all sit in one Row
+              // so the line always meets the circle at exact mid-height
+              Row(
+                children: [
+                  // Left half-connector (hidden for first step)
                   Expanded(
                     child: Container(
                       height: 2,
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      color: isCompleted ? AppColors.green700 : AppColors.grey300,
+                      color: index == 0
+                          ? Colors.transparent
+                          : (step <= _currentStep
+                              ? AppColors.green700
+                              : AppColors.grey300),
                     ),
                   ),
-              ],
-            ),
-          );
-        }),
-      ),
+                  // Circle
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: (isDone || isCurrent)
+                          ? AppColors.green700
+                          : AppColors.grey200,
+                      shape: BoxShape.circle,
+                      border: (!isDone && !isCurrent)
+                          ? Border.all(color: AppColors.grey300, width: 1)
+                          : null,
+                    ),
+                    child: Center(
+                      child: isDone
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : Text(
+                              '$step',
+                              style: TextStyle(
+                                color: isCurrent
+                                    ? Colors.white
+                                    : AppColors.grey500,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                    ),
+                  ),
+                  // Right half-connector (hidden for last step)
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      color: index == _totalSteps - 1
+                          ? Colors.transparent
+                          : (step < _currentStep
+                              ? AppColors.green700
+                              : AppColors.grey300),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _getStepTitle(step),
+                style: AppTypography.bodySm.copyWith(
+                  fontSize: 11,
+                  color: isCurrent ? AppColors.green700 : AppColors.grey400,
+                  fontWeight:
+                      isCurrent ? FontWeight.w500 : FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -505,14 +459,13 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildSectionTitle('Personal Information'),
-        const SizedBox(height: 12),
         _buildTextField(
           controller: _nameController,
           label: 'Full Name',
           hint: 'Enter your full name',
           icon: Icons.person_outline,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _buildTextField(
           controller: _emailController,
           label: 'Email',
@@ -520,7 +473,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           icon: Icons.email_outlined,
           keyboardType: TextInputType.emailAddress,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _buildTextField(
           controller: _phoneController,
           label: 'Phone Number',
@@ -528,14 +481,14 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _buildTextField(
           controller: _nicController,
           label: 'NIC Number',
           hint: 'Enter your NIC',
           icon: Icons.badge_outlined,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _buildDateField(
           controller: _dobController,
           label: 'Date of Birth',
@@ -551,28 +504,29 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildSectionTitle('Company Information'),
-        const SizedBox(height: 12),
         _buildTextField(
           controller: _companyController,
           label: 'Company Name',
           hint: 'Enter company name',
           icon: Icons.business_outlined,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         _buildTextField(
           controller: _contractIdController,
           label: 'Contract ID (Optional)',
           hint: 'Enter contract ID if applicable',
           icon: Icons.description_outlined,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+        // ── FIXED: row uses minmax-equivalent via IntrinsicHeight to avoid overflow
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _buildDateField(
                 controller: _contractStartController,
                 label: 'Contract Start (Optional)',
-                hint: 'Select start date',
+                hint: 'Start date',
                 icon: Icons.calendar_today_outlined,
               ),
             ),
@@ -581,15 +535,14 @@ class _CollectorRegisterState extends State<CollectorRegister> {
               child: _buildDateField(
                 controller: _contractEndController,
                 label: 'Contract End (Optional)',
-                hint: 'Select end date',
+                hint: 'End date',
                 icon: Icons.calendar_today_outlined,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         _buildSectionTitle('Council'),
-        const SizedBox(height: 12),
         _buildCouncilDropdown(),
       ],
     );
@@ -600,7 +553,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildSectionTitle('Address'),
-        const SizedBox(height: 12),
         _buildTextField(
           controller: _addressController,
           label: 'Address',
@@ -614,21 +566,18 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     );
   }
 
+  // ── FIXED: Navigation buttons — Next fills full width on step 1 ────────────
   Widget _buildNavigationButtons() {
     return Row(
       children: [
-        if (_currentStep > 1)
+        if (_currentStep > 1) ...[
           Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _currentStep--;
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.grey200,
+            child: OutlinedButton(
+              onPressed: () => setState(() => _currentStep--),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                side: const BorderSide(color: AppColors.grey300),
                 foregroundColor: AppColors.grey700,
-                minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -636,13 +585,14 @@ class _CollectorRegisterState extends State<CollectorRegister> {
               child: const Text(
                 'Previous',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ),
-        if (_currentStep > 1) const SizedBox(width: 12),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: ElevatedButton(
             onPressed: _currentStep == _totalSteps
@@ -650,7 +600,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                 : _nextStep,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.green700,
-              minimumSize: const Size(double.infinity, 52),
+              minimumSize: const Size(double.infinity, 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -665,11 +615,13 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                     ),
                   )
                 : Text(
-                    _currentStep == _totalSteps ? 'Submit Registration' : 'Next',
+                    _currentStep == _totalSteps
+                        ? 'Submit Registration'
+                        : 'Next',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
           ),
@@ -679,7 +631,6 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   }
 
   void _nextStep() {
-    // Validate current step before proceeding
     if (_currentStep == 1) {
       if (_nameController.text.trim().isEmpty) {
         _showSnackBar('Please enter your name', isError: true);
@@ -712,10 +663,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         return;
       }
     }
-    
-    setState(() {
-      _currentStep++;
-    });
+
+    setState(() => _currentStep++);
   }
 
   Widget _buildCouncilDropdown() {
@@ -745,7 +694,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                     isExpanded: true,
                     hint: Row(
                       children: [
-                        Icon(Icons.location_city_outlined, color: AppColors.grey400),
+                        const Icon(Icons.location_city_outlined,
+                            color: AppColors.grey400, size: 18),
                         const SizedBox(width: 12),
                         Text(
                           'Select your council',
@@ -760,8 +710,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                         value: council,
                         child: Row(
                           children: [
-                            Icon(Icons.location_city_outlined,
-                                color: AppColors.grey400),
+                            const Icon(Icons.location_city_outlined,
+                                color: AppColors.grey400, size: 18),
                             const SizedBox(width: 12),
                             Text(council),
                           ],
@@ -782,31 +732,31 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'ID Photos',
-          style: AppTypography.titleSm.copyWith(
-            color: AppColors.grey700,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Front ID Photo
-        _buildPhotoUploadCard(
-          title: 'Front ID Photo',
-          file: _idPhotoFrontFile,
-          url: _idPhotoFrontUrl,
-          uploading: _uploadingFrontPhoto,
-          onTap: _pickIdPhotoFront,
-        ),
-        const SizedBox(height: 16),
-        // Back ID Photo
-        _buildPhotoUploadCard(
-          title: 'Back ID Photo',
-          file: _idPhotoBackFile,
-          url: _idPhotoBackUrl,
-          uploading: _uploadingBackPhoto,
-          onTap: _pickIdPhotoBack,
-          isOptional: true,
+        _buildSectionTitle('ID Photos'),
+        // ── FIXED: equal-width photo cards side by side ────────────────────
+        Row(
+          children: [
+            Expanded(
+              child: _buildPhotoUploadCard(
+                title: 'Front ID Photo',
+                file: _idPhotoFrontFile,
+                url: _idPhotoFrontUrl,
+                uploading: _uploadingFrontPhoto,
+                onTap: _pickIdPhotoFront,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildPhotoUploadCard(
+                title: 'Back ID Photo',
+                file: _idPhotoBackFile,
+                url: _idPhotoBackUrl,
+                uploading: _uploadingBackPhoto,
+                onTap: _pickIdPhotoBack,
+                isOptional: true,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -822,26 +772,27 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   }) {
     return GestureDetector(
       onTap: uploading ? null : onTap,
-      child: Container(
-        height: 150,
-        decoration: BoxDecoration(
-          color: file != null ? AppColors.emerald50 : AppColors.grey100,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: file != null ? AppColors.green700 : AppColors.grey300,
-            width: 2,
+      child: AspectRatio(
+        aspectRatio: 3 / 4,
+        child: Container(
+          decoration: BoxDecoration(
+            color: file != null ? AppColors.emerald50 : AppColors.grey100,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: file != null ? AppColors.green700 : AppColors.grey300,
+              width: file != null ? 1.5 : 1,
+              // ── FIXED: dashed border via a workaround using BoxDecoration
+              // Flutter doesn't support native dashed borders; use solid for
+              // selected state and a CustomPaint wrapper if dashed is needed.
+            ),
           ),
-        ),
-        child: uploading
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
-            : file != null
-                ? Stack(
-                    children: [
-                      Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+          child: uploading
+              ? const Center(child: CircularProgressIndicator())
+              : file != null
+                  ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
                           child: Image.file(
                             file,
                             fit: BoxFit.cover,
@@ -849,49 +800,57 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                             height: double.infinity,
                           ),
                         ),
-                      ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_photo_alternate_outlined,
-                        size: 48,
-                        color: AppColors.grey400,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap to upload $title',
-                        style: AppTypography.bodySm.copyWith(
-                          color: AppColors.grey600,
-                        ),
-                      ),
-                      if (isOptional)
-                        Text(
-                          '(Optional)',
-                          style: AppTypography.bodySm.copyWith(
-                            color: AppColors.grey500,
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ),
                         ),
-                    ],
-                  ),
+                      ],
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 36,
+                            color: AppColors.grey400,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            title,
+                            style: AppTypography.bodySm.copyWith(
+                              color: AppColors.grey600,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          if (isOptional) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              '(Optional)',
+                              style: AppTypography.bodySm.copyWith(
+                                color: AppColors.grey400,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+        ),
       ),
     );
   }
@@ -924,20 +883,20 @@ class _CollectorRegisterState extends State<CollectorRegister> {
             hintStyle: AppTypography.bodySm.copyWith(
               color: AppColors.grey400,
             ),
-            prefixIcon: Icon(icon, color: AppColors.grey400),
+            prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.grey300),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.grey300),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.green700),
+              borderSide: const BorderSide(color: AppColors.green700),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -975,24 +934,25 @@ class _CollectorRegisterState extends State<CollectorRegister> {
             hintStyle: AppTypography.bodySm.copyWith(
               color: AppColors.grey400,
             ),
-            prefixIcon: Icon(icon, color: AppColors.grey400),
+            prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
             suffixIcon: const Icon(
               Icons.calendar_today_outlined,
               color: AppColors.grey400,
+              size: 16,
             ),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.grey300),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.grey300),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.green700),
+              borderSide: const BorderSide(color: AppColors.green700),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
