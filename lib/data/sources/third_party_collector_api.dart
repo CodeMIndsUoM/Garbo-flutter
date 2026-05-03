@@ -316,6 +316,15 @@ class ThirdPartyCollectorApi {
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
+    
+    // Log response for debugging
+    print('Upload response status: ${response.statusCode}');
+    print('Upload response body: ${response.body}');
+    
+    if (response.body.isEmpty) {
+      throw Exception('Server returned empty response');
+    }
+    
     final body = json.decode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200 || body['success'] != true) {
@@ -338,6 +347,7 @@ class ThirdPartyCollectorApi {
     String? contractEnd,
     required String defaultAddress,
     required String idPhotoUrl,
+    String? idPhotoBackUrl,
     required String assignedCouncil,
   }) async {
     final url = Uri.parse(
@@ -353,6 +363,7 @@ class ThirdPartyCollectorApi {
       'company': company,
       'defaultAddress': defaultAddress,
       'nicPhotoUrl': idPhotoUrl,
+      'nicPhotoBackUrl': idPhotoBackUrl,
       'assignedCouncil': assignedCouncil,
     };
     if (contractId != null) payload['contractId'] = contractId;
