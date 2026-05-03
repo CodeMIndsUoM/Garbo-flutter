@@ -288,6 +288,128 @@ class ThirdPartyCollectorApi {
     );
   }
 
+  // ─── Public registration endpoints (no auth required) ───
+
+  Future<List<String>> fetchThirdPartyCouncils() async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/councils',
+    );
+
+    final response = await client.get(url, headers: {'Content-Type': 'application/json'});
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to load councils');
+    }
+
+    final data = body['data'] as List<dynamic>? ?? const [];
+    return data.map((item) => item.toString()).toList();
+  }
+
+  Future<String> uploadThirdPartyNicPhoto(File imageFile) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/nic-photo',
+    );
+
+    final request = http.MultipartRequest('POST', url);
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to upload NIC photo');
+    }
+
+    final data = body['data'] as Map<String, dynamic>;
+    return data['nicPhotoUrl'] as String;
+  }
+
+  Future<Map<String, dynamic>> registerThirdPartyCollector({
+    required String empName,
+    required String email,
+    required String phone,
+    required String NIC,
+    required String dateOfBirth,
+    required String company,
+    String? contractId,
+    String? contractStart,
+    String? contractEnd,
+    required String defaultAddress,
+    required String idPhotoUrl,
+    required String assignedCouncil,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}',
+    );
+
+    final payload = <String, dynamic>{
+      'empName': empName,
+      'email': email,
+      'phone': phone,
+      'NIC': NIC,
+      'dateOfBirth': dateOfBirth,
+      'company': company,
+      'defaultAddress': defaultAddress,
+      'nicPhotoUrl': idPhotoUrl,
+      'assignedCouncil': assignedCouncil,
+    };
+    if (contractId != null) payload['contractId'] = contractId;
+    if (contractStart != null) payload['contractStart'] = contractStart;
+    if (contractEnd != null) payload['contractEnd'] = contractEnd;
+
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(payload),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if ((response.statusCode != 200 && response.statusCode != 201) ||
+        body['success'] != true) {
+      throw Exception(body['message'] ?? 'Registration failed');
+    }
+
+    return body['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(int empId) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/$empId/status',
+    );
+
+    final response = await client.get(url, headers: {'Content-Type': 'application/json'});
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to check status');
+    }
+
+    return body['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> setThirdPartyPassword({
+    required int empId,
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/$empId/set-password',
+    );
+
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'email': email, 'password': password}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to set password');
+    }
+  }
+
   Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
     final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action');
     final headers = await authHeadersProvider();
