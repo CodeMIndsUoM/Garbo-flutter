@@ -205,4 +205,53 @@ class ApiService {
 
   Future<CollectorDashboardModel> getCollectorDashboard(String collectorId) =>
       _thirdPartyCollectorApi.getCollectorDashboard(collectorId);
+
+  // ─── Third-party collector registration (public, no auth) ───
+
+  Future<List<String>> fetchThirdPartyCouncils() =>
+      _thirdPartyCollectorApi.fetchThirdPartyCouncils();
+
+  Future<String> uploadThirdPartyNicPhoto(File imageFile) =>
+      _thirdPartyCollectorApi.uploadThirdPartyNicPhoto(imageFile);
+
+  Future<Map<String, dynamic>> registerThirdPartyCollector({
+    required String empName,
+    required String email,
+    required String phone,
+    required String NIC,
+    required String dateOfBirth,
+    required String company,
+    String? contractId,
+    String? contractStart,
+    String? contractEnd,
+    required String defaultAddress,
+    required String idPhotoUrl,
+    required String assignedCouncil,
+  }) => _thirdPartyCollectorApi.registerThirdPartyCollector(
+    empName: empName,
+    email: email,
+    phone: phone,
+    NIC: NIC,
+    dateOfBirth: dateOfBirth,
+    company: company,
+    contractId: contractId,
+    contractStart: contractStart,
+    contractEnd: contractEnd,
+    defaultAddress: defaultAddress,
+    idPhotoUrl: idPhotoUrl,
+    assignedCouncil: assignedCouncil,
+  );
+
+  Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(int empId) =>
+      _thirdPartyCollectorApi.checkThirdPartyRegistrationStatus(empId);
+
+  Future<void> setThirdPartyPassword({
+    required int empId,
+    required String email,
+    required String password,
+  }) => _thirdPartyCollectorApi.setThirdPartyPassword(
+    empId: empId,
+    email: email,
+    password: password,
+  );
 }
