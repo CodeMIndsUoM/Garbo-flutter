@@ -42,7 +42,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   bool _uploadingBackPhoto = false;
   bool _submitting = false;
   List<String> _councils = [];
-  String? _selectedCouncil;
+  List<String> _selectedCouncils = [];
   bool _loadingCouncils = true;
   int _currentStep = 1;
   final int _totalSteps = 3;
@@ -182,16 +182,12 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       _showSnackBar('Please enter your date of birth', isError: true);
       return;
     }
-    if (_companyController.text.trim().isEmpty) {
-      _showSnackBar('Please enter your company name', isError: true);
-      return;
-    }
     if (_addressController.text.trim().isEmpty) {
       _showSnackBar('Please enter your address', isError: true);
       return;
     }
-    if (_selectedCouncil == null || _selectedCouncil!.isEmpty) {
-      _showSnackBar('Please select a council', isError: true);
+    if (_selectedCouncils == null || _selectedCouncils.isEmpty) {
+      _showSnackBar('Please select at least one council', isError: true);
       return;
     }
     if (_idPhotoFrontUrl == null || _idPhotoFrontUrl!.isEmpty) {
@@ -208,7 +204,9 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         phone: _phoneController.text.trim(),
         NIC: _nicController.text.trim(),
         dateOfBirth: _dobController.text.trim(),
-        company: _companyController.text.trim(),
+        company: _companyController.text.trim().isEmpty
+            ? null
+            : _companyController.text.trim(),
         contractId: _contractIdController.text.trim().isEmpty
             ? null
             : _contractIdController.text.trim(),
@@ -221,11 +219,11 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         defaultAddress: _addressController.text.trim(),
         idPhotoUrl: _idPhotoFrontUrl!,
         idPhotoBackUrl: _idPhotoBackUrl,
-        assignedCouncil: _selectedCouncil!,
+        assignedCouncils: _selectedCouncils,
       );
 
       if (mounted) {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => RegistrationStatus(
@@ -654,12 +652,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       }
     }
     if (_currentStep == 2) {
-      if (_companyController.text.trim().isEmpty) {
-        _showSnackBar('Please enter your company name', isError: true);
-        return;
-      }
-      if (_selectedCouncil == null || _selectedCouncil!.isEmpty) {
-        _showSnackBar('Please select a council', isError: true);
+      if (_selectedCouncils == null || _selectedCouncils!.isEmpty) {
+        _showSnackBar('Please select at least one council', isError: true);
         return;
       }
     }
@@ -672,7 +666,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Select Council',
+          'Select Councils (Multiple)',
           style: AppTypography.labelSm.copyWith(
             color: AppColors.grey700,
             fontWeight: FontWeight.w500,
@@ -681,48 +675,56 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         const SizedBox(height: 8),
         _loadingCouncils
             ? const Center(child: CircularProgressIndicator())
-            : Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.grey300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCouncil,
-                    isExpanded: true,
-                    hint: Row(
-                      children: [
-                        const Icon(Icons.location_city_outlined,
-                            color: AppColors.grey400, size: 18),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Select your council',
-                          style: AppTypography.bodySm.copyWith(
-                            color: AppColors.grey400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    items: _councils.map((council) {
-                      return DropdownMenuItem<String>(
-                        value: council,
-                        child: Row(
-                          children: [
-                            const Icon(Icons.location_city_outlined,
-                                color: AppColors.grey400, size: 18),
-                            const SizedBox(width: 12),
-                            Text(council),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedCouncil = value);
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _councils.map((council) {
+                  final isSelected = _selectedCouncils.contains(council);
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          _selectedCouncils.remove(council);
+                        } else {
+                          _selectedCouncils.add(council);
+                        }
+                      });
                     },
-                  ),
-                ),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.emerald50 : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected ? AppColors.green700 : AppColors.grey300,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSelected ? Icons.check_circle : Icons.circle_outlined,
+                            color: isSelected ? AppColors.green700 : AppColors.grey400,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          const Icon(Icons.location_city_outlined,
+                              color: AppColors.grey400, size: 18),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              council,
+                              style: AppTypography.bodySm.copyWith(
+                                color: isSelected ? AppColors.green700 : AppColors.grey700,
+                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
       ],
     );

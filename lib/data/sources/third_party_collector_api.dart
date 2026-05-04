@@ -341,14 +341,14 @@ class ThirdPartyCollectorApi {
     required String phone,
     required String NIC,
     required String dateOfBirth,
-    required String company,
+    String? company,
     String? contractId,
     String? contractStart,
     String? contractEnd,
     required String defaultAddress,
     required String idPhotoUrl,
     String? idPhotoBackUrl,
-    required String assignedCouncil,
+    required List<String> assignedCouncils,
   }) async {
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}',
@@ -360,12 +360,12 @@ class ThirdPartyCollectorApi {
       'phone': phone,
       'NIC': NIC,
       'dateOfBirth': dateOfBirth,
-      'company': company,
       'defaultAddress': defaultAddress,
       'nicPhotoUrl': idPhotoUrl,
       'nicPhotoBackUrl': idPhotoBackUrl,
-      'assignedCouncil': assignedCouncil,
+      'assignedCouncils': assignedCouncils,
     };
+    if (company != null) payload['company'] = company;
     if (contractId != null) payload['contractId'] = contractId;
     if (contractStart != null) payload['contractStart'] = contractStart;
     if (contractEnd != null) payload['contractEnd'] = contractEnd;
