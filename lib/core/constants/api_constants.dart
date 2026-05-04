@@ -18,4 +18,7 @@ class ApiConstants {
 
   // User endpoints
   static const String users = '/users';
+
+  // Third-party collector registration (public, no auth)
+  static const String thirdPartyRegister = '/auth/thirdparty-register';
 }
