@@ -220,14 +220,14 @@ class ApiService {
     required String phone,
     required String NIC,
     required String dateOfBirth,
-    required String company,
+    String? company,
     String? contractId,
     String? contractStart,
     String? contractEnd,
     required String defaultAddress,
     required String idPhotoUrl,
     String? idPhotoBackUrl,
-    required String assignedCouncil,
+    required List<String> assignedCouncils,
   }) => _thirdPartyCollectorApi.registerThirdPartyCollector(
     empName: empName,
     email: email,
@@ -241,7 +241,7 @@ class ApiService {
     defaultAddress: defaultAddress,
     idPhotoUrl: idPhotoUrl,
     idPhotoBackUrl: idPhotoBackUrl,
-    assignedCouncil: assignedCouncil,
+    assignedCouncils: assignedCouncils,
   );
 
   Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(int empId) =>
