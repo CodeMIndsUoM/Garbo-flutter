@@ -6,7 +6,8 @@ class BinModel {
   final String id;
   final String location;
   final String address;
-  final BinCategory category;
+  final String category;
+  final String displayCode;
   final BinStatus status;
   final int? fillLevel;
   final DateTime? lastChecked;
@@ -16,10 +17,14 @@ class BinModel {
     required this.location,
     required this.address,
     required this.category,
+    required this.displayCode,
     this.status = BinStatus.notChecked,
     this.fillLevel,
     this.lastChecked,
   });
+
+  String get displayCategory =>
+      category.trim().isEmpty ? 'Unknown' : category.trim();
 
   /// Factory for parsing API JSON responses.
   /// Uncomment and adapt when backend is ready.
@@ -31,20 +36,14 @@ class BinModel {
           json['address'] as String? ??
           json['location'] as String? ??
           'Unknown',
-      category: _parseCategory(json['category'] as String?),
+      category: json['category']?.toString() ?? '',
+      displayCode:
+          json['displayCode']?.toString() ?? json['id']?.toString() ?? '',
       status: _parseStatus(json['status'] as String?),
       fillLevel: json['fillLevel'] as int?,
       lastChecked: json['lastChecked'] != null
           ? DateTime.parse(json['lastChecked'] as String)
           : null,
-    );
-  }
-
-  static BinCategory _parseCategory(String? category) {
-    if (category == null) return BinCategory.public;
-    return BinCategory.values.firstWhere(
-      (e) => e.name.toLowerCase() == category.toLowerCase(),
-      orElse: () => BinCategory.public,
     );
   }
 
@@ -85,25 +84,6 @@ extension BinStatusLabel on BinStatus {
         return 'Half';
       case BinStatus.empty:
         return 'Empty';
-    }
-  }
-}
-
-enum BinCategory { public, park, commercial, medical, education }
-
-extension BinCategoryLabel on BinCategory {
-  String get label {
-    switch (this) {
-      case BinCategory.public:
-        return 'Public';
-      case BinCategory.park:
-        return 'Park';
-      case BinCategory.commercial:
-        return 'Commercial';
-      case BinCategory.medical:
-        return 'Medical';
-      case BinCategory.education:
-        return 'Education';
     }
   }
 }
