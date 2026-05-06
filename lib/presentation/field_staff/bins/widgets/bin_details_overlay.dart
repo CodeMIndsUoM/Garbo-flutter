@@ -36,26 +36,44 @@ class BinDetailsOverlay extends StatelessWidget {
                     children: [
                       // ID Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: ShapeDecoration(
                           color: AppColors.grey100,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(bin.id, style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey600)),
+                        child: Text(
+                          bin.id,
+                          style: AppTypography.captionSm.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.grey600,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       // Status Badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: ShapeDecoration(
                           color: _getBadgeBgColor(),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(bin.status.label.toUpperCase(), style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: _getStatusTextColor())),
+                        child: Text(
+                          bin.status.label.toUpperCase(),
+                          style: AppTypography.captionSm.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: _getStatusTextColor(),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -71,11 +89,14 @@ class BinDetailsOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // Title & Subtitle
-              Text(bin.location, style: AppTypography.h2),
+              Text(bin.displayCode, style: AppTypography.h2),
               const SizedBox(height: 4),
-              Text(bin.address, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
+              Text(
+                bin.address,
+                style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+              ),
               const SizedBox(height: 24),
-              
+
               // Status Large Card
               Container(
                 width: double.infinity,
@@ -104,14 +125,19 @@ class BinDetailsOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(bin.status.label, style: AppTypography.h1.copyWith(color: _getCardTextColor())),
+                    Text(
+                      bin.status.label,
+                      style: AppTypography.h1.copyWith(
+                        color: _getCardTextColor(),
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
 
               // Details List
-              _buildDetailRow('Type', bin.category.label),
+              _buildDetailRow('Type', bin.displayCategory),
               const Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Last Checked', bin.timeAgo),
               const Divider(color: AppColors.grey100, height: 32),
@@ -125,16 +151,29 @@ class BinDetailsOverlay extends StatelessWidget {
                 decoration: ShapeDecoration(
                   color: Colors.white,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(width: 1.27, color: AppColors.grey200),
+                    side: const BorderSide(
+                      width: 1.27,
+                      color: AppColors.grey200,
+                    ),
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.location_on_outlined, color: AppColors.grey700, size: 20),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: AppColors.grey700,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
-                    Text('View on Map', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey700)),
+                    Text(
+                      'View on Map',
+                      style: AppTypography.titleSm.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.grey700,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -149,8 +188,17 @@ class BinDetailsOverlay extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
-        Text(value, style: AppTypography.bodySm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey900)),
+        Text(
+          label,
+          style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+        ),
+        Text(
+          value,
+          style: AppTypography.bodySm.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.grey900,
+          ),
+        ),
       ],
     );
   }
