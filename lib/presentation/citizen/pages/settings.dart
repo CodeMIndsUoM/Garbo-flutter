@@ -34,7 +34,6 @@ class SettingsPageState extends State<CitizenSettingsPage> {
           ),
         ],
       ),
-      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 4),
     );
   }
 

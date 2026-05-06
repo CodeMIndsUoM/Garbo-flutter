@@ -5,33 +5,17 @@ import 'package:garbo_swms/presentation/citizen/pages/report.dart';
 import 'package:garbo_swms/presentation/citizen/pages/events.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request.dart';
 import 'package:garbo_swms/presentation/citizen/pages/profile.dart';
+import 'package:garbo_swms/presentation/widgets/smooth_page_route.dart';
 
 class CitizenBottomNavbar extends StatelessWidget {
   final int currentIndex;
+  final ValueChanged<int> onTap;
 
   const CitizenBottomNavbar({
     super.key,
     required this.currentIndex,
+    required this.onTap,
   });
-
-  void onTap(BuildContext context, int index) {
-    if (index == currentIndex) return; 
-
-    final pages = <int, Widget>{
-      0: const CitizenHomePage(),
-      1: const CitizenReportPage(),
-      2: const CitizenPublicEventsPage(),
-      3: const CitizenRequestPage(),
-      4: const CitizenProfilePage(),
-    };
-
-    final page = pages[index];
-    if (page != null) {
-      Navigator.of(context).pushReplacement(
-        SmoothPageRoute(page: page),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,17 +47,17 @@ class CitizenBottomNavbar extends StatelessWidget {
               final isSelected = i == currentIndex;
               return Expanded(
                 child: InkWell(
-                  onTap: () => onTap(context, i),
+                  onTap: () => onTap(i),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                        duration: const Duration(milliseconds: 400),
                         width: isSelected ? 32 : 0,
                         height: 3,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.emerald700
+                              ? AppColors.green700
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(2),
                         ),
@@ -82,7 +66,7 @@ class CitizenBottomNavbar extends StatelessWidget {
                       Icon(
                         items[i].icon,
                         color: isSelected
-                            ? AppColors.emerald700
+                            ? AppColors.green700
                             : AppColors.citizenGrey500,
                         size: 22,
                       ),
@@ -91,7 +75,7 @@ class CitizenBottomNavbar extends StatelessWidget {
                         items[i].label,
                         style: TextStyle(
                           color: isSelected
-                              ? AppColors.emerald700
+                              ? AppColors.green700
                               : AppColors.citizenGrey500,
                           fontSize: 11,
                           fontWeight: isSelected
@@ -109,26 +93,6 @@ class CitizenBottomNavbar extends StatelessWidget {
       ),
     );
   }
-}
-
-class SmoothPageRoute<T> extends PageRouteBuilder<T> {
-  final Widget page;
-
-  SmoothPageRoute({required this.page})
-      : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionDuration: const Duration(milliseconds: 350),
-          reverseTransitionDuration: const Duration(milliseconds: 350),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: const Cubic(0.22, 1, 0.36, 1),
-              ),
-              child: child,
-            );
-          },
-        );
 }
 
 class NavItem {

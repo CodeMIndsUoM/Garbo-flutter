@@ -11,11 +11,7 @@ class LevelProgressCard extends StatelessWidget {
       height: 112,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 1.27),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.purple50, AppColors.blue50],
-        ),
+        color: AppColors.purple50,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(width: 1.27, color: AppColors.purple200),
       ),
@@ -31,11 +27,7 @@ class LevelProgressCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.purple600, AppColors.blue500],
-                      ),
+                      color: AppColors.purple600,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(

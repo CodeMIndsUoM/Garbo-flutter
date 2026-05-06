@@ -199,11 +199,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF059669), Color(0xFF047857)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

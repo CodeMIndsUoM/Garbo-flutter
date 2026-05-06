@@ -81,9 +81,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     }
   }
 
-  Widget _buildSectionTitle(String title, {bool big = false}) {
-    return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
-  }
 
   Widget _buildCompletedSectionHeader() {
     final hasMore = _completedCollections.length > 2;
@@ -91,7 +88,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-          child: _buildSectionTitle('Completed Collections', big: true),
+          child: _buildSectionTitle('Completed Collections'),
         ),
         if (hasMore)
           TextButton(
@@ -143,22 +140,19 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       body: Column(
         children: [
           const ThirdPartyHeader(
-            title: 'Home',
-            subtitle: 'Lets gets things done smoothly',
+            title: 'Collector Portal',
+            subtitle: 'Ready to make a difference today?',
             notificationCount: 1,
           ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadCompletedCollections,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-                    _buildWelcomeCard(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle("Today's Summary"),
+                    _buildSectionTitle("Today's Impact"),
                     const SizedBox(height: 12),
                     _buildTodaysImpactCard(),
                     const SizedBox(height: 24),
@@ -200,87 +194,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
-  Widget _buildWelcomeCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.green700,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.green800.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Welcome Back!',
-            style: AppTypography.h1.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Ready to make a difference today?',
-            style: AppTypography.bodySm.copyWith(color: AppColors.white90),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatPill(
-                  _dashboardModel?.availableRequests.toString() ?? '-',
-                  'Available',
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildStatPill(
-                  _dashboardModel?.activeJobs.toString() ?? '-',
-                  'Active',
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildStatPill(
-                  _dashboardModel?.completedJobs.toString() ?? '-',
-                  'Completed',
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatPill(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.white20,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: AppTypography.displayMd.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTypography.captionSm.copyWith(color: Colors.white),
-          ),
-        ],
-      ),
-    );
+  Widget _buildSectionTitle(String title) {
+    return Text(title, style: AppTypography.titleLg);
   }
 
   Widget _buildTodaysImpactCard() {
@@ -289,13 +204,12 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.green700,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.green800.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
+            color: AppColors.shadowSm,
+            blurRadius: 6,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -304,17 +218,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 "Today's Impact",
-                style: AppTypography.displaySm.copyWith(color: Colors.white),
+                style: AppTypography.h3.copyWith(color: Colors.white),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: AppColors.white20,
                   borderRadius: BorderRadius.circular(20),
@@ -322,14 +232,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: Colors.white,
-                      size: 14,
-                    ),
+                    const Icon(Icons.star_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
+                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Rating",
                       style: AppTypography.caption.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -340,7 +246,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
@@ -349,11 +255,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                   'Working Hours',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildImpactTile(
                   "${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg",
-                  'Waste Collected',
+                  'Collected',
                 ),
               ),
             ],
@@ -374,14 +280,12 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         children: [
           Text(
             value,
-            textAlign: TextAlign.center,
             style: AppTypography.displaySm.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            textAlign: TextAlign.center,
-            style: AppTypography.captionSm.copyWith(color: Colors.white),
+            style: AppTypography.captionSm.copyWith(color: AppColors.white90),
           ),
         ],
       ),
@@ -389,106 +293,72 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   }
 
   Widget _buildQuickActions() {
-    return Column(
+    return Row(
       children: [
-        _buildActionButton(
-          icon: Icons.search_rounded,
-          title: 'Browse Requests',
-          subtitle: 'See nearby requests to offer on',
-          primary: true,
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyBrowsePage()),
-            );
-          },
+        Expanded(
+          child: _buildActionTile(
+            icon: Icons.search_rounded,
+            title: 'Browse',
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                SmoothPageRoute(page: ThirdPartyBrowsePage()),
+              );
+            },
+          ),
         ),
-        const SizedBox(height: 10),
-        _buildActionButton(
-          icon: Icons.local_offer_outlined,
-          title: 'My Offers',
-          subtitle: 'Track pending and accepted offers',
-          primary: false,
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyMyJobsPage()),
-            );
-          },
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildActionTile(
+            icon: Icons.local_offer_outlined,
+            title: 'My Jobs',
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                SmoothPageRoute(page: ThirdPartyMyJobsPage()),
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildActionTile({
     required IconData icon,
     required String title,
-    required String subtitle,
-    required bool primary,
     required VoidCallback onTap,
   }) {
-    final bgColor = primary ? AppColors.green700 : Colors.white;
-    final titleColor = primary ? Colors.white : AppColors.green700;
-    final subColor = primary ? AppColors.white80 : AppColors.green700;
-    final iconBg = primary ? AppColors.white20 : AppColors.emerald50;
-    final iconColor = primary ? Colors.white : AppColors.green700;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
-        child: Ink(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(14),
-            border: primary
-                ? null
-                : Border.all(color: AppColors.emerald100, width: 1),
-            boxShadow: [
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey100, width: 1.27),
+            boxShadow: const [
               BoxShadow(
-                color: primary
-                    ? AppColors.green800.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: primary ? 8 : 6,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 2,
+                offset: Offset(0, 1),
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
+          child: Column(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.green700.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+                child: Icon(icon, color: AppColors.green700, size: 24),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTypography.buttonLg.copyWith(color: titleColor),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: AppTypography.caption.copyWith(color: subColor),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: primary ? Colors.white : AppColors.green700,
-                size: 22,
-              ),
+              const SizedBox(height: 12),
+              Text(title, style: AppTypography.titleSm),
             ],
           ),
         ),
@@ -498,16 +368,15 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
   Widget _buildPerformanceMetrics() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey100, width: 1.27),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 2,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -523,12 +392,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
             icon: Icons.access_time_rounded,
             label: 'On-Time Rate',
             value: '${_dashboardModel?.onTimeRate.toInt() ?? 0}%',
-          ),
-          _buildDivider(),
-          _buildMetricRow(
-            icon: Icons.star_border_rounded,
-            label: 'Average Rating',
-            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
           ),
         ],
       ),

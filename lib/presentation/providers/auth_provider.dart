@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/sources/websocket_service.dart';
 
@@ -65,15 +66,24 @@ class AuthProvider extends ChangeNotifier {
     try {
       // 1. HTTP login request
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/users/login'),
+        Uri.parse('$_baseUrl${ApiConstants.auth}/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        if (data['success'] == true && data['data'] != null) {
-          final user = AppUser.fromJson(data['data'] as Map<String, dynamic>);
+        
+        // Backend returns either { token: "...", ... } or { success: true, data: { ... } }
+        final token = data['token'] ?? data['data']?['token'];
+        final userData = data['data'] ?? data;
+
+        if (token != null) {
+          // Save token to SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token.toString());
+          
+          final user = AppUser.fromJson(userData as Map<String, dynamic>);
           _currentUser = user;
           _isAuthenticated = true;
 
@@ -83,7 +93,7 @@ class AuthProvider extends ChangeNotifier {
           _setLoading(false);
           notifyListeners();
         } else {
-          _setError('Login failed: ${data['message'] ?? 'Unknown error'}');
+          _setError('Login failed: Token not found in response');
         }
       } else {
         final data = jsonDecode(response.body) as Map<String, dynamic>;

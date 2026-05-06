@@ -422,77 +422,69 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: Column(
-        children: [
-          const CitizenHeader(name: 'Requests'),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadRequests,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  const SizedBox(height: 12),
-                  RequestActionButtons(
-                    showMyRequests: showMyRequests,
-                    onNewRequest: () {
-                      setState(() => showMyRequests = false);
-                    },
-                    onMyRequests: () async {
-                      setState(() => showMyRequests = true);
-                      await _loadRequests();
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  if (showMyRequests)
-                    RequestsList(
-                      loading: _loadingRequests,
-                      allRequests: _requests,
-                      filteredRequests: _filteredRequests,
-                      filterBar: RequestsFilterBar(
-                        statusFilter: _statusFilter,
-                        wasteTypeFilter: _wasteTypeFilter,
-                        searchController: _requestSearchController,
-                        availableWasteTypes: _availableWasteTypesForFilter,
-                        onStatusFilterChanged: (v) =>
-                            setState(() => _statusFilter = v),
-                        onWasteTypeFilterChanged: (v) =>
-                            setState(() => _wasteTypeFilter = v),
-                        onChanged: () => setState(() {}),
-                      ),
-                      onRequestTap: _openRequestDetail,
-                    )
-                  else
-                    RequestForm(
-                      selectedWasteType: selectedWasteType,
-                      selectedQuantity: selectedQuantity,
-                      selectedPickupDate: selectedPickupDate,
-                      selectedTimeSlot: selectedTimeSlot,
-                      pickupLocation: _pickupLocation,
-                      requestPhotoPath: _requestPhotoPath,
-                      submitting: _submitting,
-                      addressController: _addressController,
-                      phoneController: _phoneController,
-                      notesController: _notesController,
-                      onWasteTypeChanged: (v) =>
-                          setState(() => selectedWasteType = v),
-                      onQuantityChanged: (v) =>
-                          setState(() => selectedQuantity = v),
-                      onPickupDateChanged: (v) =>
-                          setState(() => selectedPickupDate = v),
-                      onTimeSlotChanged: (v) =>
-                          setState(() => selectedTimeSlot = v),
-                      onPickPhoto: _pickRequestPhoto,
-                      onPickLocation: _openPickupLocationPicker,
-                      onSubmit: _submitRequest,
-                      showSnackBar: _showSnackBar,
-                    ),
-                ],
-              ),
+      body: RefreshIndicator(
+        onRefresh: _loadRequests,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const SizedBox(height: 12),
+            RequestActionButtons(
+              showMyRequests: showMyRequests,
+              onNewRequest: () {
+                setState(() => showMyRequests = false);
+              },
+              onMyRequests: () async {
+                setState(() => showMyRequests = true);
+                await _loadRequests();
+              },
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            if (showMyRequests)
+              RequestsList(
+                loading: _loadingRequests,
+                allRequests: _requests,
+                filteredRequests: _filteredRequests,
+                filterBar: RequestsFilterBar(
+                  statusFilter: _statusFilter,
+                  wasteTypeFilter: _wasteTypeFilter,
+                  searchController: _requestSearchController,
+                  availableWasteTypes: _availableWasteTypesForFilter,
+                  onStatusFilterChanged: (v) =>
+                      setState(() => _statusFilter = v),
+                  onWasteTypeFilterChanged: (v) =>
+                      setState(() => _wasteTypeFilter = v),
+                  onChanged: () => setState(() {}),
+                ),
+                onRequestTap: _openRequestDetail,
+              )
+            else
+              RequestForm(
+                selectedWasteType: selectedWasteType,
+                selectedQuantity: selectedQuantity,
+                selectedPickupDate: selectedPickupDate,
+                selectedTimeSlot: selectedTimeSlot,
+                pickupLocation: _pickupLocation,
+                requestPhotoPath: _requestPhotoPath,
+                submitting: _submitting,
+                addressController: _addressController,
+                phoneController: _phoneController,
+                notesController: _notesController,
+                onWasteTypeChanged: (v) =>
+                    setState(() => selectedWasteType = v),
+                onQuantityChanged: (v) =>
+                    setState(() => selectedQuantity = v),
+                onPickupDateChanged: (v) =>
+                    setState(() => selectedPickupDate = v),
+                onTimeSlotChanged: (v) =>
+                    setState(() => selectedTimeSlot = v),
+                onPickPhoto: _pickRequestPhoto,
+                onPickLocation: _openPickupLocationPicker,
+                onSubmit: _submitRequest,
+                showSnackBar: _showSnackBar,
+              ),
+          ],
+        ),
       ),
-      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 3),
     );
   }
 }

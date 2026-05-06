@@ -21,26 +21,16 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: Column(
-        children: [
-          CitizenHeader(name: 'Reports'),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
-                  buildActionButtons(),
-                  const SizedBox(height: 20),
-                  showMyReports ? buildReportsList() : buildReportForm(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 1,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            buildActionButtons(),
+            const SizedBox(height: 20),
+            showMyReports ? buildReportsList() : buildReportForm(),
+          ],
+        ),
       ),
     );
   }

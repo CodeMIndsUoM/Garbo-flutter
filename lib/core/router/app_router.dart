@@ -9,6 +9,8 @@ import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
 import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/home.dart';
+import 'package:garbo_swms/presentation/citizen/pages/main_screen.dart';
+import 'package:garbo_swms/presentation/widgets/smooth_page_route.dart';
 
 class AppRouter {
   static const String login = '/login';
@@ -63,15 +65,15 @@ class AppRouter {
       case login:
         return const Login();
       case citizenHome:
-        return const CitizenHomePage();
+        return const CitizenMainScreen(initialIndex: 0);
       case citizenReport:
-        return const CitizenReportPage();
+        return const CitizenMainScreen(initialIndex: 1);
       case citizenRequest:
-        return const CitizenRequestPage();
+        return const CitizenMainScreen(initialIndex: 3);
       case citizenEvents:
-        return const CitizenPublicEventsPage();
+        return const CitizenMainScreen(initialIndex: 2);
       case citizenProfile:
-        return const CitizenProfilePage();
+        return const CitizenMainScreen(initialIndex: 4);
       case collectorDashboard:
         return const CollectionTeamDashboard();
       case collectorRoutes:
@@ -89,6 +91,6 @@ class AppRouter {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final routeName = settings.name ?? login;
-    return MaterialPageRoute(builder: (_) => pageForRoute(routeName));
+    return SmoothPageRoute(page: pageForRoute(routeName), settings: settings);
   }
 }

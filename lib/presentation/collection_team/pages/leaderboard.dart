@@ -70,11 +70,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [AppColors.blue50, AppColors.indigo50],
-                            ),
+                            color: AppColors.blue50,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: AppColors.blue200,

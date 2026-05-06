@@ -6,16 +6,16 @@ abstract final class AppColors {
   static const Color green700 = Color(0xFF03824B);
   static const Color green800 = Color(0xFF026639);
 
-  // Emerald palette
-  static const Color emerald50 = Color(0xFFECFDF5);
-  static const Color emerald100 = Color(0xFFD1FAE5);
-  static const Color emerald200 = Color(0xFFA7F3D0);
+  // Emerald palette (Unified with green700)
+  static const Color emerald50 = Color(0xFFF0FDF4);
+  static const Color emerald100 = Color(0xFFDCFCE7);
+  static const Color emerald200 = Color(0xFFBBF7D0);
   static const Color emeraldLight = Color(0xFFDCFCE7);
-  static const Color emerald500 = Color(0xFF10B981);
-  static const Color emerald600 = Color(0xFF059669);
-  static const Color emerald700 = Color(0xFF047857);
-  static const Color emerald800 = Color(0xFF065F46);
-  static const Color emerald900 = Color(0xFF064E3B);
+  static const Color emerald500 = Color(0xFF03824B); // Aligned with green700
+  static const Color emerald600 = Color(0xFF03824B); // Aligned with green700
+  static const Color emerald700 = Color(0xFF03824B); // Same as green700
+  static const Color emerald800 = Color(0xFF026639); // Aligned with green800
+  static const Color emerald900 = Color(0xFF014D2B);
 
   // Teal
   static const Color teal50 = Color(0xFFF0FDFA);
@@ -89,17 +89,17 @@ abstract final class AppColors {
   static const Color amberBorder2  = Color(0xFFFFECAA);
   static const Color redBorder     = Color(0xFFFECACA);
   static const Color redSurface2   = Color(0xFFFFE2E2);
-  static const Color greenSurface2 = Color(0xFFE2FBE9);
-  static const Color greenSurface3 = Color(0xFFE8FDF0);
-  static const Color greenBorder2  = Color(0xFFB0F1C3);
+  static const Color greenSurface2 = Color(0xFFDCFCE7); // Aligned
+  static const Color greenSurface3 = Color(0xFFF0FDF4); // Aligned
+  static const Color greenBorder2  = Color(0xFFBBF7D0); // Aligned
 
   // "Dark" status text (used over light status surfaces)
   static const Color redDark    = Color(0xFFC10007);
   static const Color redDark2   = Color(0xFFE7000A);
   static const Color amberDark  = Color(0xFFCC7A00);
   static const Color amberDark2 = Color(0xFFE2A000);
-  static const Color greenDark  = Color(0xFF007A2E);
-  static const Color greenDark2 = Color(0xFF00A63E);
+  static const Color greenDark  = Color(0xFF026639); // Aligned with green800
+  static const Color greenDark2 = Color(0xFF014D2B); // Aligned with green900
   static const Color yellowDark = Color(0xFFA65F00);
 
   // Extra purple shade (settings overlay)

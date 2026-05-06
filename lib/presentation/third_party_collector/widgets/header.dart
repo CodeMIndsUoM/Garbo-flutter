@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/widgets/premium/premium_header.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 
-class ThirdPartyHeader extends StatelessWidget {
+class ThirdPartyHeader extends StatefulWidget {
   final String title;
   final String subtitle;
   final int notificationCount;
@@ -17,92 +20,90 @@ class ThirdPartyHeader extends StatelessWidget {
   });
 
   @override
+  State<ThirdPartyHeader> createState() => _ThirdPartyHeaderState();
+}
+
+class _ThirdPartyHeaderState extends State<ThirdPartyHeader> {
+  final ApiService _apiService = ApiService();
+  CollectorDashboardModel? _dashboardModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final collectorId = await _apiService.getStoredEmpId();
+      if (collectorId != null) {
+        final dashboard = await _apiService.getCollectorDashboard(collectorId);
+        if (mounted) {
+          setState(() => _dashboardModel = dashboard);
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        20,
-        MediaQuery.of(context).padding.top + 14,
-        20,
-        18,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.green700,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
+    return PremiumHeader(
+      title: widget.title,
+      subtitle: widget.subtitle,
+      stats: [
+        PremiumStatItem(
+          value: _dashboardModel?.availableRequests.toString() ?? '-',
+          label: 'Available',
+          icon: Icons.search_rounded,
+        ),
+        PremiumStatItem(
+          value: _dashboardModel?.activeJobs.toString() ?? '-',
+          label: 'Active',
+          icon: Icons.work_outline_rounded,
+        ),
+        PremiumStatItem(
+          value: _dashboardModel?.completedJobs.toString() ?? '-',
+          label: 'Completed',
+          icon: Icons.check_circle_outline_rounded,
+        ),
+      ],
+      trailing: GestureDetector(
+        onTap: widget.onNotificationTap,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.white20,
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTypography.h1.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: AppTypography.bodySm.copyWith(
-                    color: AppColors.white90,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: onNotificationTap,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.white20,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  const Icon(
-                    Icons.notifications_outlined,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  if (notificationCount > 0)
-                    Positioned(
-                      right: 4,
-                      top: 4,
-                      child: Container(
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.red500,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          notificationCount > 9 ? '9+' : '$notificationCount',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.badge,
-                        ),
-                      ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
+              if (widget.notificationCount > 0)
+                Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.red500,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white, width: 1.5),
                     ),
-                ],
-              ),
-            ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      widget.notificationCount > 9 ? '9+' : '${widget.notificationCount}',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.badge,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

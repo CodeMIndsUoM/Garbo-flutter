@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -75,7 +76,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           const HeaderReduced(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -86,6 +87,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     levelProgress: levelProgress,
                   ),
                   const SizedBox(height: 24),
+                  _buildSectionHeader("Today's Performance"),
+                  const SizedBox(height: 12),
                   buildTodaysPerformance(
                     context: context,
                     authProvider: authProvider,
@@ -93,10 +96,14 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     gamificationProvider: gamificationProvider,
                   ),
                   const SizedBox(height: 24),
+                  _buildSectionHeader("Active Routes"),
+                  const SizedBox(height: 12),
                   buildTodaysRoutes(routeProvider),
                   const SizedBox(height: 24),
+                  _buildSectionHeader("Recent Achievements"),
+                  const SizedBox(height: 12),
                   buildRecentAchievements(gamificationProvider),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
@@ -105,6 +112,10 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       ),
       bottomNavigationBar: const CollectionTeamBottomNav(currentIndex: 0),
     );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: AppTypography.titleLg);
   }
 
   Widget buildLevelCard({
@@ -125,15 +136,18 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           );
         },
         child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.blue50, AppColors.indigo50],
-            ),
+            color: AppColors.blue50,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.blue200, width: 1.27),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowSm,
+                blurRadius: 2,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
           child: Column(
             children: [
@@ -149,32 +163,14 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                           color: AppColors.blue500,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(
-                          Icons.emoji_events,
-                          color: Colors.white,
-                          size: 24,
-                        ),
+                        child: const Icon(Icons.emoji_events, color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Level $level',
-                            style: const TextStyle(
-                              color: AppColors.grey900,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            'Current Rank $rankText',
-                            style: const TextStyle(
-                              color: AppColors.grey600,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
+                          Text('Level $level', style: AppTypography.h3),
+                          Text('Rank $rankText', style: AppTypography.caption),
                         ],
                       ),
                     ],
@@ -182,22 +178,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        '${points.toStringAsFixed(0)} pts',
-                        style: const TextStyle(
-                          color: AppColors.blue600,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '${_pointsToNextLevel(points).toStringAsFixed(0)} to Level ${level + 1}',
-                        style: const TextStyle(
-                          color: AppColors.grey500,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
+                      Text('${points.toStringAsFixed(0)} pts', style: AppTypography.titleMd.copyWith(color: AppColors.blue600)),
+                      Text('${_pointsToNextLevel(points).toStringAsFixed(0)} to next', style: AppTypography.overline),
                     ],
                   ),
                 ],
@@ -208,23 +190,14 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 child: LinearProgressIndicator(
                   value: levelProgress,
                   backgroundColor: Colors.white.withValues(alpha: 0.6),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.blue500,
-                  ),
-                  minHeight: 12,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.blue500),
+                  minHeight: 10,
                 ),
               ),
               const SizedBox(height: 10),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  'Level rule: every 250 points increases 1 level.',
-                  style: TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child: Text('250 points per level.', style: AppTypography.overline),
               ),
             ],
           ),
@@ -552,9 +525,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 title: session.title,
                 details:
                     '${session.totalStops} bins • ${session.estimatedMinutes} mins • $collected collected',
-                gradientColors: pending == 0
-                    ? const [AppColors.blue50, AppColors.indigo50]
-                    : const [AppColors.red50, AppColors.orange50],
+                bgColor: pending == 0 ? AppColors.blue50 : AppColors.red50,
               ),
             );
           }),
@@ -568,22 +539,15 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required Color priorityBg,
     required String title,
     required String details,
-    List<Color>? gradientColors,
+    Color? bgColor,
   }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
-        gradient: gradientColors != null
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: gradientColors,
-              )
-            : null,
-        color: gradientColors == null ? Colors.white : null,
+        color: bgColor ?? Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: gradientColors != null ? priorityBg : AppColors.grey200,
+          color: bgColor != null ? priorityBg : AppColors.grey200,
           width: 1.27,
         ),
       ),
@@ -745,11 +709,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.yellow, AppColors.yellowOrange],
-              ),
+              color: AppColors.yellowOrange,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: AppColors.orange500, size: 24),

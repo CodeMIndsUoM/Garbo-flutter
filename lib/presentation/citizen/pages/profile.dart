@@ -15,41 +15,31 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: Column(
-        children: [
-          CitizenHeader(name: 'Profile'),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  buildProfileCard(),
-                  const SizedBox(height: 24),
-                  buildContactInfo(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.grey900,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildSettingsOptions(),
-                  const SizedBox(height: 24),
-                  buildLogoutButton(),
-                  const SizedBox(height: 24),
-                ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12),
+            buildProfileCard(),
+            const SizedBox(height: 24),
+            buildContactInfo(),
+            const SizedBox(height: 24),
+            const Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.grey900,
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 4,
+            const SizedBox(height: 16),
+            buildSettingsOptions(),
+            const SizedBox(height: 24),
+            buildLogoutButton(),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -58,14 +48,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.emerald600,
-            AppColors.emerald700,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

@@ -2,79 +2,79 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/pages/settings.dart';
 import 'package:garbo_swms/presentation/widgets/websocket_status_dot.dart';
+import 'package:garbo_swms/presentation/widgets/premium/premium_header.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class CitizenHeader extends StatelessWidget {
+class CitizenHeader extends StatefulWidget {
   final String name;
-  final String? profileImageUrl;
+  const CitizenHeader({super.key, required this.name});
 
-  const CitizenHeader({super.key, required this.name, this.profileImageUrl});
+  @override
+  State<CitizenHeader> createState() => _CitizenHeaderState();
+}
+
+class _CitizenHeaderState extends State<CitizenHeader> {
+  String _userName = 'Citizen';
+  int _points = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userName = prefs.getString('empName') ?? 'Citizen';
+      _points = prefs.getInt('rewardPoints') ?? 145; // Default for demo
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        24,
-        MediaQuery.of(context).padding.top + 12,
-        24,
-        16,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.emerald700,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
+    return PremiumHeader(
+      title: 'Citizen Portal',
+      subtitle: 'Hello, $_userName!',
+      stats: [
+        PremiumStatItem(
+          value: '$_points',
+          label: 'Eco Points',
+          icon: Icons.eco_outlined,
+        ),
+        const PremiumStatItem(
+          value: '3',
+          label: 'Active Requests',
+          icon: Icons.assignment_outlined,
+        ),
+      ],
+      trailing: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const CitizenSettingsPage(),
+            ),
+          );
+        },
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.white20,
+                borderRadius: BorderRadius.circular(16),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const CitizenSettingsPage(),
-                    ),
-                  );
-                },
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.menu, color: Colors.white, size: 22),
-                    ),
-                    const Positioned(
-                      right: -2,
-                      top: -2,
-                      child: WebSocketStatusDot(size: 11),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+              child: const Icon(Icons.menu, color: Colors.white, size: 24),
+            ),
+            const Positioned(
+              right: -2,
+              top: -2,
+              child: WebSocketStatusDot(size: 11),
+            ),
+          ],
+        ),
       ),
     );
   }

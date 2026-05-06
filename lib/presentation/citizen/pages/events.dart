@@ -16,51 +16,41 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: Column(
-        children: [
-          CitizenHeader(name: 'Events'),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  buildSectionHeader(),
-                  const SizedBox(height: 16),
-                  buildEventCard(
-                    badge: 'Cleanup',
-                    badgeColor: AppColors.emerald600,
-                    imageUrl: 'assets/cleanup_event.jpg',
-                    title: 'Community Cleanup Drive',
-                    description:
-                        'Join us for a community clean up event. Gloves and bags will be provided.',
-                    date: '2025-11-25',
-                    time: '9:00 AM - 12:00 PM',
-                    location: 'Central Park',
-                    participants: '45 / 100 participants',
-                  ),
-                  const SizedBox(height: 16),
-                  buildEventCard(
-                    badge: 'Workshop',
-                    badgeColor: AppColors.purple600,
-                    imageUrl: 'assets/workshop_event.jpg',
-                    title: 'Recycling Workshop',
-                    description:
-                        'Learn how to properly sort and recycle different materials.',
-                    date: '2025-12-02',
-                    time: '2:00 PM - 4:00 PM',
-                    location: 'Community Center',
-                    participants: '23 / 50 participants',
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            buildSectionHeader(),
+            const SizedBox(height: 16),
+            buildEventCard(
+              badge: 'Cleanup',
+              badgeColor: AppColors.emerald600,
+              imageUrl: 'assets/cleanup_event.jpg',
+              title: 'Community Cleanup Drive',
+              description:
+                  'Join us for a community clean up event. Gloves and bags will be provided.',
+              date: '2025-11-25',
+              time: '9:00 AM - 12:00 PM',
+              location: 'Central Park',
+              participants: '45 / 100 participants',
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 2,
+            const SizedBox(height: 16),
+            buildEventCard(
+              badge: 'Workshop',
+              badgeColor: AppColors.purple600,
+              imageUrl: 'assets/workshop_event.jpg',
+              title: 'Recycling Workshop',
+              description:
+                  'Learn how to properly sort and recycle different materials.',
+              date: '2025-12-02',
+              time: '2:00 PM - 4:00 PM',
+              location: 'Community Center',
+              participants: '23 / 50 participants',
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
