@@ -1,515 +1,259 @@
-import 'dart:convert';
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:garbo_swms/core/constants/api_constants.dart';
+
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
+import 'package:garbo_swms/data/sources/citizen_api.dart';
+import 'package:garbo_swms/data/sources/field_staff_api.dart';
+import 'package:garbo_swms/data/sources/profile_api.dart';
+import 'package:garbo_swms/data/sources/third_party_collector_api.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class ApiService {
   final http.Client client;
+  late final FieldStaffApi _fieldStaffApi;
+  late final ProfileApi _profileApi;
+  late final CitizenApi _citizenApi;
+  late final ThirdPartyCollectorApi _thirdPartyCollectorApi;
 
-  ApiService({http.Client? client}) : client = client ?? http.Client();
+  ApiService({http.Client? client}) : client = client ?? http.Client() {
+    _fieldStaffApi = FieldStaffApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+    _profileApi = ProfileApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+    _citizenApi = CitizenApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+    _thirdPartyCollectorApi = ThirdPartyCollectorApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+  }
 
-  /// Gets auth headers with JWT token from SharedPreferences.
   Future<Map<String, String>> _authHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+    final token = await _accessToken();
     return {
       'Content-Type': 'application/json',
       if (token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
   }
 
-  /// Fetches bins assigned to a specific field mentor.
-  Future<List<BinModel>> getAssignedBins(String empId) async {
-    if (empId.isEmpty) {
-      throw Exception('Employee ID is empty. Please log in again.');
-    }
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins',
-    );
-    try {
-      final headers = await _authHeaders();
-      final response = await client.get(url, headers: headers);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> body = json.decode(response.body);
-        if (body['success'] == true && body['data'] != null) {
-          final List<dynamic> data = body['data'];
-          return data.map((json) => BinModel.fromJson(json)).toList();
-        } else {
-          throw Exception('Failed to load bins: ${body['message']}');
-        }
-      } else {
-        throw Exception('Failed to load bins: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error fetching bins: $e');
-    }
-  }
-
-  /// Reports the status of a bin.
-  Future<bool> reportBinStatus(
-    String empId,
-    String binId,
-    Map<String, dynamic> reportData,
-  ) async {
-    if (empId.isEmpty) {
-      throw Exception('Employee ID is empty. Please log in again.');
-    }
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId/bins/$binId/report',
-    );
-    try {
-      final headers = await _authHeaders();
-      final response = await client.post(
-        url,
-        headers: headers,
-        body: json.encode(reportData),
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> body = json.decode(response.body);
-        return body['success'] == true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      throw Exception('Error reporting bin status: $e');
-    }
-  }
-
-  /// Undoes a bin report, resetting it to notChecked.
-  Future<bool> undoBinReport(String empId, String binId) async {
-    return reportBinStatus(empId, binId, {
-      "status": "notChecked",
-      "fillLevel": 0,
-      "notes": "Undo report",
-      "latitude": 6.9,
-      "longitude": 79.8,
-    });
-  }
-
-  /// Fetches the name of a specific field mentor.
-  Future<String> getFieldMentorName(String empId) async {
-    if (empId.isEmpty) {
-      return 'Field Staff';
-    }
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId',
-    );
-    try {
-      final headers = await _authHeaders();
-      final response = await client.get(url, headers: headers);
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> body = json.decode(response.body);
-        if (body['success'] == true && body['data'] != null) {
-          return body['data']['empName'] ?? 'Field Staff';
-        }
-      }
-      return 'Field Staff';
-    } catch (e) {
-      // Fail silently for UI polish
-      return 'Field Staff';
-    }
-  }
-
-  Future<String> getStoredEmpId() async {
+  Future<String> _accessToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('empId') ?? '';
+    return prefs.getString('token') ?? '';
   }
+
+  Future<List<BinModel>> getAssignedBins() => _fieldStaffApi.getAssignedBins();
+
+  Future<bool> reportBinStatus({
+    required String binId,
+    required Map<String, dynamic> reportData,
+    String? photoPath,
+  }) => _fieldStaffApi.reportBinStatus(
+    binId: binId,
+    reportData: reportData,
+    photoPath: photoPath,
+  );
+
+  Future<bool> undoBinReport(String binId) =>
+      _fieldStaffApi.undoBinReport(binId);
+
+  Future<String> getFieldMentorName(String empId) =>
+      _profileApi.getFieldMentorName(empId);
+
+  Future<String> getStoredEmpId() => _profileApi.getStoredEmpId();
+
+  Future<String> getStoredEmpName() => _profileApi.getStoredEmpName();
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) =>
+      _profileApi.getUserProfile(userId);
+
+  Future<bool> updateUserProfile(String userId, Map<String, dynamic> data) =>
+      _profileApi.updateUserProfile(userId, data);
+
+  Future<Map<String, dynamic>?> getThirdPartyCollectorProfile(
+    String collectorId,
+  ) => _profileApi.getThirdPartyCollectorProfile(collectorId);
+
+  Future<bool> updateThirdPartyCollectorProfile(
+    String collectorId,
+    Map<String, dynamic> data,
+  ) => _profileApi.updateThirdPartyCollectorProfile(collectorId, data);
+
+  Future<String?> uploadProfilePicture(String userId, File imageFile) =>
+      _profileApi.uploadProfilePicture(userId, imageFile);
 
   Future<List<CollectionRequestModel>> getCitizenCollectionRequests(
     String citizenId, {
     String? status,
-  }) async {
-    if (citizenId.isEmpty) {
-      throw Exception('Citizen ID is empty. Please log in again.');
-    }
+  }) => _citizenApi.getCitizenCollectionRequests(citizenId, status: status);
 
-    final query = status == null ? '' : '?status=$status';
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId${ApiConstants.collectionRequests}$query',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.get(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to load requests');
-    }
-
-    final data = body['data'] as List<dynamic>? ?? const [];
-    return data
-        .map(
-          (item) => CollectionRequestModel.fromSummaryJson(
-            item as Map<String, dynamic>,
-          ),
-        )
-        .toList();
-  }
-
-  Future<CollectionRequestModel> getCollectionRequestDetail(
-    int requestId,
-  ) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.collectionRequests}/$requestId',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.get(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to load request detail');
-    }
-
-    return CollectionRequestModel.fromDetailJson(
-      body['data'] as Map<String, dynamic>,
-    );
-  }
+  Future<CollectionRequestModel> getCollectionRequestDetail(int requestId) =>
+      _citizenApi.getCollectionRequestDetail(requestId);
 
   Future<CollectionRequestModel> createCollectionRequest({
     required String citizenId,
     required Map<String, dynamic> payload,
-  }) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId${ApiConstants.collectionRequests}',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(payload),
-    );
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 201 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to create request');
-    }
-
-    return CollectionRequestModel.fromSummaryJson(
-      body['data'] as Map<String, dynamic>,
-    );
-  }
+  }) => _citizenApi.createCollectionRequest(
+    citizenId: citizenId,
+    payload: payload,
+  );
 
   Future<String> uploadCitizenRequestPhoto({
     required String citizenId,
     required String photoPath,
-  }) async {
-    if (citizenId.isEmpty) {
-      throw Exception('Citizen ID is empty. Please log in again.');
-    }
+  }) => _citizenApi.uploadCitizenRequestPhoto(
+    citizenId: citizenId,
+    photoPath: photoPath,
+  );
 
-    final file = File(photoPath);
-    if (!await file.exists()) {
-      throw Exception('Selected image file was not found.');
-    }
+  Future<CollectionOfferModel> acceptOffer(int offerId) =>
+      _citizenApi.acceptOffer(offerId);
 
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.citizens}/$citizenId/request-photo',
-    );
+  Future<CollectionOfferModel> rejectOffer(int offerId) =>
+      _citizenApi.rejectOffer(offerId);
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    final request = http.MultipartRequest('POST', url);
-    if (token.isNotEmpty) {
-      request.headers['Authorization'] = 'Bearer $token';
-    }
-    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
-
-    final streamed = await request.send();
-    final response = await http.Response.fromStream(streamed);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to upload request photo');
-    }
-
-    final data = body['data'] as Map<String, dynamic>? ?? const {};
-    final photoUrl = data['photoUrl']?.toString();
-    if (photoUrl == null || photoUrl.trim().isEmpty) {
-      throw Exception('Backend did not return a photo URL.');
-    }
-    return photoUrl;
-  }
-
-  Future<CollectionOfferModel> acceptOffer(int offerId) async {
-    return _offerAction(offerId, 'accept');
-  }
-
-  Future<CollectionOfferModel> rejectOffer(int offerId) async {
-    return _offerAction(offerId, 'reject');
-  }
-
-  Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action',
-    );
-    final headers = await _authHeaders();
-    final response = await client.post(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to $action offer');
-    }
-
-    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
-  }
+  Future<CollectionOfferModel> confirmOffer({
+    required int offerId,
+    required int rating,
+    String? feedback,
+  }) => _citizenApi.confirmOffer(
+    offerId: offerId,
+    rating: rating,
+    feedback: feedback,
+  );
 
   Future<List<CollectionRequestModel>> getCollectorFeed(
     String collectorId, {
     double? lat,
     double? lng,
-  }) async {
-    if (collectorId.isEmpty) {
-      throw Exception('Collector ID is empty. Please log in again.');
-    }
-
-    final params = <String, String>{};
-    if (lat != null && lng != null) {
-      params['lat'] = lat.toString();
-      params['lng'] = lng.toString();
-    }
-
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/feed',
-    ).replace(queryParameters: params.isEmpty ? null : params);
-
-    final headers = await _authHeaders();
-    final response = await client.get(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to load collector feed');
-    }
-
-    final data = body['data'] as List<dynamic>? ?? const [];
-    return data
-        .map(
-          (item) => CollectionRequestModel.fromSummaryJson(
-            item as Map<String, dynamic>,
-          ),
-        )
-        .toList();
-  }
+  }) => _thirdPartyCollectorApi.getCollectorFeed(
+    collectorId,
+    lat: lat,
+    lng: lng,
+  );
 
   Future<CollectionOfferModel> sendCollectorOffer({
     required int requestId,
     required Map<String, dynamic> payload,
-  }) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.collectionRequests}/$requestId/offers',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(payload),
-    );
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 201 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to send offer');
-    }
-
-    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
-  }
+  }) => _thirdPartyCollectorApi.sendCollectorOffer(
+    requestId: requestId,
+    payload: payload,
+  );
 
   Future<List<CollectionOfferModel>> getCollectorOffers(
     String collectorId, {
     String? status,
-  }) async {
-    if (collectorId.isEmpty) {
-      throw Exception('Collector ID is empty. Please log in again.');
-    }
+  }) => _thirdPartyCollectorApi.getCollectorOffers(collectorId, status: status);
 
-    final params = <String, String>{};
-    if (status != null && status.trim().isNotEmpty) {
-      params['status'] = status.trim();
-    }
+  Future<List<CollectionOfferModel>> getCollectorActiveJobs(String collectorId) =>
+      _thirdPartyCollectorApi.getCollectorActiveJobs(collectorId);
 
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/my-offers',
-    ).replace(queryParameters: params.isEmpty ? null : params);
+  Future<CollectionOfferModel> withdrawOffer(int offerId) =>
+      _thirdPartyCollectorApi.withdrawOffer(offerId);
 
-    final headers = await _authHeaders();
-    final response = await client.get(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to load offers');
-    }
-
-    final data = body['data'] as List<dynamic>? ?? const [];
-    return data
-        .map(
-          (item) => CollectionOfferModel.fromJson(item as Map<String, dynamic>),
-        )
-        .toList();
-  }
-
-  Future<List<CollectionOfferModel>> getCollectorActiveJobs(
-    String collectorId,
-  ) async {
-    if (collectorId.isEmpty) {
-      throw Exception('Collector ID is empty. Please log in again.');
-    }
-
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/active-jobs',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.get(url, headers: headers);
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to load active jobs');
-    }
-
-    final data = body['data'] as List<dynamic>? ?? const [];
-    return data
-        .map(
-          (item) => CollectionOfferModel.fromJson(item as Map<String, dynamic>),
-        )
-        .toList();
-  }
-
-  Future<CollectionOfferModel> withdrawOffer(int offerId) async {
-    return _offerAction(offerId, 'withdraw');
-  }
-
-  Future<void> hideOffer(int offerId) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/hide',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(<String, dynamic>{}),
-    );
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to remove offer from list');
-    }
-  }
+  Future<void> hideOffer(int offerId) => _thirdPartyCollectorApi.hideOffer(offerId);
 
   Future<int> hideCollectorOffers({
     required String collectorId,
     List<String>? statuses,
-  }) async {
-    if (collectorId.isEmpty) {
-      throw Exception('Collector ID is empty. Please log in again.');
-    }
+  }) => _thirdPartyCollectorApi.hideCollectorOffers(
+    collectorId: collectorId,
+    statuses: statuses,
+  );
 
-    final params = <String, String>{};
-    if (statuses != null && statuses.isNotEmpty) {
-      params['statuses'] = statuses.join(',');
-    }
-
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/my-offers/hide',
-    ).replace(queryParameters: params.isEmpty ? null : params);
-
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(<String, dynamic>{}),
-    );
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to clear offers');
-    }
-
-    final data = body['data'] as Map<String, dynamic>? ?? const {};
-    return (data['hiddenCount'] as num?)?.toInt() ?? 0;
-  }
-
-  Future<CollectionOfferModel> startOffer(int offerId) async {
-    return _offerAction(offerId, 'start');
-  }
+  Future<CollectionOfferModel> startOffer(int offerId) =>
+      _thirdPartyCollectorApi.startOffer(offerId);
 
   Future<CollectionOfferModel> cancelOffer({
     required int offerId,
     required String reason,
     String? note,
-  }) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/cancel',
-    );
-
-    final headers = await _authHeaders();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode({'reason': reason, 'note': note}),
-    );
-    final body = json.decode(response.body) as Map<String, dynamic>;
-
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to cancel offer');
-    }
-
-    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
-  }
+  }) => _thirdPartyCollectorApi.cancelOffer(
+    offerId: offerId,
+    reason: reason,
+    note: note,
+  );
 
   Future<CollectionOfferModel> completeOffer({
     required int offerId,
-    required String photoPath,
+    String? photoPath,
     required double latitude,
     required double longitude,
     double? weightKg,
     String? notes,
-  }) async {
-    final url = Uri.parse(
-      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete',
-    );
+  }) => _thirdPartyCollectorApi.completeOffer(
+    offerId: offerId,
+    photoPath: photoPath,
+    latitude: latitude,
+    longitude: longitude,
+    weightKg: weightKg,
+    notes: notes,
+  );
 
-    final file = File(photoPath);
-    if (!await file.exists()) {
-      throw Exception('Completion photo file not found. Please capture again.');
-    }
+  Future<CollectorDashboardModel> getCollectorDashboard(String collectorId) =>
+      _thirdPartyCollectorApi.getCollectorDashboard(collectorId);
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+  // ─── Third-party collector registration (public, no auth) ───
 
-    final request = http.MultipartRequest('POST', url)
-      ..fields['latitude'] = latitude.toString()
-      ..fields['longitude'] = longitude.toString();
+  Future<List<String>> fetchThirdPartyCouncils() =>
+      _thirdPartyCollectorApi.fetchThirdPartyCouncils();
 
-    if (weightKg != null) {
-      request.fields['weightKg'] = weightKg.toString();
-    }
-    if (notes != null && notes.trim().isNotEmpty) {
-      request.fields['notes'] = notes.trim();
-    }
-    if (token.isNotEmpty) {
-      request.headers['Authorization'] = 'Bearer $token';
-    }
+  Future<String> uploadThirdPartyNicPhoto(File imageFile) =>
+      _thirdPartyCollectorApi.uploadThirdPartyNicPhoto(imageFile);
 
-    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+  Future<Map<String, dynamic>> registerThirdPartyCollector({
+    required String empName,
+    required String email,
+    required String phone,
+    required String NIC,
+    required String dateOfBirth,
+    String? company,
+    String? contractId,
+    String? contractStart,
+    String? contractEnd,
+    required String defaultAddress,
+    required String idPhotoUrl,
+    String? idPhotoBackUrl,
+    required List<String> assignedCouncils,
+  }) => _thirdPartyCollectorApi.registerThirdPartyCollector(
+    empName: empName,
+    email: email,
+    phone: phone,
+    NIC: NIC,
+    dateOfBirth: dateOfBirth,
+    company: company,
+    contractId: contractId,
+    contractStart: contractStart,
+    contractEnd: contractEnd,
+    defaultAddress: defaultAddress,
+    idPhotoUrl: idPhotoUrl,
+    idPhotoBackUrl: idPhotoBackUrl,
+    assignedCouncils: assignedCouncils,
+  );
 
-    final streamed = await request.send();
-    final response = await http.Response.fromStream(streamed);
-    final body = json.decode(response.body) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(int empId) =>
+      _thirdPartyCollectorApi.checkThirdPartyRegistrationStatus(empId);
 
-    if (response.statusCode != 200 || body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to complete offer');
-    }
-
-    return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
-  }
+  Future<void> setThirdPartyPassword({
+    required int empId,
+    required String email,
+    required String password,
+  }) => _thirdPartyCollectorApi.setThirdPartyPassword(
+    empId: empId,
+    email: email,
+    password: password,
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class ProfileAchievementList extends StatelessWidget {
   const ProfileAchievementList({super.key});
@@ -14,36 +15,20 @@ class ProfileAchievementList extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.stars_outlined, color: Color(0xFF101727), size: 24),
+                const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
                 const SizedBox(width: 8),
-                const Text(
-                  'Achievements',
-                  style: TextStyle(
-                    color: Color(0xFF101727),
-                    fontSize: 16,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                Text('Achievements', style: AppTypography.titleLg),
               ],
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: ShapeDecoration(
-                color: const Color(0xFFFEF9C2),
+                color: AppColors.yellow,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                '3/6',
-                style: TextStyle(
-                  color: Color(0xFFA65F00),
-                  fontSize: 11,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              child: Text('3/6', style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.yellowDark)),
             ),
           ],
         ),
@@ -79,7 +64,7 @@ class ProfileAchievementList extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey100),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
@@ -107,42 +92,18 @@ class ProfileAchievementList extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Color(0xFF101727),
-                        fontSize: 14,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700)),
                     const Icon(Icons.check_circle, color: AppColors.green700, size: 20),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: Color(0xFF495565),
-                    fontSize: 12,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                Text(description, style: AppTypography.caption.copyWith(color: AppColors.grey600)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(Icons.star, color: AppColors.green700, size: 14),
                     const SizedBox(width: 4),
-                    Text(
-                      earnedText,
-                      style: const TextStyle(
-                        color: AppColors.green700,
-                        fontSize: 11,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text(earnedText, style: AppTypography.captionSm.copyWith(color: AppColors.green700)),
                   ],
                 ),
               ],

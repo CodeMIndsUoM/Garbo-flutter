@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/settings.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/widgets/websocket_status_dot.dart';
+import 'package:provider/provider.dart';
 
 class HeaderReduced extends StatelessWidget {
   const HeaderReduced({super.key});
 
+  String _resolveFirstName(String? fullName) {
+    final normalized = (fullName ?? '').trim();
+    if (normalized.isEmpty) {
+      return 'Collector';
+    }
+    return normalized.split(RegExp(r'\s+')).first;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.watch<AuthProvider>().currentUser;
+    final firstName = _resolveFirstName(currentUser?.empName);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
@@ -28,10 +42,10 @@ class HeaderReduced extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Collection Team',
                       style: TextStyle(
                         color: Colors.white,
@@ -42,8 +56,8 @@ class HeaderReduced extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Hello, Mike !',
-                      style: TextStyle(
+                      'Hello, $firstName !',
+                      style: const TextStyle(
                         color: AppColors.white90,
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -57,14 +71,24 @@ class HeaderReduced extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const SettingsPage()),
                     );
                   },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(Icons.menu, color: Colors.white, size: 24),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.menu, color: Colors.white, size: 24),
+                      ),
+                      const Positioned(
+                        right: -2,
+                        top: -2,
+                        child: WebSocketStatusDot(size: 12),
+                      ),
+                    ],
                   ),
                 )
               ],

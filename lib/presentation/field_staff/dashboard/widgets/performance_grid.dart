@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class PerformanceGrid extends StatelessWidget {
   final int totalBins;
   final int pendingBins;
+  final int? avgResponseMinutes;
 
   const PerformanceGrid({
     super.key,
     required this.totalBins,
     required this.pendingBins,
+    this.avgResponseMinutes,
   });
 
   @override
@@ -18,16 +21,7 @@ class PerformanceGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Today's Performance",
-          style: TextStyle(
-            fontFamily: 'Arimo',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.grey900,
-            height: 1.5,
-          ),
-        ),
+        Text("Today's Performance", style: AppTypography.titleLg),
         const SizedBox(height: 12),
         Column(
           children: [
@@ -37,7 +31,6 @@ class PerformanceGrid extends StatelessWidget {
                   child: _buildGridItem(
                     title: '$completedBins',
                     subtitle: 'Bins Checked',
-                    status: '$pendingBins remaining',
                     statusColor: AppColors.green700,
                     icon: Icons.check_circle_outline,
                     themeColor: AppColors.green700,
@@ -49,7 +42,6 @@ class PerformanceGrid extends StatelessWidget {
                   child: _buildGridItem(
                     title: '$totalBins',
                     subtitle: 'Assigned Bins',
-                    status: 'In your zone',
                     statusColor: AppColors.green700,
                     icon: Icons.map_outlined,
                     themeColor: AppColors.green700,
@@ -63,9 +55,11 @@ class PerformanceGrid extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildGridItem(
-                    title: '4 mins',
+                    title: avgResponseMinutes == null
+                        ? '--'
+                        : '${avgResponseMinutes!} mins',
                     subtitle: 'Avg Response',
-                    status: 'Very quick!',
+                    status: null,
                     statusColor: AppColors.green700,
                     icon: Icons.timer_outlined,
                     themeColor: AppColors.green700,
@@ -75,9 +69,9 @@ class PerformanceGrid extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildGridItem(
-                    title: '+145',
+                    title: '--',
                     subtitle: 'Points Today',
-                    status: 'Keep it up!',
+                    status: null,
                     statusColor: AppColors.green700,
                     icon: Icons.bolt,
                     themeColor: AppColors.green700,
@@ -95,7 +89,7 @@ class PerformanceGrid extends StatelessWidget {
   Widget _buildGridItem({
     required String title,
     required String subtitle,
-    required String status,
+    String? status,
     required Color statusColor,
     required IconData icon,
     required Color themeColor,
@@ -111,7 +105,7 @@ class PerformanceGrid extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey100),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
@@ -135,38 +129,19 @@ class PerformanceGrid extends StatelessWidget {
                 child: Icon(icon, color: themeColor, size: 16),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'Arimo',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-              ),
+              Text(title, style: AppTypography.h2),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: AppColors.grey600,
-              height: 1.33,
-            ),
+            style: AppTypography.caption.copyWith(color: AppColors.grey600),
           ),
-          Text(
-            status,
-            style: TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: statusColor,
-              height: 1.33,
+          if (status != null && status.trim().isNotEmpty)
+            Text(
+              status,
+              style: AppTypography.caption.copyWith(color: statusColor),
             ),
-          ),
         ],
       ),
     );

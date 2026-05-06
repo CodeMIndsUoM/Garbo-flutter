@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class BinListSection extends StatelessWidget {
@@ -31,15 +31,7 @@ class BinListSection extends StatelessWidget {
               children: [
                 const Icon(Icons.delete_outline, color: AppColors.grey900, size: 24),
                 const SizedBox(width: 8),
-                const Text(
-                  'Bins to Check Today',
-                  style: TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
-                  ),
-                ),
+                Text('Bins to Check Today', style: AppTypography.titleLg),
               ],
             ),
             Container(
@@ -50,12 +42,7 @@ class BinListSection extends StatelessWidget {
               ),
               child: Text(
                 '${pendingBins.length} PENDING',
-                style: const TextStyle(
-                  fontFamily: 'Arimo',
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.blue600,
-                ),
+                style: AppTypography.labelSm.copyWith(fontWeight: FontWeight.bold, color: AppColors.blue600),
               ),
             ),
           ],
@@ -79,7 +66,7 @@ class BinListSection extends StatelessWidget {
         border: Border.all(width: 1.27, color: AppColors.grey200),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
@@ -98,12 +85,7 @@ class BinListSection extends StatelessWidget {
                 ),
                 child: Text(
                   bin.id,
-                  style: const TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey600,
-                  ),
+                  style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: AppColors.grey600),
                 ),
               ),
               const SizedBox(width: 8),
@@ -115,35 +97,14 @@ class BinListSection extends StatelessWidget {
                 ),
                 child: Text(
                   bin.status.label.toUpperCase(),
-                  style: const TextStyle(
-                    fontFamily: 'Arimo',
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.blue600,
-                  ),
+                  style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: AppColors.blue600),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            bin.location,
-            style: const TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.grey900,
-            ),
-          ),
-          Text(
-            bin.address,
-            style: const TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: AppColors.grey600,
-            ),
-          ),
+          Text(bin.location, style: AppTypography.titleLg),
+          Text(bin.address, style: AppTypography.caption.copyWith(color: AppColors.grey600)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => onReport(bin),
@@ -155,7 +116,7 @@ class BinListSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x19000000),
+                    color: AppColors.shadowSm,
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),
@@ -166,15 +127,7 @@ class BinListSection extends StatelessWidget {
                 children: [
                   const Icon(Icons.send_outlined, color: Colors.white, size: 16),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Report Fill Level',
-                    style: TextStyle(
-                      fontFamily: 'Arimo',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  Text('Report Fill Level', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
                 ],
               ),
             ),

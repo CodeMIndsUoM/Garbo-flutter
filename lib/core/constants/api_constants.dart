@@ -15,4 +15,10 @@ class ApiConstants {
   static const String collectionRequests = '/collection-requests';
   static const String offers = '/offers';
   static const String thirdPartyCollectors = '/thirdpartycollectors';
+
+  // User endpoints
+  static const String users = '/users';
+
+  // Third-party collector registration (public, no auth)
+  static const String thirdPartyRegister = '/auth/thirdparty-register';
 }

@@ -73,7 +73,7 @@ class OfferDetailsSheet extends StatelessWidget {
       ),
       OfferStatus.accepted => (
         Icons.check_circle_rounded,
-        AppColors.emerald600,
+        AppColors.green700,
         'Offer Accepted',
         'The citizen has accepted your collection offer',
       ),
@@ -111,7 +111,7 @@ class OfferDetailsSheet extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x1F000000),
+                      color: AppColors.shadowMd,
                       offset: Offset(0, -6),
                       blurRadius: 28,
                     ),
@@ -249,7 +249,7 @@ class OfferDetailsSheet extends StatelessWidget {
             alignment: Alignment.center,
             child: const Icon(
               Icons.inventory_2_outlined,
-              color: AppColors.emerald700,
+              color: AppColors.green800,
               size: 20,
             ),
           ),
@@ -421,7 +421,7 @@ class OfferDetailsSheet extends StatelessWidget {
       OfferStatus.accepted => (
         AppColors.emerald50,
         AppColors.emerald200,
-        AppColors.emerald700,
+        AppColors.green800,
         Icons.info_outline_rounded,
         'Prepare for the scheduled pickup. Contact the citizen if you need to coordinate.',
       ),
@@ -528,7 +528,7 @@ class _SheetRoute<T> extends PageRouteBuilder<T> {
     : super(
         opaque: false,
         barrierDismissible: true,
-        barrierColor: const Color(0x66000000),
+        barrierColor: AppColors.scrim,
         barrierLabel: 'Dismiss',
         transitionDuration: const Duration(milliseconds: 420),
         reverseTransitionDuration: const Duration(milliseconds: 280),

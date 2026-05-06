@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/field_staff/shared/stat_header.dart';
 import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/performance_grid.dart';
 import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/bin_list_section.dart';
@@ -8,9 +11,11 @@ import 'package:garbo_swms/presentation/field_staff/shared/field_bottom_navigati
 import 'package:garbo_swms/presentation/field_staff/bins/bins_page.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/profile_page.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
@@ -26,7 +31,12 @@ class _DashboardState extends State<Dashboard> {
   List<BinModel> _bins = [];
   String _userName = 'Field Staff';
   String _empId = '';
+  int _dayStreak = 0;
   bool _isLoading = true;
+  bool _didAttachRealtimeListener = false;
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
+      _binStatusSocketSubscription;
+  Timer? _dashboardRefreshDebounce;
 
   @override
   void initState() {
@@ -34,10 +44,56 @@ class _DashboardState extends State<Dashboard> {
     _loadEmpIdAndFetch();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didAttachRealtimeListener) {
+      return;
+    }
+    _didAttachRealtimeListener = true;
+    _attachRealtimeDashboardRefresh(context.read<WebSocketProvider>());
+  }
+
+  void _attachRealtimeDashboardRefresh(WebSocketProvider webSocketProvider) {
+    _binStatusSocketSubscription?.cancel();
+    _binStatusSocketSubscription =
+        webSocketProvider.messageStream.listen((message) {
+      if (message.type != 'BIN_STATUS_UPDATED') {
+        return;
+      }
+
+      final payload = message.payload;
+      if (payload == null) {
+        return;
+      }
+
+      // Ignore updates that are clearly for another mentor.
+      final assignedToEmpId = int.tryParse(
+        (payload['assignedToEmpId'] ?? '').toString(),
+      );
+      final currentEmpId = int.tryParse(_empId);
+      if (assignedToEmpId != null &&
+          currentEmpId != null &&
+          assignedToEmpId != currentEmpId) {
+        return;
+      }
+
+      // Debounce websocket bursts so multiple status changes trigger one reload.
+      _dashboardRefreshDebounce?.cancel();
+      _dashboardRefreshDebounce = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted || _empId.isEmpty) {
+          return;
+        }
+        _fetchDashboardData();
+      });
+    });
+  }
+
   Future<void> _loadEmpIdAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     _empId = prefs.getString('empId') ?? '';
     _userName = prefs.getString('empName') ?? 'Field Staff';
+    _dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
     if (_empId.isEmpty) {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -49,13 +105,16 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _fetchDashboardData() async {
     try {
-      final bins = await _apiService.getAssignedBins(_empId);
+      final prefs = await SharedPreferences.getInstance();
+      final bins = await _apiService.getAssignedBins();
       final name = await _apiService.getFieldMentorName(_empId);
+      final dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
 
       if (mounted) {
         setState(() {
           _bins = bins;
           _userName = name;
+          _dayStreak = dayStreak;
           _isLoading = false;
         });
       }
@@ -90,13 +149,32 @@ class _DashboardState extends State<Dashboard> {
   }
 
   @override
+  void dispose() {
+    _dashboardRefreshDebounce?.cancel();
+    _binStatusSocketSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final int pendingBins = _bins
+        .where((b) => b.status == BinStatus.notChecked)
+        .length;
+    final int? avgResponseMinutes = _calculateAvgResponseMinutes(_bins);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           // Shared header across all tabs
-          StatHeader(userName: _userName),
+          StatHeader(
+            userName: _userName,
+            toCheckCount: pendingBins,
+            dayStreak: _dayStreak,
+            avgResponseLabel: avgResponseMinutes == null
+                ? '--'
+                : '${avgResponseMinutes}m',
+          ),
           // Main content area — switches based on bottom nav
           Expanded(child: _buildPage()),
           // Bottom navigation bar
@@ -131,13 +209,18 @@ class _DashboardState extends State<Dashboard> {
     final int pendingBins = _bins
         .where((b) => b.status == BinStatus.notChecked)
         .length;
+    final int? avgResponseMinutes = _calculateAvgResponseMinutes(_bins);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PerformanceGrid(totalBins: totalBins, pendingBins: pendingBins),
+          PerformanceGrid(
+            totalBins: totalBins,
+            pendingBins: pendingBins,
+            avgResponseMinutes: avgResponseMinutes,
+          ),
           const SizedBox(height: 24),
           BinListSection(bins: _bins, onReport: _handleReport),
           const AchievementListSection(),
@@ -145,5 +228,30 @@ class _DashboardState extends State<Dashboard> {
         ],
       ),
     );
+  }
+
+  int? _calculateAvgResponseMinutes(List<BinModel> bins) {
+    final now = DateTime.now();
+    final checkedToday = bins.where((bin) {
+      final lastChecked = bin.lastChecked;
+      if (lastChecked == null) return false;
+      return lastChecked.year == now.year &&
+          lastChecked.month == now.month &&
+          lastChecked.day == now.day;
+    }).toList();
+
+    if (checkedToday.isEmpty) {
+      return null;
+    }
+
+    final totalMinutes = checkedToday
+        .map((bin) => now.difference(bin.lastChecked!.toLocal()).inMinutes)
+        .fold<int>(0, (sum, item) => sum + item);
+
+    final avg = totalMinutes / checkedToday.length;
+    if (avg.isNaN || avg.isInfinite) {
+      return null;
+    }
+    return avg.round();
   }
 }

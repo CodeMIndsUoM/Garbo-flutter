@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/pages/settings.dart';
+import 'package:garbo_swms/presentation/widgets/websocket_status_dot.dart';
 
 class CitizenHeader extends StatelessWidget {
   final String name;
@@ -51,14 +52,24 @@ class CitizenHeader extends StatelessWidget {
                     ),
                   );
                 },
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.menu, color: Colors.white, size: 22),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.menu, color: Colors.white, size: 22),
+                    ),
+                    const Positioned(
+                      right: -2,
+                      top: -2,
+                      child: WebSocketStatusDot(size: 11),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -68,3 +79,4 @@ class CitizenHeader extends StatelessWidget {
     );
   }
 }
+

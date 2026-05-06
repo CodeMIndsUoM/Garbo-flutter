@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
-// Just checking if we need imports
 
 class BinDetailsOverlay extends StatelessWidget {
   final BinModel bin;
@@ -37,20 +38,12 @@ class BinDetailsOverlay extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: ShapeDecoration(
-                          color: const Color(0xFFF3F4F6),
+                          color: AppColors.grey100,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          bin.id,
-                          style: const TextStyle(
-                            color: Color(0xFF495565),
-                            fontSize: 11,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(bin.id, style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey600)),
                       ),
                       const SizedBox(width: 8),
                       // Status Badge
@@ -62,15 +55,7 @@ class BinDetailsOverlay extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          bin.status.label.toUpperCase(),
-                          style: TextStyle(
-                            color: _getStatusTextColor(),
-                            fontSize: 11,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(bin.status.label.toUpperCase(), style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: _getStatusTextColor())),
                       ),
                     ],
                   ),
@@ -78,7 +63,7 @@ class BinDetailsOverlay extends StatelessWidget {
                     onTap: () => Navigator.of(context).pop(),
                     child: const Icon(
                       Icons.cancel_outlined,
-                      color: Color(0xFF101727),
+                      color: AppColors.grey900,
                       size: 28,
                     ),
                   ),
@@ -86,25 +71,9 @@ class BinDetailsOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // Title & Subtitle
-              Text(
-                bin.location,
-                style: const TextStyle(
-                  color: Color(0xFF101727),
-                  fontSize: 20,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text(bin.location, style: AppTypography.h2),
               const SizedBox(height: 4),
-              Text(
-                bin.address,
-                style: const TextStyle(
-                  color: Color(0xFF495565),
-                  fontSize: 13,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              Text(bin.address, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
               const SizedBox(height: 24),
               
               // Status Large Card
@@ -135,15 +104,7 @@ class BinDetailsOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      bin.status.label,
-                      style: TextStyle(
-                        color: _getCardTextColor(),
-                        fontSize: 24,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(bin.status.label, style: AppTypography.h1.copyWith(color: _getCardTextColor())),
                   ],
                 ),
               ),
@@ -151,9 +112,9 @@ class BinDetailsOverlay extends StatelessWidget {
 
               // Details List
               _buildDetailRow('Type', bin.category.label),
-              const Divider(color: Color(0xFFF2F4F6), height: 32),
+              const Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Last Checked', bin.timeAgo),
-              const Divider(color: Color(0xFFF2F4F6), height: 32),
+              const Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Assigned To', 'John Smith'),
               const SizedBox(height: 32),
 
@@ -164,28 +125,16 @@ class BinDetailsOverlay extends StatelessWidget {
                 decoration: ShapeDecoration(
                   color: Colors.white,
                   shape: RoundedRectangleBorder(
-                    side: const BorderSide(width: 1.27, color: Color(0xFFE5E7EB)),
+                    side: const BorderSide(width: 1.27, color: AppColors.grey200),
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.location_on_outlined,
-                      color: Color(0xFF354152),
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'View on Map',
-                      style: TextStyle(
-                        color: Color(0xFF354152),
-                        fontSize: 14,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: AppColors.grey700, size: 20),
+                    const SizedBox(width: 8),
+                    Text('View on Map', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey700)),
                   ],
                 ),
               ),
@@ -200,24 +149,8 @@ class BinDetailsOverlay extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF495565),
-            fontSize: 13,
-            fontFamily: 'Arimo',
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Color(0xFF101727),
-            fontSize: 13,
-            fontFamily: 'Arimo',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text(label, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
+        Text(value, style: AppTypography.bodySm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey900)),
       ],
     );
   }
@@ -227,65 +160,65 @@ class BinDetailsOverlay extends StatelessWidget {
   Color _getBadgeBgColor() {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return const Color(0xFFF3F4F6); // Grey
+        return AppColors.grey100; // Grey
       case BinStatus.full:
-        return const Color(0xFFFFE2E2); // Light Red
+        return AppColors.redSurface2; // Light Red
       case BinStatus.half:
-        return const Color(0xFFFFF6D8); // Light Orange/Yellow
+        return AppColors.amberSurface2; // Light Orange/Yellow
       case BinStatus.empty:
-        return const Color(0xFFE2FBE9); // Light Green
+        return AppColors.greenSurface2; // Light Green
     }
   }
 
   Color _getStatusTextColor() {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return const Color(0xFF495565); // Dark Grey
+        return AppColors.grey600; // Dark Grey
       case BinStatus.full:
-        return const Color(0xFFC10007); // Dark Red
+        return AppColors.redDark; // Dark Red
       case BinStatus.half:
-        return const Color(0xFFCC7A00); // Dark Orange
+        return AppColors.amberDark; // Dark Orange
       case BinStatus.empty:
-        return const Color(0xFF007A2E); // Dark Green
+        return AppColors.greenDark; // Dark Green
     }
   }
 
   Color _getCardBgColor() {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return const Color(0xFFF9FAFB);
+        return AppColors.grey50;
       case BinStatus.full:
-        return const Color(0xFFFFE2E2);
+        return AppColors.redSurface2;
       case BinStatus.half:
-        return const Color(0xFFFFF8E1);
+        return AppColors.amberSurface3;
       case BinStatus.empty:
-        return const Color(0xFFE8FDF0);
+        return AppColors.greenSurface3;
     }
   }
 
   Color _getCardBorderColor() {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return const Color(0xFFE5E7EB);
+        return AppColors.grey200;
       case BinStatus.full:
-        return const Color(0xFFFFC9C9);
+        return AppColors.red100;
       case BinStatus.half:
-        return const Color(0xFFFFECAA);
+        return AppColors.amberBorder2;
       case BinStatus.empty:
-        return const Color(0xFFB0F1C3);
+        return AppColors.greenBorder2;
     }
   }
 
   Color _getCardTextColor() {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return const Color(0xFF6B7280);
+        return AppColors.citizenGrey500;
       case BinStatus.full:
-        return const Color(0xFFE7000A);
+        return AppColors.redDark2;
       case BinStatus.half:
-        return const Color(0xFFE2A000);
+        return AppColors.amberDark2;
       case BinStatus.empty:
-        return const Color(0xFF00A63E);
+        return AppColors.greenDark2;
     }
   }
 

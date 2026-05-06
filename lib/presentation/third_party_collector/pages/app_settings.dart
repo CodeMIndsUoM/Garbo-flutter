@@ -145,7 +145,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         20,
         18,
       ),
-      decoration: const BoxDecoration(color: AppColors.emerald600),
+      decoration: const BoxDecoration(color: AppColors.green700),
       child: Row(
         children: [
           Material(
@@ -270,7 +270,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         value: value,
         onChanged: onChanged,
         activeThumbColor: Colors.white,
-        activeTrackColor: AppColors.emerald600,
+        activeTrackColor: AppColors.green700,
         inactiveThumbColor: Colors.white,
         inactiveTrackColor: AppColors.grey300,
       ),
@@ -307,7 +307,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.emerald600, size: 20),
+            child: Icon(icon, color: AppColors.green700, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -380,7 +380,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
                     alignment: Alignment.center,
                     child: const Icon(
                       Icons.storage_rounded,
-                      color: AppColors.emerald600,
+                      color: AppColors.green700,
                       size: 20,
                     ),
                   ),
@@ -408,7 +408,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
                     _cacheSize,
                     style: AppTypography.titleMd.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.emerald700,
+                      color: AppColors.green800,
                     ),
                   ),
                 ],

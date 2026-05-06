@@ -37,10 +37,19 @@ Important:
 
 | Mobile Role | Email | Password | Mobile Destination |
 |-------|--------|--------|--------|
-| Citizen | `citizen.test@garbo.com` | `Citizen123` | Citizen home |
+| Citizen | `citizen.one@garbo.com` | `Citizen123` | Citizen home |
 | Collection Team | `collector.test@garbo.com` | `Collector123` | Collection team dashboard |
 | Field Staff | `sasindu@gmail.com` | `Sj1234` | Field staff dashboard |
-| Third-Party Collector | `thirdparty.test@garbo.com` | `ThirdParty123` | Third-party collector home |
+| Third-Party Collector | `thirdparty.one@garbo.com` | `ThirdParty123` | Third-party collector home |
+
+Additional seeded demo accounts:
+
+| Mobile Role | Email | Password | Mobile Destination |
+|-------|--------|--------|--------|
+| Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |
+| Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |
+| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdParty123` | Third-party collector home |
+| Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |
 
 ### Create Seed Users
 
@@ -57,69 +66,57 @@ Note: `run-local.sh` loads `.env` first, so Cloudinary-backed upload endpoints w
 
 ```
 lib/
-├── main.dart                    # App entry point & dependency injection setup
-├── app.dart                     # Role-based routing logic (Admin, Staff, Citizen)
-│
-├── core/                        # Cross-cutting concerns
-│   ├── constants/               # API endpoints & asset paths
-│   ├── theme/                   # Global styles & color palette
-│   ├── router/                  # App routing configuration
-│   ├── utils/                   # Formatters & permission handlers (GPS/Camera)
-│   └── errors/                  # Custom failure objects for API/GPS errors
-│
-├── data/                        # INFRASTRUCTURE LAYER (External Communication)
-│   ├── sources/                 # Remote & local data providers
-│   │   ├── api_service.dart     # REST client for Spring Boot (Dio/Http)
-│   │   ├── storage_service.dart # Cloud storage upload logic for photos
-│   │   ├── location_service.dart# GPS hardware streams
-│   │   └── local_db.dart        # SQLite/Hive for offline data caching
-│   ├── models/                  # DTOs (Data Transfer Objects)
-│   │   ├── bin_model.dart       # Maps JSON from backend to Dart objects
-│   │   └── route_model.dart     # Maps polyline/route data
-│   └── repositories/            # Implementation of domain repository interfaces
-│
-├── domain/                      # LOGIC LAYER (Pure Dart)
-│   ├── entities/                # Core business objects (Bin, Task, Feedback)
-│   ├── repositories/            # Abstract contracts (interfaces)
-│   └── usecases/                # Specific business actions
-│       ├── update_bin_status.dart    # Fill level + photo + GPS logic
-│       ├── get_optimized_route.dart  # Route optimization logic
-│       └── submit_feedback.dart     # Citizen reporting logic
-│
-└── presentation/                # UI LAYER (Organized by User Roles)
-    ├── auth/                    # Authentication screens
-    │   └── pages/               # Login, Register, Forgot Password
-    ├── field_staff/             # Bin monitoring & field operations
-    │   ├── dashboard/           # Dashboard feature
-    │   │   ├── dashboard_page.dart
-    │   │   └── widgets/         # PerformanceGrid, BinListSection, etc.
-    │   ├── bins/                # Bins management feature
-    │   │   ├── bins_page.dart
-    │   │   ├── models/          # BinModel & enums
-    │   │   └── widgets/         # BinCard, BinFilterChips
-    │   ├── shared/              # Shared across tabs
-    │   │   ├── stat_header.dart
-    │   │   └── field_bottom_navigation.dart
-    │   └── state/               # State management logic
-    ├── collection_team/         # Route execution screens
-    │   ├── pages/               # MapNavigationPage, TaskCompletePage
-    │   └── state/               # Map/GPS state management
-    ├── citizen/                 # Feedback portal screens
-    │   ├── pages/               # ComplaintFormPage, StatusTrackerPage
-    │   └── state/               # Feedback submission state
-    ├── third_party_collector/   # Third-party collector screens
-    └── widgets/                 # Reusable UI components
+├── main.dart                         # App entry point
+├── app.dart                          # Root app widget
+├── core/                             # Shared app-level config and styling
+│   ├── constants/                    # API base URL and shared constants
+│   ├── errors/                       # Shared error placeholders / future expansion
+│   ├── router/                       # Central app routing
+│   ├── theme/                        # Colors and typography
+│   └── utils/                        # Shared utility placeholders / future expansion
+├── data/                             # API-facing models and services
+│   ├── models/                       # Request/offer/dashboard/websocket models
+│   ├── repositories/                 # Reserved for repository implementations
+│   └── sources/                      # REST and websocket services
+├── domain/                           # Reserved clean-architecture domain layer
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+└── presentation/                     # UI grouped by role and feature
+    ├── auth/                         # Login/register/forgot-password flow
+    │   ├── pages/
+    │   └── state/
+    ├── citizen/                      # Citizen request and reporting experience
+    │   ├── pages/
+    │   ├── state/
+    │   └── widgets/
+    ├── collection_team/              # Bin collector route and job screens
+    │   ├── pages/
+    │   ├── state/
+    │   └── widgets/
+    ├── field_staff/                  # Field mentor dashboard, bins, and profile
+    │   ├── bins/
+    │   ├── dashboard/
+    │   ├── profile/
+    │   ├── shared/
+    │   └── state/
+    ├── providers/                    # Cross-screen providers and app state
+    ├── third_party_collector/        # Feed, jobs, profile, and completion flow
+    │   ├── pages/
+    │   └── widgets/
+    └── widgets/                      # Shared presentation widgets
 ```
 
 ## Architecture
 
-The project follows **Clean Architecture** with three layers:
+The codebase uses a mostly role-based presentation structure with lightweight layered separation:
 
 | Layer | Folder | Responsibility |
 |-------|--------|----------------|
-| **Presentation** | `presentation/` | UI widgets, pages, state management |
-| **Domain** | `domain/` | Business logic, entities, use cases |
-| **Data** | `data/` | API calls, local storage, DTOs |
+| **Presentation** | `presentation/` | Role-specific pages, widgets, and providers |
+| **Data** | `data/` | API services, websocket services, and response models |
+| **Core** | `core/` | Routing, constants, and theme |
+| **Domain** | `domain/` | Reserved for domain abstractions and future use cases |
 
 ## Resources
 

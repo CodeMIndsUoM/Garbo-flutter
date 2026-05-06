@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 class SettingsOverlay extends StatelessWidget {
   const SettingsOverlay({super.key});
@@ -28,29 +29,21 @@ class SettingsOverlay extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Settings & More',
-                    style: TextStyle(
-                      color: Color(0xFF101727),
-                      fontSize: 20,
-                      fontFamily: 'Arimo',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  Text('Settings & More', style: AppTypography.h2),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
                       width: 40,
                       height: 40,
                       decoration: ShapeDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: AppColors.grey100,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: const Icon(
                         Icons.close,
-                        color: Color(0xFF495565),
+                        color: AppColors.grey600,
                         size: 20,
                       ),
                     ),
@@ -60,25 +53,9 @@ class SettingsOverlay extends StatelessWidget {
               const SizedBox(height: 16),
               
               // Big Title & Subtitle
-              const Text(
-                'Settings & More',
-                style: TextStyle(
-                  color: Color(0xFF101727),
-                  fontSize: 24,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text('Settings & More', style: AppTypography.h1),
               const SizedBox(height: 4),
-              const Text(
-                'Manage your account and app preferences',
-                style: TextStyle(
-                  color: Color(0xFF495565),
-                  fontSize: 14,
-                  fontFamily: 'Arimo',
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+              Text('Manage your account and app preferences', style: AppTypography.bodyMd.copyWith(color: AppColors.grey600)),
               const SizedBox(height: 24),
               
               // Menu Options
@@ -149,13 +126,13 @@ class SettingsOverlay extends StatelessWidget {
         ),
         shadows: const [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 2,
             offset: Offset(0, 1),
             spreadRadius: -1,
           ),
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 3,
             offset: Offset(0, 1),
             spreadRadius: 0,
@@ -190,54 +167,30 @@ class SettingsOverlay extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Color(0xFF101727),
-                        fontSize: 15,
-                        fontFamily: 'Arimo',
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.titleMd),
                     if (badgeCount != null) ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: ShapeDecoration(
-                          color: const Color(0xFFAD46FF),
+                          color: AppColors.purple500,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: Text(
-                          badgeCount,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontFamily: 'Arimo',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                        child: Text(badgeCount, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0, color: Colors.white)),
                       ),
                     ]
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF697282),
-                    fontSize: 12,
-                    fontFamily: 'Arimo',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                Text(subtitle, style: AppTypography.caption),
               ],
             ),
           ),
           const Icon(
             Icons.chevron_right,
-            color: Color(0xFF9CA3AF),
+            color: AppColors.grey400,
             size: 20,
           ),
         ],

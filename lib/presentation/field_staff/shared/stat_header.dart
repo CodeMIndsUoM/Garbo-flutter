@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/shared/widgets/settings_overlay.dart';
 
 class StatHeader extends StatelessWidget {
   final String userName;
+  final int toCheckCount;
+  final int dayStreak;
+  final String avgResponseLabel;
 
   const StatHeader({
     super.key,
     this.userName = 'Field Staff',
+    this.toCheckCount = 0,
+    this.dayStreak = 0,
+    this.avgResponseLabel = '--',
   });
 
   @override
@@ -17,7 +24,7 @@ class StatHeader extends StatelessWidget {
         color: AppColors.green700,
         boxShadow: [
           BoxShadow(
-            color: Color(0x19000000),
+            color: AppColors.shadowSm,
             blurRadius: 6,
             offset: Offset(0, 4),
           ),
@@ -36,23 +43,13 @@ class StatHeader extends StatelessWidget {
                 children: [
                   Text(
                     'Field Monitor',
-                    style: TextStyle(
-                      fontFamily: 'Arimo',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.6,
-                    ),
+                    style: AppTypography.h1.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Hello, $userName!',
-                    style: TextStyle(
-                      fontFamily: 'Arimo',
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
+                    style: AppTypography.bodyMd.copyWith(
                       color: AppColors.white90,
-                      height: 1.4,
                     ),
                   ),
                 ],
@@ -83,11 +80,23 @@ class StatHeader extends StatelessWidget {
           // Stats Row
           Row(
             children: [
-              Expanded(child: _buildStatItem('2', 'To Check')),
+              Expanded(child: _buildStatItem('$toCheckCount', 'To Check')),
               const SizedBox(width: 8),
-              Expanded(child: _buildStatItem('1847', 'Points', icon: Icons.bolt)),
+              Expanded(
+                child: _buildStatItem(
+                  avgResponseLabel,
+                  'Avg Response',
+                  icon: Icons.timer_outlined,
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: _buildStatItem('18', 'Day Streak', icon: Icons.local_fire_department_outlined)),
+              Expanded(
+                child: _buildStatItem(
+                  '$dayStreak',
+                  'Day Streak',
+                  icon: Icons.local_fire_department_outlined,
+                ),
+              ),
             ],
           ),
         ],
@@ -117,26 +126,14 @@ class StatHeader extends StatelessWidget {
               ],
               Text(
                 value,
-                style: const TextStyle(
-                  fontFamily: 'Arimo',
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  height: 1.2,
-                ),
+                style: AppTypography.displaySm.copyWith(color: Colors.white),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontFamily: 'Arimo',
-              fontSize: 12,
-              fontWeight: FontWeight.normal,
-              color: AppColors.white90,
-              height: 1.33,
-            ),
+            style: AppTypography.caption.copyWith(color: AppColors.white90),
           ),
         ],
       ),

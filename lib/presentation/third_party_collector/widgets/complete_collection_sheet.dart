@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,14 +52,28 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   final ImagePicker _picker = ImagePicker();
 
   String? _photoPath;
+  String? _weightError;
+
+  @override
+  void initState() {
+    super.initState();
+    _weight.addListener(_clearWeightErrorOnEdit);
+  }
 
   @override
   void dispose() {
+    _weight.removeListener(_clearWeightErrorOnEdit);
     _weight.dispose();
     _notes.dispose();
     _weightFocus.dispose();
     _notesFocus.dispose();
     super.dispose();
+  }
+
+  void _clearWeightErrorOnEdit() {
+    if (_weightError != null) {
+      setState(() => _weightError = null);
+    }
   }
 
   String _shortName(String name) {
@@ -68,22 +83,23 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   }
 
   void _submit() {
-    final weightText = _weight.text.trim();
-    final parsedWeight = weightText.isEmpty
+    final sanitizedWeight = _weight.text.replaceAll(RegExp(r'[^0-9.]'), '');
+    final parsedWeight = sanitizedWeight.isEmpty
         ? null
-        : double.tryParse(weightText);
+        : double.tryParse(sanitizedWeight);
+    final weightText = sanitizedWeight;
     if (widget.weightRequired && (parsedWeight == null || parsedWeight <= 0)) {
-      _showSnack('Weight is required for this waste type.', isError: true);
+      setState(() => _weightError = 'Weight is required for this waste type.');
+      _weightFocus.requestFocus();
       return;
     }
     if (weightText.isNotEmpty && (parsedWeight == null || parsedWeight <= 0)) {
-      _showSnack('Weight must be a positive number.', isError: true);
+      setState(() => _weightError = 'Weight must be a positive number.');
+      _weightFocus.requestFocus();
       return;
     }
-
-    if (_photoPath == null) {
-      _showSnack('Please attach a completion photo.', isError: true);
-      return;
+    if (_weightError != null) {
+      setState(() => _weightError = null);
     }
 
     Navigator.of(context).pop(
@@ -96,19 +112,49 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
   }
 
   Future<void> _pickCompletionPhoto() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
     );
-    if (picked == null || !mounted) return;
-    setState(() => _photoPath = picked.path);
+
+    if (source == null) return;
+
+    try {
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+        maxWidth: 1280,
+        maxHeight: 1280,
+      );
+      if (picked == null || !mounted) return;
+      setState(() => _photoPath = picked.path);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack('Could not open $source. Please try again.', isError: true);
+    }
   }
 
   void _showSnack(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
       ),
     );
   }
@@ -135,7 +181,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x1F000000),
+                      color: AppColors.shadowMd,
                       offset: Offset(0, -6),
                       blurRadius: 28,
                     ),
@@ -177,21 +223,44 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildFieldLabel('Collected Weight'),
+                              _buildFieldLabel(
+                                'Collected Weight',
+                                isRequired: widget.weightRequired,
+                              ),
                               const SizedBox(height: 10),
                               _buildTextField(
                                 controller: _weight,
                                 focusNode: _weightFocus,
-                                hint: '0 kg',
-                                keyboardType: TextInputType.number,
+                                hint: 'e.g. 2.5',
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9.]'),
+                                  ),
+                                ],
+                                suffixText: 'kg',
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Estimate the total weight collected',
-                                style: AppTypography.captionSm,
+                                _weightError ??
+                                    'Estimate the total weight collected',
+                                style: AppTypography.captionSm.copyWith(
+                                  color: _weightError != null
+                                      ? AppColors.redDark2
+                                      : null,
+                                  fontWeight: _weightError != null
+                                      ? FontWeight.w600
+                                      : null,
+                                ),
                               ),
                               const SizedBox(height: 20),
-                              _buildFieldLabel('Collection Notes'),
+                              _buildFieldLabel(
+                                'Collection Notes',
+                                isRequired: false,
+                              ),
                               const SizedBox(height: 10),
                               _buildTextField(
                                 controller: _notes,
@@ -201,7 +270,10 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                                 maxLines: 4,
                               ),
                               const SizedBox(height: 20),
-                              _buildFieldLabel('Completion Photo'),
+                              _buildFieldLabel(
+                                'Completion Photo',
+                                isRequired: false,
+                              ),
                               const SizedBox(height: 10),
                               _buildPhotoPicker(),
                               const SizedBox(height: 18),
@@ -231,11 +303,11 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.emerald600,
+            color: AppColors.green700,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.emerald600.withValues(alpha: 0.25),
+                color: AppColors.green700.withValues(alpha: 0.25),
                 offset: const Offset(0, 3),
                 blurRadius: 8,
               ),
@@ -302,7 +374,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             alignment: Alignment.center,
             child: const Icon(
               Icons.inventory_2_outlined,
-              color: AppColors.emerald700,
+              color: AppColors.green800,
               size: 20,
             ),
           ),
@@ -343,7 +415,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, {bool isRequired = false}) {
     return RichText(
       text: TextSpan(
         children: [
@@ -356,7 +428,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             ),
           ),
           TextSpan(
-            text: widget.weightRequired ? '  (required)' : '  (optional)',
+            text: isRequired ? '  (required)' : '  (optional)',
             style: AppTypography.labelSm.copyWith(color: AppColors.grey400),
           ),
         ],
@@ -370,6 +442,8 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
     required String hint,
     int maxLines = 1,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? suffixText,
   }) {
     return AnimatedBuilder(
       animation: focusNode,
@@ -382,13 +456,13 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: focused ? AppColors.emerald500 : AppColors.grey200,
+              color: focused ? AppColors.green700 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
             boxShadow: focused
                 ? [
                     BoxShadow(
-                      color: AppColors.emerald500.withValues(alpha: 0.10),
+                      color: AppColors.green700.withValues(alpha: 0.10),
                       blurRadius: 0,
                       spreadRadius: 3,
                     ),
@@ -400,12 +474,17 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             focusNode: focusNode,
             maxLines: maxLines,
             keyboardType: keyboardType,
-            cursorColor: AppColors.emerald600,
+            inputFormatters: inputFormatters,
+            cursorColor: AppColors.green700,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: AppTypography.bodyMd.copyWith(
                 color: AppColors.grey400,
+              ),
+              suffixText: suffixText,
+              suffixStyle: AppTypography.bodyMd.copyWith(
+                color: AppColors.grey500,
               ),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -473,7 +552,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: AppColors.emerald600.withValues(alpha: 0.28),
+              color: AppColors.green700.withValues(alpha: 0.28),
               offset: const Offset(0, 6),
               blurRadius: 16,
               spreadRadius: -2,
@@ -481,13 +560,13 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           ],
         ),
         child: Material(
-          color: AppColors.emerald600,
+          color: AppColors.green700,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _submit,
             borderRadius: BorderRadius.circular(14),
-            splashColor: AppColors.emerald700.withValues(alpha: 0.3),
-            highlightColor: AppColors.emerald700.withValues(alpha: 0.15),
+            splashColor: AppColors.green800.withValues(alpha: 0.3),
+            highlightColor: AppColors.green800.withValues(alpha: 0.15),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
@@ -560,6 +639,9 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  cacheHeight: 480,
+                  filterQuality: FilterQuality.low,
+                  gaplessPlayback: true,
                 ),
               ),
           ],
@@ -588,7 +670,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
     : super(
         opaque: false,
         barrierDismissible: true,
-        barrierColor: const Color(0x66000000),
+        barrierColor: AppColors.scrim,
         barrierLabel: 'Dismiss',
         transitionDuration: const Duration(milliseconds: 420),
         reverseTransitionDuration: const Duration(milliseconds: 280),

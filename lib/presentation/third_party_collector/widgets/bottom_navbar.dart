@@ -66,7 +66,7 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
                       Icon(
                         items[i].icon,
                         color: isSelected
-                            ? AppColors.emerald500
+                            ? AppColors.green700
                             : AppColors.grey400,
                         size: 22,
                       ),
@@ -75,7 +75,7 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
                         items[i].label,
                         style: AppTypography.captionSm.copyWith(
                           color: isSelected
-                              ? AppColors.emerald500
+                              ? AppColors.green700
                               : AppColors.grey400,
                           fontWeight: isSelected
                               ? FontWeight.w600

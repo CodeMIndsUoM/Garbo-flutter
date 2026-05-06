@@ -6,11 +6,105 @@ import 'package:garbo_swms/presentation/third_party_collector/pages/app_settings
 import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 
-class ThirdPartyProfilePage extends StatelessWidget {
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
+
+class ThirdPartyProfilePage extends StatefulWidget {
   const ThirdPartyProfilePage({super.key});
 
   @override
+  State<ThirdPartyProfilePage> createState() => _ThirdPartyProfilePageState();
+}
+
+class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
+  final ApiService _apiService = ApiService();
+  CollectorDashboardModel? _dashboardModel;
+  String _empName = 'Collector';
+  String? _avatarUrl;
+  String? _company;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      final collectorId = await _apiService.getStoredEmpId();
+      if (collectorId.isEmpty) {
+        if (mounted) setState(() => _loading = false);
+        return;
+      }
+
+      final results = await Future.wait([
+        _apiService.getCollectorDashboard(collectorId),
+        _apiService.getThirdPartyCollectorProfile(collectorId),
+      ]);
+
+      final dashboard = results[0] as CollectorDashboardModel;
+      final profile = results[1] as Map<String, dynamic>?;
+      final name = (profile?['empName'] ?? '').toString();
+
+      if (!mounted) return;
+      setState(() {
+        _dashboardModel = dashboard;
+        _empName = name.isEmpty ? 'Collector' : name;
+        _avatarUrl = (profile?['avatarUrl'] as String?)?.trim();
+        _company = (profile?['company'] as String?)?.trim();
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _reviewCountLabel() {
+    final count = _dashboardModel?.totalReviews ?? 0;
+    return '$count review${count == 1 ? '' : 's'}';
+  }
+
+  String _memberSinceLabel() {
+    final date = _dashboardModel?.memberSince?.toLocal();
+    if (date == null) return 'Member since —';
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return 'Member since ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatMinutes(int totalMinutes) {
+    if (totalMinutes == 0) return '0h 0m';
+    final h = totalMinutes ~/ 60;
+    final m = totalMinutes % 60;
+    if (h == 0) return '${m}m';
+    return '${h}h ${m}m';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: AppColors.grey50,
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.green700),
+        ),
+        bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 3),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: CustomScrollView(
@@ -54,7 +148,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
         20,
         22,
       ),
-      decoration: const BoxDecoration(color: AppColors.emerald600),
+      decoration: const BoxDecoration(color: AppColors.green700),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -64,16 +158,33 @@ class ThirdPartyProfilePage extends StatelessWidget {
               Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.white20,
                   shape: BoxShape.circle,
                 ),
+                clipBehavior: Clip.antiAlias,
                 alignment: Alignment.center,
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
+                child: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                    ? Image.network(
+                        _avatarUrl!,
+                        fit: BoxFit.cover,
+                        width: 80,
+                        height: 80,
+                        cacheWidth: 240,
+                        cacheHeight: 240,
+                        gaplessPlayback: true,
+                        filterQuality: FilterQuality.low,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.person_outline_rounded,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.person_outline_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -81,7 +192,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sasindu Jayamadu',
+                      _empName,
                       style: AppTypography.h2.copyWith(color: Colors.white),
                     ),
                     const SizedBox(height: 4),
@@ -94,7 +205,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '4.8',
+                          _dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0',
                           style: AppTypography.titleSm.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -102,7 +213,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          '• 112 reviews',
+                          '• ${_reviewCountLabel()}',
                           style: AppTypography.bodySm.copyWith(
                             color: AppColors.white80,
                           ),
@@ -111,11 +222,20 @@ class ThirdPartyProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Member since January 2023',
+                      _memberSinceLabel(),
                       style: AppTypography.bodySm.copyWith(
                         color: AppColors.white80,
                       ),
                     ),
+                    if (_company != null && _company!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        _company!,
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.white80,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -124,11 +244,11 @@ class ThirdPartyProfilePage extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _buildHeaderStat(value: '7', label: 'Available jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.availableRequests ?? 0}', label: 'Available jobs')),
               const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '3', label: 'Completed jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.completedJobs ?? 0}', label: 'Completed jobs')),
               const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '127', label: 'Pending jobs')),
+              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.activeJobs ?? 0}', label: 'Active jobs')),
             ],
           ),
         ],
@@ -179,11 +299,11 @@ class ThirdPartyProfilePage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.18),
+            color: AppColors.green800.withValues(alpha: 0.18),
             offset: const Offset(0, 4),
             blurRadius: 12,
             spreadRadius: -3,
@@ -218,7 +338,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "4.8 Today's Rating",
+                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.captionSm.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -232,9 +352,9 @@ class ThirdPartyProfilePage extends StatelessWidget {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildImpactStat(value: '1h 20m', label: 'Working Hours')),
+              Expanded(child: _buildImpactStat(value: _formatMinutes(_dashboardModel?.todaysWorkingMinutes ?? 0), label: 'Working Hours')),
               const SizedBox(width: 12),
-              Expanded(child: _buildImpactStat(value: '2.01 Kg', label: 'Waste Collected')),
+              Expanded(child: _buildImpactStat(value: '${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg', label: 'Waste Collected')),
             ],
           ),
         ],
@@ -287,21 +407,28 @@ class ThirdPartyProfilePage extends StatelessWidget {
       child: Column(
         children: [
           _buildDetailRow(
-            icon: Icons.inventory_2_outlined,
-            label: 'Vehicle Type',
-            value: 'Pickup Truck',
+            icon: Icons.star_border_rounded,
+            label: 'Average Rating',
+            value:
+                '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+          ),
+          const _RowDivider(),
+          _buildDetailRow(
+            icon: Icons.rate_review_outlined,
+            label: 'Reviews',
+            value: '${_dashboardModel?.totalReviews ?? 0}',
           ),
           const _RowDivider(),
           _buildDetailRow(
             icon: Icons.check_circle_outline_rounded,
             label: 'Response Rate',
-            value: '98%',
+            value: '${_dashboardModel?.responseRate.toStringAsFixed(0) ?? '0'}%',
           ),
           const _RowDivider(),
           _buildDetailRow(
             icon: Icons.schedule_rounded,
             label: 'On-Time Rate',
-            value: '96%',
+            value: '${_dashboardModel?.onTimeRate.toStringAsFixed(0) ?? '0'}%',
           ),
         ],
       ),
@@ -325,7 +452,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.emerald600, size: 20),
+            child: Icon(icon, color: AppColors.green700, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -369,11 +496,14 @@ class ThirdPartyProfilePage extends StatelessWidget {
           _buildSettingsRow(
             icon: Icons.edit_outlined,
             label: 'Edit Profile',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const ThirdPartyEditProfilePage(),
-              ),
-            ),
+            onTap: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ThirdPartyEditProfilePage(),
+                ),
+              );
+              if (mounted) await _loadProfileData();
+            },
           ),
           const _RowDivider(),
           _buildSettingsRow(
@@ -411,7 +541,7 @@ class ThirdPartyProfilePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
-                child: Icon(icon, color: AppColors.emerald600, size: 20),
+                child: Icon(icon, color: AppColors.green700, size: 20),
               ),
               const SizedBox(width: 14),
               Expanded(

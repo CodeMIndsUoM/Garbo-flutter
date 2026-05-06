@@ -144,7 +144,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
       ),
     );
   }
@@ -185,7 +185,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0x1F000000),
+                        color: AppColors.shadowMd,
                         offset: Offset(0, -6),
                         blurRadius: 28,
                       ),
@@ -390,7 +390,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: focused ? AppColors.emerald500 : AppColors.grey200,
+              color: focused ? AppColors.green700 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
           ),
@@ -398,7 +398,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             controller: _priceController,
             focusNode: _priceFocus,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            cursorColor: AppColors.emerald600,
+            cursorColor: AppColors.green700,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: 'Enter amount (LKR)',
@@ -468,7 +468,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           children: [
             const Icon(
               Icons.schedule_rounded,
-              color: AppColors.emerald600,
+              color: AppColors.green700,
               size: 18,
             ),
             const SizedBox(width: 10),
@@ -500,7 +500,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: focused ? AppColors.emerald500 : AppColors.grey200,
+              color: focused ? AppColors.green700 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
           ),
@@ -508,7 +508,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             controller: _notesController,
             focusNode: _notesFocus,
             maxLines: 3,
-            cursorColor: AppColors.emerald600,
+            cursorColor: AppColors.green700,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
               hintText: 'Any extra details for the citizen',
@@ -548,7 +548,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             alignment: Alignment.center,
             child: const Icon(
               Icons.info_outline_rounded,
-              color: AppColors.emerald700,
+              color: AppColors.green800,
               size: 13,
             ),
           ),
@@ -559,7 +559,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               child: Text(
                 'Citizens can compare offers and accept one based on price and timing.',
                 style: AppTypography.captionSm.copyWith(
-                  color: AppColors.emerald800,
+                  color: AppColors.green800,
                 ),
               ),
             ),
@@ -578,7 +578,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           boxShadow: _canSubmit
               ? [
                   BoxShadow(
-                    color: AppColors.emerald600.withValues(alpha: 0.28),
+                    color: AppColors.green700.withValues(alpha: 0.28),
                     offset: const Offset(0, 6),
                     blurRadius: 16,
                     spreadRadius: -2,
@@ -587,7 +587,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               : null,
         ),
         child: Material(
-          color: _canSubmit ? AppColors.emerald600 : AppColors.grey300,
+          color: _canSubmit ? AppColors.green700 : AppColors.grey300,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             onTap: _canSubmit ? _submit : null,
@@ -634,7 +634,7 @@ class _SendOfferRoute<T> extends PageRouteBuilder<T> {
     : super(
         opaque: false,
         barrierDismissible: true,
-        barrierColor: const Color(0x66000000),
+        barrierColor: AppColors.scrim,
         barrierLabel: 'Dismiss',
         transitionDuration: const Duration(milliseconds: 420),
         reverseTransitionDuration: const Duration(milliseconds: 280),

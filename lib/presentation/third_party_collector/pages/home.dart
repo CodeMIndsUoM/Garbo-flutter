@@ -3,9 +3,12 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/browse.dart';
+import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs.dart';
 
 class ThirdPartyHome extends StatefulWidget {
   const ThirdPartyHome({super.key});
@@ -19,6 +22,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
   bool _loadingCompleted = false;
   String? _collectorId;
+  CollectorDashboardModel? _dashboardModel;
   List<_Collection> _completedCollections = const [];
 
   @override
@@ -40,6 +44,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
     setState(() => _loadingCompleted = true);
     try {
+      final dashboard = await _apiService.getCollectorDashboard(collectorId);
+
       final completedOffers = await _apiService.getCollectorOffers(
         collectorId,
         status: 'COMPLETED',
@@ -61,7 +67,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       rows.sort((a, b) => b.sortTime.compareTo(a.sortTime));
 
       if (!mounted) return;
-      setState(() => _completedCollections = rows);
+      setState(() {
+        _completedCollections = rows;
+        _dashboardModel = dashboard;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() => _completedCollections = const []);
@@ -74,6 +83,57 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
   Widget _buildSectionTitle(String title, {bool big = false}) {
     return Text(title, style: big ? AppTypography.h3 : AppTypography.h4);
+  }
+
+  Widget _buildCompletedSectionHeader() {
+    final hasMore = _completedCollections.length > 2;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: _buildSectionTitle('Completed Collections', big: true),
+        ),
+        if (hasMore)
+          TextButton(
+            onPressed: _openAllCompleted,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.green700,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              minimumSize: const Size(0, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'See all (${_completedCollections.length})',
+                  style: AppTypography.titleSm.copyWith(
+                    color: AppColors.green700,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: AppColors.green700,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _openAllCompleted() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _AllCompletedCollectionsPage(
+          collections: _completedCollections,
+          cardBuilder: _buildCollectionCard,
+        ),
+      ),
+    );
   }
 
   @override
@@ -110,7 +170,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                     const SizedBox(height: 12),
                     _buildPerformanceMetrics(),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('Completed Collections', big: true),
+                    _buildCompletedSectionHeader(),
                     const SizedBox(height: 12),
                     if (_loadingCompleted)
                       const Padding(
@@ -145,11 +205,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.15),
+            color: AppColors.green800.withValues(alpha: 0.15),
             offset: const Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
@@ -171,13 +231,23 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildStatPill('6', 'Available')),
-              const SizedBox(width: 10),
-              Expanded(child: _buildStatPill('7', 'Active')),
+              Expanded(
+                child: _buildStatPill(
+                  _dashboardModel?.availableRequests.toString() ?? '-',
+                  'Available',
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildStatPill(
-                  _completedCollections.length.toString(),
+                  _dashboardModel?.activeJobs.toString() ?? '-',
+                  'Active',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildStatPill(
+                  _dashboardModel?.completedJobs.toString() ?? '-',
                   'Completed',
                 ),
               ),
@@ -218,11 +288,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: AppColors.green700,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.15),
+            color: AppColors.green800.withValues(alpha: 0.15),
             offset: const Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
@@ -259,7 +329,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      "4.8 Today's Rating",
+                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.caption.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -273,9 +343,19 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const SizedBox(height: 18),
           Row(
             children: [
-              Expanded(child: _buildImpactTile('1h 20m', 'Working Hours')),
+              Expanded(
+                child: _buildImpactTile(
+                  _formatMinutes(_dashboardModel?.todaysWorkingMinutes ?? 0),
+                  'Working Hours',
+                ),
+              ),
               const SizedBox(width: 10),
-              Expanded(child: _buildImpactTile('2.01 Kg', 'Waste Collected')),
+              Expanded(
+                child: _buildImpactTile(
+                  "${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg",
+                  'Waste Collected',
+                ),
+              ),
             ],
           ),
         ],
@@ -316,7 +396,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           title: 'Browse Requests',
           subtitle: 'See nearby requests to offer on',
           primary: true,
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              SmoothPageRoute(page: ThirdPartyBrowsePage()),
+            );
+          },
         ),
         const SizedBox(height: 10),
         _buildActionButton(
@@ -324,7 +408,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           title: 'My Offers',
           subtitle: 'Track pending and accepted offers',
           primary: false,
-          onTap: () {},
+          onTap: () {
+            Navigator.of(context).pushReplacement(
+              SmoothPageRoute(page: ThirdPartyMyJobsPage()),
+            );
+          },
         ),
       ],
     );
@@ -337,11 +425,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     required bool primary,
     required VoidCallback onTap,
   }) {
-    final bgColor = primary ? AppColors.emerald600 : Colors.white;
-    final titleColor = primary ? Colors.white : AppColors.emerald500;
-    final subColor = primary ? AppColors.white80 : AppColors.emerald500;
+    final bgColor = primary ? AppColors.green700 : Colors.white;
+    final titleColor = primary ? Colors.white : AppColors.green700;
+    final subColor = primary ? AppColors.white80 : AppColors.green700;
     final iconBg = primary ? AppColors.white20 : AppColors.emerald50;
-    final iconColor = primary ? Colors.white : AppColors.emerald500;
+    final iconColor = primary ? Colors.white : AppColors.green700;
 
     return Material(
       color: Colors.transparent,
@@ -358,7 +446,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
             boxShadow: [
               BoxShadow(
                 color: primary
-                    ? AppColors.emerald700.withValues(alpha: 0.15)
+                    ? AppColors.green800.withValues(alpha: 0.15)
                     : Colors.black.withValues(alpha: 0.04),
                 offset: const Offset(0, 2),
                 blurRadius: primary ? 8 : 6,
@@ -398,7 +486,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primary ? Colors.white : AppColors.emerald500,
+                color: primary ? Colors.white : AppColors.green700,
                 size: 22,
               ),
             ],
@@ -428,19 +516,19 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           _buildMetricRow(
             icon: Icons.check_circle_outline_rounded,
             label: 'Response Rate',
-            value: '98%',
+            value: '${_dashboardModel?.responseRate.toInt() ?? 0}%',
           ),
           _buildDivider(),
           _buildMetricRow(
             icon: Icons.access_time_rounded,
             label: 'On-Time Rate',
-            value: '96%',
+            value: '${_dashboardModel?.onTimeRate.toInt() ?? 0}%',
           ),
           _buildDivider(),
           _buildMetricRow(
             icon: Icons.star_border_rounded,
             label: 'Average Rating',
-            value: '4.8 / 5.0',
+            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
           ),
         ],
       ),
@@ -460,17 +548,17 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.emerald500, size: 20),
+          Icon(icon, color: AppColors.green700, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: AppTypography.bodySm.copyWith(color: AppColors.emerald500),
+              style: AppTypography.bodySm.copyWith(color: AppColors.green700),
             ),
           ),
           Text(
             value,
-            style: AppTypography.titleLg.copyWith(color: AppColors.emerald500),
+            style: AppTypography.titleLg.copyWith(color: AppColors.green700),
           ),
         ],
       ),
@@ -567,6 +655,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 fit: BoxFit.cover,
                 width: 72,
                 height: 72,
+                cacheWidth: 216,
+                cacheHeight: 216,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.low,
                 errorBuilder: (_, __, ___) => const Icon(
                   Icons.broken_image_rounded,
                   color: AppColors.grey300,
@@ -653,7 +745,18 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       ),
     );
   }
+
+  String _formatMinutes(int totalMinutes) {
+    if (totalMinutes == 0) return '0h 0m';
+    final hours = totalMinutes ~/ 60;
+    final mins = totalMinutes % 60;
+    if (hours > 0) {
+      return '${hours}h ${mins}m';
+    }
+    return '${mins}m';
+  }
 }
+
 
 class _Collection {
   final String? imageUrl;
@@ -683,8 +786,9 @@ class _Collection {
     required CollectionRequestModel? request,
   }) {
     final completedTime = offer.completedAt ?? offer.proposedPickupAt;
+    final photoUrl = offer.completionPhotoUrl?.trim();
     return _Collection(
-      imageUrl: null,
+      imageUrl: photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null,
       title: request == null
           ? 'Request #${offer.requestId}'
           : '${request.wasteType.replaceAll('_', ' ')} Waste',
@@ -723,5 +827,58 @@ class _Collection {
     final minute = date.minute.toString().padLeft(2, '0');
     final meridiem = date.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $meridiem';
+  }
+}
+
+class _AllCompletedCollectionsPage extends StatelessWidget {
+  final List<_Collection> collections;
+  final Widget Function(_Collection) cardBuilder;
+
+  const _AllCompletedCollectionsPage({
+    required this.collections,
+    required this.cardBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.grey50,
+      appBar: AppBar(
+        backgroundColor: AppColors.green700,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          'Completed Collections',
+          style: AppTypography.h3.copyWith(color: Colors.white),
+        ),
+      ),
+      body: collections.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.assignment_turned_in_outlined,
+                      color: AppColors.grey400,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No completed collections yet',
+                      style: AppTypography.titleMd,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              itemCount: collections.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) => cardBuilder(collections[i]),
+            ),
+    );
   }
 }
