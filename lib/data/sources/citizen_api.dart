@@ -177,4 +177,106 @@ class CitizenApi {
 
     return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
+
+  // ─── Complaint Methods ───
+
+  Future<bool> createComplaint(Map<String, dynamic> complaintData) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/complaints');
+    final headers = await authHeadersProvider();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(complaintData),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<List<Map<String, dynamic>>> getMyComplaints() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/complaints/my');
+    final headers = await authHeadersProvider();
+    final response = await client.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  // ─── Event Methods ───
+
+  Future<List<Map<String, dynamic>>> getVisibleEvents() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/events');
+    final headers = await authHeadersProvider();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> getMySuggestedEvents() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/events/my');
+    final headers = await authHeadersProvider();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  Future<bool> suggestEvent(Map<String, dynamic> eventData) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/events/suggestions');
+    final headers = await authHeadersProvider();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(eventData),
+    );
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  Future<String?> uploadEventPhoto(String photoPath) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/events/upload-image');
+    final token = await tokenProvider();
+    final request = http.MultipartRequest('POST', url);
+    if (token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body);
+      return body['photoUrl']?.toString();
+    }
+    return null;
+  }
+  Future<bool> enrollEvent(int eventId) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/events/$eventId/enroll');
+    final headers = await authHeadersProvider();
+    final response = await client.post(url, headers: headers);
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    }
+    
+    // If it failed, try to parse the error message from the body
+    String errorMsg = 'Server error (${response.statusCode})';
+    try {
+      final body = json.decode(response.body);
+      if (body['message'] != null) {
+        errorMsg = body['message'];
+      }
+    } catch (_) {}
+    
+    throw Exception(errorMsg);
+  }
 }

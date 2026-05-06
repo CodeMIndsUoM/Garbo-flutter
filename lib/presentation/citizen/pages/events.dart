@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
-import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:garbo_swms/presentation/citizen/pages/suggest_event.dart';
+import 'package:garbo_swms/data/sources/citizen_api.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'dart:convert';
 
 class CitizenPublicEventsPage extends StatefulWidget {
   const CitizenPublicEventsPage({super.key});
@@ -12,100 +16,136 @@ class CitizenPublicEventsPage extends StatefulWidget {
 }
 
 class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
+  List<dynamic> _approvedEvents = [];
+  bool _isLoading = true;
+  bool _showSuggestForm = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEvents();
+  }
+
+  Future<void> _fetchEvents() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = await authProvider.token;
+      
+      final api = CitizenApi(
+        client: http.Client(),
+        authHeadersProvider: () async => {
+          'Authorization': 'Bearer ${token ?? ''}',
+          'Content-Type': 'application/json',
+        },
+        tokenProvider: () async => token ?? '',
+      );
+      final events = await api.getVisibleEvents();
+      if (mounted) {
+        setState(() {
+          _approvedEvents = events;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        print('Error fetching events: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_showSuggestForm) {
+      return WillPopScope(
+        onWillPop: () async {
+          setState(() => _showSuggestForm = false);
+          return false;
+        },
+        child: SuggestEventPage(
+          onSuccess: () {
+            setState(() => _showSuggestForm = false);
+            _fetchEvents();
+          },
+          onCancel: () {
+            setState(() => _showSuggestForm = false);
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            buildSectionHeader(),
-            const SizedBox(height: 16),
-            buildEventCard(
-              badge: 'Cleanup',
-              badgeColor: AppColors.emerald600,
-              imageUrl: 'assets/cleanup_event.jpg',
-              title: 'Community Cleanup Drive',
-              description:
-                  'Join us for a community clean up event. Gloves and bags will be provided.',
-              date: '2025-11-25',
-              time: '9:00 AM - 12:00 PM',
-              location: 'Central Park',
-              participants: '45 / 100 participants',
-            ),
-            const SizedBox(height: 16),
-            buildEventCard(
-              badge: 'Workshop',
-              badgeColor: AppColors.purple600,
-              imageUrl: 'assets/workshop_event.jpg',
-              title: 'Recycling Workshop',
-              description:
-                  'Learn how to properly sort and recycle different materials.',
-              date: '2025-12-02',
-              time: '2:00 PM - 4:00 PM',
-              location: 'Community Center',
-              participants: '23 / 50 participants',
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildSectionHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Upcoming Events',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.grey900,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.emerald100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              '2 events',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.emerald700,
+      body: RefreshIndicator(
+        onRefresh: _fetchEvents,
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : _approvedEvents.isEmpty
+            ? SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.event_busy, size: 64, color: AppColors.grey400),
+                      const SizedBox(height: 16),
+                      const Text('No upcoming events found', style: TextStyle(color: AppColors.grey600)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _fetchEvents,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.emerald600,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                itemCount: _approvedEvents.length,
+                itemBuilder: (context, index) {
+                  final event = _approvedEvents[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: buildEventCard(event),
+                  );
+                },
               ),
-            ),
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() => _showSuggestForm = true);
+        },
+        backgroundColor: AppColors.emerald600,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Suggest Event', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget buildEventCard({
-    required String badge,
-    required Color badgeColor,
-    required String imageUrl,
-    required String title,
-    required String description,
-    required String date,
-    required String time,
-    required String location,
-    required String participants,
-  }) {
+  Widget buildEventCard(dynamic event) {
+    final category = (event['category'] ?? 'Event').toString().toUpperCase();
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.emerald100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.emerald200, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,29 +161,22 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
                   width: double.infinity,
                   height: 160,
                   color: AppColors.grey300,
-                  child: const Icon(
-                    Icons.image_outlined,
-                    size: 48,
-                    color: AppColors.grey500,
-                  ),
+                  child: event['imageUrl'] != null && event['imageUrl'].toString().isNotEmpty
+                      ? Image.network(event['imageUrl'], fit: BoxFit.cover)
+                      : const Icon(Icons.image_outlined, size: 48, color: AppColors.grey500),
                 ),
                 Positioned(
                   top: 12,
                   left: 12,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: badgeColor,
+                      color: AppColors.emerald600,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      badge,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      category,
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -156,52 +189,65 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.grey900,
-                  ),
+                  event['title'] ?? 'Untitled Event',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.grey900),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.grey600,
-                    height: 1.4,
-                  ),
+                  event['description'] ?? 'No description available.',
+                  style: const TextStyle(fontSize: 14, color: AppColors.grey600),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 14),
-                buildEventInfo(Icons.calendar_today_rounded, date),
+                const SizedBox(height: 16),
+                buildEventInfo(Icons.calendar_today, event['eventDate'] ?? 'Date TBD'),
                 const SizedBox(height: 8),
-                buildEventInfo(Icons.access_time_rounded, time),
+                buildEventInfo(Icons.location_on, event['location'] ?? 'Location TBD'),
                 const SizedBox(height: 8),
-                buildEventInfo(Icons.location_on_outlined, location),
-                const SizedBox(height: 8),
-                buildEventInfo(Icons.group_outlined, participants),
+                buildEventInfo(
+                  Icons.people, 
+                  'Enrolled: ${event['enrolledCount'] ?? 0}${event['maxParticipants'] != null ? ' / ${event['maxParticipants']}' : ''}'
+                ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      try {
+                        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                        final token = await authProvider.token;
+                        
+                        final api = CitizenApi(
+                          client: http.Client(),
+                          authHeadersProvider: () async => {
+                            'Authorization': 'Bearer ${token ?? ''}',
+                            'Content-Type': 'application/json',
+                          },
+                          tokenProvider: () async => token ?? '',
+                        );
+                        final success = await api.enrollEvent(event['id']);
+                        if (success && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Successfully enrolled in event!')),
+                          );
+                          _fetchEvents();
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          print('ERROR ENROLLING: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to enroll: $e')),
+                          );
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.emerald600,
                       foregroundColor: Colors.white,
-                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
-                    child: const Text(
-                      'Enroll Now',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: const Text('Enroll Now', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -217,13 +263,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       children: [
         Icon(icon, size: 16, color: AppColors.grey600),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.grey700,
-          ),
-        ),
+        Text(text, style: const TextStyle(fontSize: 13, color: AppColors.grey700)),
       ],
     );
   }

@@ -256,4 +256,11 @@ class ApiService {
     email: email,
     password: password,
   );
+
+  // Complaint Methods
+  Future<bool> createComplaint(Map<String, dynamic> complaintData) =>
+      _citizenApi.createComplaint(complaintData);
+
+  Future<List<Map<String, dynamic>>> getMyComplaints() =>
+      _citizenApi.getMyComplaints();
 }

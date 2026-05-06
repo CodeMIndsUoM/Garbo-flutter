@@ -53,6 +53,19 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
   WebSocketService get webSocketService => _webSocketService;
+  
+  Future<String?> get token async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  Future<Map<String, String>> getAuthHeaders() async {
+    final t = await token;
+    return {
+      'Content-Type': 'application/json',
+      if (t != null) 'Authorization': 'Bearer $t',
+    };
+  }
 
   AuthProvider() {
     _webSocketService = WebSocketService();
