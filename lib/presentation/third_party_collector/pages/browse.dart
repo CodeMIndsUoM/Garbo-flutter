@@ -113,26 +113,35 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       wasteType: request.wasteType.replaceAll('_', ' '),
       location: request.addressLine,
       preferredTime: _preferredTimeLabel(request),
+      imageUrl: request.photoUrl,
+      weightKg: request.quantityKgEstimate,
+      notes: request.notes,
       onSubmit:
           ({
-            required double pricePerUnit,
-            required String priceUnit,
+            double? pricePerUnit,
+            String? priceUnit,
+            String? exchangeItem,
             required DateTime proposedPickupAt,
             String? messageToCitizen,
           }) async {
             if (_submittingOffer) return;
             setState(() => _submittingOffer = true);
             try {
+              final payload = <String, dynamic>{
+                'proposedPickupAt': proposedPickupAt.toUtc().toIso8601String(),
+                'messageToCitizen': messageToCitizen,
+              };
+              
+              if (pricePerUnit != null && priceUnit != null) {
+                payload['pricePerUnit'] = pricePerUnit;
+                payload['priceUnit'] = priceUnit;
+              } else if (exchangeItem != null) {
+                payload['exchangeItem'] = exchangeItem;
+              }
+
               await _apiService.sendCollectorOffer(
                 requestId: request.id,
-                payload: {
-                  'pricePerUnit': pricePerUnit,
-                  'priceUnit': priceUnit,
-                  'proposedPickupAt': proposedPickupAt
-                      .toUtc()
-                      .toIso8601String(),
-                  'messageToCitizen': messageToCitizen,
-                },
+                payload: payload,
               );
             } finally {
               if (mounted) {
