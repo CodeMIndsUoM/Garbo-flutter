@@ -7,19 +7,18 @@ class BinListSection extends StatelessWidget {
   final List<BinModel> bins;
   final Function(BinModel) onReport;
 
-  const BinListSection({
-    super.key,
-    required this.bins,
-    required this.onReport,
-  });
+  const BinListSection({super.key, required this.bins, required this.onReport});
 
   @override
   Widget build(BuildContext context) {
     // Filter for bins that need checking (notChecked) and take top 3
-    final pendingBins = bins.where((b) => b.status == BinStatus.notChecked).take(3).toList();
+    final pendingBins = bins
+        .where((b) => b.status == BinStatus.notChecked)
+        .take(3)
+        .toList();
 
     if (pendingBins.isEmpty) {
-      return const SizedBox.shrink(); 
+      return const SizedBox.shrink();
     }
 
     return Column(
@@ -29,7 +28,11 @@ class BinListSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.delete_outline, color: AppColors.grey900, size: 24),
+                const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.grey900,
+                  size: 24,
+                ),
                 const SizedBox(width: 8),
                 Text('Bins to Check Today', style: AppTypography.titleLg),
               ],
@@ -42,16 +45,21 @@ class BinListSection extends StatelessWidget {
               ),
               child: Text(
                 '${pendingBins.length} PENDING',
-                style: AppTypography.labelSm.copyWith(fontWeight: FontWeight.bold, color: AppColors.blue600),
+                style: AppTypography.labelSm.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.blue600,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-        ...pendingBins.map((bin) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildBinItem(bin),
-        )),
+        ...pendingBins.map(
+          (bin) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildBinItem(bin),
+          ),
+        ),
         const SizedBox(height: 12),
       ],
     );
@@ -85,7 +93,10 @@ class BinListSection extends StatelessWidget {
                 ),
                 child: Text(
                   bin.id,
-                  style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: AppColors.grey600),
+                  style: AppTypography.overline.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.grey600,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -97,14 +108,20 @@ class BinListSection extends StatelessWidget {
                 ),
                 child: Text(
                   bin.status.label.toUpperCase(),
-                  style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: AppColors.blue600),
+                  style: AppTypography.overline.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(bin.location, style: AppTypography.titleLg),
-          Text(bin.address, style: AppTypography.caption.copyWith(color: AppColors.grey600)),
+          Text(bin.displayCode, style: AppTypography.titleLg),
+          Text(
+            bin.address,
+            style: AppTypography.caption.copyWith(color: AppColors.grey600),
+          ),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => onReport(bin),
@@ -125,9 +142,19 @@ class BinListSection extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.send_outlined, color: Colors.white, size: 16),
+                  const Icon(
+                    Icons.send_outlined,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
-                  Text('Report Fill Level', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(
+                    'Report Fill Level',
+                    style: AppTypography.titleSm.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),

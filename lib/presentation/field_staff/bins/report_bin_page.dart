@@ -266,7 +266,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Location Subtitle
+                  // Bin code subtitle
                   Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -278,7 +278,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        widget.bin.location,
+                        widget.bin.displayCode,
                         style: AppTypography.bodyMd.copyWith(
                           fontWeight: FontWeight.w500,
                           color: AppColors.grey700,
@@ -504,7 +504,9 @@ class _ReportBinPageState extends State<ReportBinPage> {
                   const SizedBox(height: 4),
                   Text(
                     'Document damage or issues',
-                    style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+                    style: AppTypography.bodySm.copyWith(
+                      color: AppColors.grey600,
+                    ),
                   ),
                 ],
               )
