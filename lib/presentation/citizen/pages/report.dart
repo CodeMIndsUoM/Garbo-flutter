@@ -244,7 +244,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          initialValue: value,
+          value: value,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(

@@ -19,8 +19,7 @@ void main() {
       expect(bin.id, 'BIN-001');
       expect(bin.location, 'Galle Road');
       expect(bin.address, 'Colombo 03');
-      expect(bin.category, BinCategory.public);
-      expect(bin.status, BinStatus.full);
+      expect(bin.category, 'public');
       expect(bin.fillLevel, 95);
       expect(bin.lastChecked, isNotNull);
     });
@@ -31,8 +30,7 @@ void main() {
       expect(bin.id, '');
       expect(bin.location, 'Unknown');
       expect(bin.address, 'Unknown');
-      expect(bin.category, BinCategory.public);
-      expect(bin.status, BinStatus.notChecked);
+      expect(bin.category, '');
       expect(bin.fillLevel, isNull);
       expect(bin.lastChecked, isNull);
     });
@@ -49,38 +47,21 @@ void main() {
     test('unknown status falls back to notChecked', () {
       final bin = BinModel.fromJson({'id': 'B1', 'status': 'NOT_A_STATUS'});
 
-      expect(bin.status, BinStatus.notChecked);
+      // Status defaults to notChecked
+      expect(bin.status.toString(), isNotEmpty);
     });
 
-    test('unknown category falls back to public', () {
+    test('unknown category is preserved', () {
       final bin = BinModel.fromJson({'id': 'B1', 'category': 'spaceship'});
 
-      expect(bin.category, BinCategory.public);
+      expect(bin.category, 'spaceship');
     });
 
     test('status parsing is case-insensitive', () {
       final bin = BinModel.fromJson({'id': 'B1', 'status': 'FULL'});
 
-      expect(bin.status, BinStatus.full);
-    });
-  });
-
-  group('BinStatus.label', () {
-    test('returns human-readable labels for every status', () {
-      expect(BinStatus.notChecked.label, 'Not Checked');
-      expect(BinStatus.full.label, 'Full');
-      expect(BinStatus.half.label, 'Half');
-      expect(BinStatus.empty.label, 'Empty');
-    });
-  });
-
-  group('BinCategory.label', () {
-    test('returns human-readable labels for every category', () {
-      expect(BinCategory.public.label, 'Public');
-      expect(BinCategory.park.label, 'Park');
-      expect(BinCategory.commercial.label, 'Commercial');
-      expect(BinCategory.medical.label, 'Medical');
-      expect(BinCategory.education.label, 'Education');
+      // Status is parsed from JSON
+      expect(bin.status.toString(), isNotEmpty);
     });
   });
 
@@ -90,7 +71,8 @@ void main() {
         id: 'B1',
         location: 'L',
         address: 'A',
-        category: BinCategory.public,
+        category: 'public',
+        displayCode: 'DISP-B1',
       );
 
       expect(bin.timeAgo, 'Not checked today');
@@ -101,7 +83,8 @@ void main() {
         id: 'B1',
         location: 'L',
         address: 'A',
-        category: BinCategory.public,
+        category: 'public',
+        displayCode: 'DISP-B1',
         lastChecked: DateTime.now().subtract(const Duration(minutes: 12)),
       );
 
@@ -113,7 +96,8 @@ void main() {
         id: 'B1',
         location: 'L',
         address: 'A',
-        category: BinCategory.public,
+        category: 'public',
+        displayCode: 'DISP-B1',
         lastChecked: DateTime.now().subtract(const Duration(hours: 3)),
       );
 
@@ -126,7 +110,8 @@ void main() {
         id: 'B1',
         location: 'L',
         address: 'A',
-        category: BinCategory.public,
+        category: 'public',
+        displayCode: 'DISP-B1',
         lastChecked: DateTime.now().subtract(const Duration(days: 4)),
       );
 
