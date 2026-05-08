@@ -10,19 +10,14 @@ import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_details_ove
 /// - Colored left border accent based on status
 /// - Category badge (green pill)
 /// - Status label (colored text, top-right)
-/// - Location, address, time-ago
+/// - Bin code, address, time-ago
 /// - "Report Fill Level" button for unchecked bins
 class BinCard extends StatelessWidget {
   final BinModel bin;
   final VoidCallback? onReport;
   final VoidCallback? onUndo;
 
-  const BinCard({
-    super.key,
-    required this.bin,
-    this.onReport,
-    this.onUndo,
-  });
+  const BinCard({super.key, required this.bin, this.onReport, this.onUndo});
 
   @override
   Widget build(BuildContext context) {
@@ -37,44 +32,47 @@ class BinCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-        color: _cardBgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1, color: _borderColor),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTopRow(),
-            const SizedBox(height: 8),
-            Text(bin.location, style: AppTypography.titleLg),
-            Text(bin.address, style: AppTypography.caption.copyWith(color: AppColors.grey600)),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(Icons.access_time, size: 14, color: AppColors.grey500),
-                const SizedBox(width: 4),
-                Text(bin.timeAgo, style: AppTypography.caption),
-              ],
+          color: _cardBgColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(width: 1, color: _borderColor),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowSm,
+              blurRadius: 3,
+              offset: Offset(0, 1),
             ),
-            if (bin.status == BinStatus.notChecked) ...[
-              const SizedBox(height: 12),
-              _buildReportButton(),
-            ] else ...[
-              const SizedBox(height: 12),
-              _buildUndoButton(),
-            ],
           ],
         ),
-      ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTopRow(),
+              const SizedBox(height: 8),
+              Text(bin.displayCode, style: AppTypography.titleLg),
+              Text(
+                bin.address,
+                style: AppTypography.caption.copyWith(color: AppColors.grey600),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 14, color: AppColors.grey500),
+                  const SizedBox(width: 4),
+                  Text(bin.timeAgo, style: AppTypography.caption),
+                ],
+              ),
+              if (bin.status == BinStatus.notChecked) ...[
+                const SizedBox(height: 12),
+                _buildReportButton(),
+              ] else ...[
+                const SizedBox(height: 12),
+                _buildUndoButton(),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -89,7 +87,13 @@ class BinCard extends StatelessWidget {
             color: AppColors.grey200,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(bin.id, style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: AppColors.grey700)),
+          child: Text(
+            bin.id,
+            style: AppTypography.overline.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.grey700,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         // Category badge
@@ -99,7 +103,13 @@ class BinCard extends StatelessWidget {
             color: AppColors.grey600,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(bin.category.label, style: AppTypography.overline.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+          child: Text(
+            bin.displayCategory,
+            style: AppTypography.overline.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
         const Spacer(),
         // Status label pill
@@ -110,7 +120,13 @@ class BinCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.grey200),
           ),
-          child: Text(bin.status.label, style: AppTypography.labelSm.copyWith(fontWeight: FontWeight.bold, color: _statusTextColor)),
+          child: Text(
+            bin.status.label,
+            style: AppTypography.labelSm.copyWith(
+              fontWeight: FontWeight.bold,
+              color: _statusTextColor,
+            ),
+          ),
         ),
       ],
     );
@@ -138,7 +154,13 @@ class BinCard extends StatelessWidget {
           children: [
             const Icon(Icons.send_outlined, color: Colors.white, size: 16),
             const SizedBox(width: 8),
-            Text('Report Fill Level', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            Text(
+              'Report Fill Level',
+              style: AppTypography.titleSm.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
       ),
@@ -168,7 +190,13 @@ class BinCard extends StatelessWidget {
           children: [
             const Icon(Icons.undo, color: AppColors.grey700, size: 16),
             const SizedBox(width: 8),
-            Text('Undo Report', style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold, color: AppColors.grey700)),
+            Text(
+              'Undo Report',
+              style: AppTypography.titleSm.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.grey700,
+              ),
+            ),
           ],
         ),
       ),
@@ -202,8 +230,6 @@ class BinCard extends StatelessWidget {
         return AppColors.emerald200;
     }
   }
-
-
 
   Color get _statusTextColor {
     switch (bin.status) {
