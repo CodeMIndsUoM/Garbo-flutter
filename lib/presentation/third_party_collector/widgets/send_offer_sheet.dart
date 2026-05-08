@@ -6,19 +6,25 @@ class SendOfferSheet extends StatefulWidget {
   final String wasteType;
   final String location;
   final String preferredTime;
+  final String? imageUrl;
+  final double? weightKg;
+  final String? notes;
   final Future<void> Function({
-    required double pricePerUnit,
-    required String priceUnit,
+    double? pricePerUnit,
+    String? priceUnit,
+    String? exchangeItem,
     required DateTime proposedPickupAt,
     String? messageToCitizen,
-  })
-  onSubmit;
+  }) onSubmit;
 
   const SendOfferSheet({
     super.key,
     required this.wasteType,
     required this.location,
     required this.preferredTime,
+    this.imageUrl,
+    this.weightKg,
+    this.notes,
     required this.onSubmit,
   });
 
@@ -27,13 +33,16 @@ class SendOfferSheet extends StatefulWidget {
     required String wasteType,
     required String location,
     required String preferredTime,
+    String? imageUrl,
+    double? weightKg,
+    String? notes,
     required Future<void> Function({
-      required double pricePerUnit,
-      required String priceUnit,
+      double? pricePerUnit,
+      String? priceUnit,
+      String? exchangeItem,
       required DateTime proposedPickupAt,
       String? messageToCitizen,
-    })
-    onSubmit,
+    }) onSubmit,
   }) {
     return Navigator.of(context).push<bool>(
       _SendOfferRoute(
@@ -41,6 +50,9 @@ class SendOfferSheet extends StatefulWidget {
           wasteType: wasteType,
           location: location,
           preferredTime: preferredTime,
+          imageUrl: imageUrl,
+          weightKg: weightKg,
+          notes: notes,
           onSubmit: onSubmit,
         ),
       ),
@@ -52,116 +64,117 @@ class SendOfferSheet extends StatefulWidget {
 }
 
 class _SendOfferSheetState extends State<SendOfferSheet> {
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
-  final FocusNode _priceFocus = FocusNode();
-  final FocusNode _notesFocus = FocusNode();
+  final _priceCtrl = TextEditingController();
+  final _exchangeCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  final _priceFocus = FocusNode();
+  final _exchangeFocus = FocusNode();
+  final _notesFocus = FocusNode();
 
   bool _submitting = false;
+  String _offerType = 'PRICE';
   String _priceUnit = 'FIXED';
   DateTime? _proposedPickupAt;
 
   @override
   void dispose() {
-    _priceController.dispose();
-    _notesController.dispose();
+    _priceCtrl.dispose();
+    _exchangeCtrl.dispose();
+    _notesCtrl.dispose();
     _priceFocus.dispose();
+    _exchangeFocus.dispose();
     _notesFocus.dispose();
     super.dispose();
   }
 
   bool get _canSubmit {
-    final price = double.tryParse(_priceController.text.trim());
-    return !_submitting &&
-        price != null &&
-        price > 0 &&
-        _proposedPickupAt != null;
+    if (_submitting || _proposedPickupAt == null) return false;
+    if (_offerType == 'PRICE') {
+      final p = double.tryParse(_priceCtrl.text.trim());
+      return p != null && p > 0;
+    }
+    return _exchangeCtrl.text.trim().isNotEmpty;
   }
 
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
-    final initialDate = _proposedPickupAt ?? now.add(const Duration(hours: 1));
+    final init = _proposedPickupAt ?? now.add(const Duration(hours: 1));
     final date = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: init,
       firstDate: now,
       lastDate: now.add(const Duration(days: 60)),
     );
     if (date == null || !mounted) return;
-
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(initialDate),
+      initialTime: TimeOfDay.fromDateTime(init),
     );
     if (time == null || !mounted) return;
-
     setState(() {
-      _proposedPickupAt = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
+      _proposedPickupAt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
     });
   }
 
   Future<void> _submit() async {
-    final price = double.tryParse(_priceController.text.trim());
-    if (price == null || price <= 0) {
-      _showSnack('Enter a valid price.', isError: true);
-      return;
+    if (!_canSubmit) return;
+    double? price;
+    String? exchangeItem;
+    if (_offerType == 'PRICE') {
+      price = double.tryParse(_priceCtrl.text.trim());
+      if (price == null || price <= 0) {
+        _snack('Enter a valid price.', error: true);
+        return;
+      }
+    } else {
+      exchangeItem = _exchangeCtrl.text.trim();
+      if (exchangeItem.isEmpty) {
+        _snack('Enter an exchange item.', error: true);
+        return;
+      }
     }
-    final pickupAt = _proposedPickupAt;
-    if (pickupAt == null) {
-      _showSnack('Select a pickup date and time.', isError: true);
-      return;
-    }
-
     setState(() => _submitting = true);
     try {
       await widget.onSubmit(
         pricePerUnit: price,
-        priceUnit: _priceUnit,
-        proposedPickupAt: pickupAt,
-        messageToCitizen: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
+        priceUnit: _offerType == 'PRICE' ? _priceUnit : null,
+        exchangeItem: exchangeItem,
+        proposedPickupAt: _proposedPickupAt!,
+        messageToCitizen: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Could not send offer: $e', isError: true);
+      _snack('Could not send offer: $e', error: true);
     } finally {
-      if (mounted) {
-        setState(() => _submitting = false);
-      }
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
-  void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.redDark2 : AppColors.green700,
-      ),
-    );
+  void _snack(String msg, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: error ? AppColors.redDark2 : AppColors.green700,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    ));
   }
 
-  String _formatPickup(DateTime dt) {
-    final y = dt.year.toString().padLeft(4, '0');
-    final m = dt.month.toString().padLeft(2, '0');
-    final d = dt.day.toString().padLeft(2, '0');
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final mm = dt.minute.toString().padLeft(2, '0');
-    return '$y-$m-$d $hh:$mm';
+  String _fmtPickup(DateTime dt) {
+    final d = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+    final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final s = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$d  $h:$m $s';
   }
+
+  // ── Build ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final inset = MediaQuery.of(context).viewInsets.bottom;
-    final maxH = MediaQuery.of(context).size.height * 0.92;
 
     return Material(
       type: MaterialType.transparency,
@@ -175,20 +188,16 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             child: GestureDetector(
               onTap: () {},
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: maxH),
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.88,
+                ),
                 child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowMd,
-                        offset: Offset(0, -6),
-                        blurRadius: 28,
-                      ),
+                      BoxShadow(color: AppColors.shadowMd, offset: Offset(0, -6), blurRadius: 28),
                     ],
                   ),
                   child: SafeArea(
@@ -196,6 +205,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // ── Drag handle
                         const SizedBox(height: 10),
                         Center(
                           child: Container(
@@ -207,46 +217,67 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
+                        // ── Header
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 22),
-                          child: _buildHeader(),
+                          child: _header(),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
                         Container(height: 1, color: AppColors.grey100),
+                        // ── Scrollable body
                         Flexible(
                           child: SingleChildScrollView(
-                            padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
+                            padding: const EdgeInsets.fromLTRB(22, 18, 22, 24),
                             physics: const ClampingScrollPhysics(),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildSectionLabel('Request Summary'),
-                                const SizedBox(height: 10),
-                                _buildSummaryCard(),
-                                const SizedBox(height: 20),
-                                _buildFieldLabel('Price'),
-                                const SizedBox(height: 10),
-                                _buildPriceField(),
-                                const SizedBox(height: 14),
-                                _buildFieldLabel('Price Unit'),
-                                const SizedBox(height: 10),
-                                _buildPriceUnitPicker(),
-                                const SizedBox(height: 14),
-                                _buildFieldLabel('Proposed Pickup Time'),
-                                const SizedBox(height: 10),
-                                _buildDateTimeButton(),
-                                const SizedBox(height: 20),
-                                _buildFieldLabel(
-                                  'Message to Citizen',
-                                  optional: true,
-                                ),
-                                const SizedBox(height: 10),
-                                _buildNotesField(),
+                                _summaryCard(),
+                                const SizedBox(height: 22),
+                                _offerToggle(),
                                 const SizedBox(height: 18),
-                                _buildInfoBanner(),
-                                const SizedBox(height: 20),
-                                _buildSendButton(),
+                                if (_offerType == 'PRICE') ...[
+                                  _label('Offer Amount'),
+                                  const SizedBox(height: 8),
+                                  _inputField(
+                                    controller: _priceCtrl,
+                                    focusNode: _priceFocus,
+                                    hint: '0.00',
+                                    prefix: 'LKR  ',
+                                    keyboard: const TextInputType.numberWithOptions(decimal: true),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _label('Price Unit'),
+                                  const SizedBox(height: 8),
+                                  _unitPicker(),
+                                ] else ...[
+                                  _label('Exchange Item'),
+                                  const SizedBox(height: 8),
+                                  _inputField(
+                                    controller: _exchangeCtrl,
+                                    focusNode: _exchangeFocus,
+                                    hint: 'e.g. 5 kg rice, fertilizer bag…',
+                                    prefixIcon: Icons.swap_horiz_rounded,
+                                  ),
+                                ],
+                                const SizedBox(height: 14),
+                                _label('Pickup Date & Time'),
+                                const SizedBox(height: 8),
+                                _dateTimePicker(),
+                                const SizedBox(height: 14),
+                                _label('Message to Citizen', optional: true),
+                                const SizedBox(height: 8),
+                                _inputField(
+                                  controller: _notesCtrl,
+                                  focusNode: _notesFocus,
+                                  hint: 'Any extra details for the citizen…',
+                                  lines: 2,
+                                ),
+                                const SizedBox(height: 16),
+                                _infoBanner(),
+                                const SizedBox(height: 18),
+                                _sendBtn(),
                               ],
                             ),
                           ),
@@ -263,20 +294,36 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildHeader() {
+  // ── Header ───────────────────────────────────────────────────────────
+
+  Widget _header() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: AppColors.green700,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.green700.withValues(alpha: 0.25),
+                offset: const Offset(0, 3),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: const Icon(Icons.local_offer_rounded, color: Colors.white, size: 17),
+        ),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Send Collection Offer', style: AppTypography.h3),
               const SizedBox(height: 2),
-              Text(
-                'Submit your price and pickup time for this request',
-                style: AppTypography.bodySm,
-              ),
+              Text('Submit your offer for this request', style: AppTypography.bodySm),
             ],
           ),
         ),
@@ -292,55 +339,75 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(
-              Icons.close_rounded,
-              color: AppColors.grey600,
-              size: 18,
-            ),
+            child: const Icon(Icons.close_rounded, color: AppColors.grey600, size: 18),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSectionLabel(String text) {
-    return Text(
-      text,
-      style: AppTypography.titleSm.copyWith(color: AppColors.grey900),
-    );
-  }
+  // ── Summary Card ─────────────────────────────────────────────────────
 
-  Widget _buildSummaryCard() {
+  Widget _summaryCard() {
+    final hasImg = widget.imageUrl != null && widget.imageUrl!.isNotEmpty;
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.emerald50,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.emerald100, width: 1),
+        border: Border.all(color: AppColors.emerald100),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSummaryRow('Waste Type', widget.wasteType),
-          const SizedBox(height: 10),
-          _buildSummaryRow('Location', widget.location),
-          const SizedBox(height: 10),
-          _buildSummaryRow('Preferred Time', widget.preferredTime),
+          if (hasImg)
+            Image.network(
+              widget.imageUrl!,
+              height: 110,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                height: 60,
+                color: AppColors.emerald100,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined, color: AppColors.emerald600, size: 24),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                _summaryRow(Icons.delete_outline_rounded, 'Waste Type', widget.wasteType),
+                const SizedBox(height: 10),
+                _summaryRow(Icons.location_on_outlined, 'Location', widget.location),
+                const SizedBox(height: 10),
+                _summaryRow(Icons.schedule_outlined, 'Preferred', widget.preferredTime),
+                if (widget.weightKg != null && widget.weightKg! > 0) ...[
+                  const SizedBox(height: 10),
+                  _summaryRow(Icons.scale_outlined, 'Est. Weight', '${widget.weightKg} kg'),
+                ],
+                if (widget.notes != null && widget.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _summaryRow(Icons.notes_rounded, 'Notes', widget.notes!),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _summaryRow(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(icon, size: 16, color: AppColors.emerald700),
+        const SizedBox(width: 8),
         SizedBox(
-          width: 120,
-          child: Text(
-            label,
-            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
-          ),
+          width: 90,
+          child: Text(label, style: AppTypography.bodySm.copyWith(color: AppColors.emerald800)),
         ),
         Expanded(
           child: Text(
@@ -356,33 +423,75 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildFieldLabel(String label, {bool optional = false}) {
-    return RichText(
-      text: TextSpan(
+  // ── Offer-type toggle ────────────────────────────────────────────────
+
+  Widget _offerToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.grey100,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Row(
         children: [
-          TextSpan(
-            text: label,
-            style: AppTypography.labelMd.copyWith(
-              color: AppColors.grey900,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-          if (optional)
-            TextSpan(
-              text: '  (optional)',
-              style: AppTypography.labelSm.copyWith(color: AppColors.grey400),
-            ),
+          _toggleTab('PRICE', Icons.payments_outlined, 'Give Price'),
+          const SizedBox(width: 4),
+          _toggleTab('EXCHANGE', Icons.swap_horiz_rounded, 'Exchange Item'),
         ],
       ),
     );
   }
 
-  Widget _buildPriceField() {
+  Widget _toggleTab(String type, IconData icon, String text) {
+    final active = _offerType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _offerType = type),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            color: active ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: active
+                ? [const BoxShadow(color: AppColors.shadowSm, blurRadius: 6, offset: Offset(0, 2))]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: active ? AppColors.green700 : AppColors.grey400),
+              const SizedBox(width: 6),
+              Text(
+                text,
+                style: AppTypography.labelMd.copyWith(
+                  color: active ? AppColors.green700 : AppColors.grey500,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Shared input field ───────────────────────────────────────────────
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hint,
+    String? prefix,
+    IconData? prefixIcon,
+    int lines = 1,
+    TextInputType? keyboard,
+  }) {
     return AnimatedBuilder(
-      animation: _priceFocus,
+      animation: focusNode,
       builder: (context, _) {
-        final focused = _priceFocus.hasFocus;
+        final focused = focusNode.hasFocus;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
@@ -393,24 +502,34 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               color: focused ? AppColors.green700 : AppColors.grey200,
               width: focused ? 1.4 : 1,
             ),
+            boxShadow: focused
+                ? [BoxShadow(color: AppColors.green700.withValues(alpha: 0.10), blurRadius: 0, spreadRadius: 3)]
+                : null,
           ),
           child: TextField(
-            controller: _priceController,
-            focusNode: _priceFocus,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            controller: controller,
+            focusNode: focusNode,
+            maxLines: lines,
+            keyboardType: keyboard,
             cursorColor: AppColors.green700,
             style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             decoration: InputDecoration(
-              hintText: 'Enter amount (LKR)',
-              hintStyle: AppTypography.bodyMd.copyWith(
-                color: AppColors.grey400,
-              ),
-              prefixText: 'LKR ',
+              hintText: hint,
+              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
+              prefixText: prefix,
+              prefixStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500, fontWeight: FontWeight.w600),
+              prefixIcon: prefixIcon != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 12, right: 4),
+                      child: Icon(prefixIcon, size: 18, color: focused ? AppColors.green700 : AppColors.grey400),
+                    )
+                  : null,
+              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -419,40 +538,39 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildPriceUnitPicker() {
+  // ── Unit picker ──────────────────────────────────────────────────────
+
+  Widget _unitPicker() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1),
+        border: Border.all(color: AppColors.grey200),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           isExpanded: true,
           value: _priceUnit,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: AppColors.grey500,
-          ),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
           borderRadius: BorderRadius.circular(12),
+          style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
           items: const [
             DropdownMenuItem(value: 'FIXED', child: Text('Fixed Price')),
             DropdownMenuItem(value: 'PER_KG', child: Text('Per Kilogram')),
           ],
           onChanged: (v) {
-            if (v == null) return;
-            setState(() => _priceUnit = v);
+            if (v != null) setState(() => _priceUnit = v);
           },
         ),
       ),
     );
   }
 
-  Widget _buildDateTimeButton() {
-    final text = _proposedPickupAt == null
-        ? 'Select pickup date and time'
-        : _formatPickup(_proposedPickupAt!);
+  // ── Date-time picker ─────────────────────────────────────────────────
+
+  Widget _dateTimePicker() {
+    final picked = _proposedPickupAt != null;
     return InkWell(
       onTap: _pickDateTime,
       borderRadius: BorderRadius.circular(12),
@@ -462,25 +580,38 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.grey200, width: 1),
+          border: Border.all(color: picked ? AppColors.emerald200 : AppColors.grey200),
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.schedule_rounded,
-              color: AppColors.green700,
-              size: 18,
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: picked ? AppColors.emerald50 : AppColors.grey50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.calendar_today_rounded,
+                size: 15,
+                color: picked ? AppColors.green700 : AppColors.grey400,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                text,
+                picked ? _fmtPickup(_proposedPickupAt!) : 'Select pickup date and time',
                 style: AppTypography.bodyMd.copyWith(
-                  color: _proposedPickupAt == null
-                      ? AppColors.grey400
-                      : AppColors.grey900,
+                  color: picked ? AppColors.grey900 : AppColors.grey400,
+                  fontWeight: picked ? FontWeight.w500 : FontWeight.w400,
                 ),
               ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 13,
+              color: picked ? AppColors.green700 : AppColors.grey300,
             ),
           ],
         ),
@@ -488,52 +619,30 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildNotesField() {
-    return AnimatedBuilder(
-      animation: _notesFocus,
-      builder: (context, _) {
-        final focused = _notesFocus.hasFocus;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: focused ? AppColors.green700 : AppColors.grey200,
-              width: focused ? 1.4 : 1,
-            ),
-          ),
-          child: TextField(
-            controller: _notesController,
-            focusNode: _notesFocus,
-            maxLines: 3,
-            cursorColor: AppColors.green700,
-            style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-            decoration: InputDecoration(
-              hintText: 'Any extra details for the citizen',
-              hintStyle: AppTypography.bodyMd.copyWith(
-                color: AppColors.grey400,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 14,
-              ),
-            ),
-          ),
-        );
-      },
+  // ── Field label ──────────────────────────────────────────────────────
+
+  Widget _label(String text, {bool optional = false}) {
+    return RichText(
+      text: TextSpan(children: [
+        TextSpan(
+          text: text,
+          style: AppTypography.labelMd.copyWith(color: AppColors.grey900, fontWeight: FontWeight.w600, fontSize: 13),
+        ),
+        if (optional)
+          TextSpan(text: '  (optional)', style: AppTypography.labelSm.copyWith(color: AppColors.grey400)),
+      ]),
     );
   }
 
-  Widget _buildInfoBanner() {
+  // ── Info banner ──────────────────────────────────────────────────────
+
+  Widget _infoBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.emerald50,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.emerald100, width: 1),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,15 +651,12 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             width: 22,
             height: 22,
             decoration: BoxDecoration(
-              color: AppColors.emerald100,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.grey200),
             ),
             alignment: Alignment.center,
-            child: const Icon(
-              Icons.info_outline_rounded,
-              color: AppColors.green800,
-              size: 13,
-            ),
+            child: const Icon(Icons.info_outline_rounded, color: AppColors.grey500, size: 13),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -558,9 +664,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 'Citizens can compare offers and accept one based on price and timing.',
-                style: AppTypography.captionSm.copyWith(
-                  color: AppColors.green800,
-                ),
+                style: AppTypography.captionSm.copyWith(color: AppColors.grey600),
               ),
             ),
           ),
@@ -569,7 +673,9 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 
-  Widget _buildSendButton() {
+  // ── Send button ──────────────────────────────────────────────────────
+
+  Widget _sendBtn() {
     return SizedBox(
       width: double.infinity,
       child: DecoratedBox(
@@ -592,6 +698,8 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           child: InkWell(
             onTap: _canSubmit ? _submit : null,
             borderRadius: BorderRadius.circular(14),
+            splashColor: AppColors.green800.withValues(alpha: 0.3),
+            highlightColor: AppColors.green800.withValues(alpha: 0.15),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Row(
@@ -607,14 +715,16 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                       ),
                     )
                   else
-                    const Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 14,
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: const BoxDecoration(color: AppColors.white20, shape: BoxShape.circle),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 12),
                     ),
                   const SizedBox(width: 10),
                   Text(
-                    _submitting ? 'Sending...' : 'Send Offer',
+                    _submitting ? 'Sending…' : 'Send Offer',
                     style: AppTypography.buttonLg.copyWith(color: Colors.white),
                   ),
                 ],
@@ -626,6 +736,8 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     );
   }
 }
+
+// ── Route (slide-up transition) ────────────────────────────────────────
 
 class _SendOfferRoute<T> extends PageRouteBuilder<T> {
   final Widget child;

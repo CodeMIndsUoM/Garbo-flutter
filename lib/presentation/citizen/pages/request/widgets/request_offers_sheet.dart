@@ -181,18 +181,24 @@ class RequestOffersSheet extends StatelessWidget {
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Icon(
-                              Icons.payments_outlined,
+                            Icon(
+                              offer.pricePerUnit != null
+                                  ? Icons.payments_outlined
+                                  : Icons.swap_horiz_outlined,
                               size: 16,
                               color: AppColors.emerald600,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'LKR ${offer.pricePerUnit.toStringAsFixed(2)} (${offer.priceUnit})',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.grey900,
+                            Expanded(
+                              child: Text(
+                                offer.pricePerUnit != null
+                                    ? 'LKR ${offer.pricePerUnit!.toStringAsFixed(2)} (${offer.priceUnit})'
+                                    : 'Exchange for: ${offer.exchangeItem ?? "Unknown"}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.grey900,
+                                ),
                               ),
                             ),
                           ],
