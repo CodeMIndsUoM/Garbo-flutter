@@ -11,6 +11,9 @@ class BinModel {
   final BinStatus status;
   final int? fillLevel;
   final DateTime? lastChecked;
+  final double? latitude;
+  final double? longitude;
+  final String? assignedToName;
 
   const BinModel({
     required this.id,
@@ -21,6 +24,9 @@ class BinModel {
     this.status = BinStatus.notChecked,
     this.fillLevel,
     this.lastChecked,
+    this.latitude,
+    this.longitude,
+    this.assignedToName,
   });
 
   String get displayCategory =>
@@ -44,6 +50,9 @@ class BinModel {
       lastChecked: json['lastChecked'] != null
           ? DateTime.parse(json['lastChecked'] as String)
           : null,
+      latitude: (json['lat'] as num?)?.toDouble() ?? (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['lng'] as num?)?.toDouble() ?? (json['longitude'] as num?)?.toDouble(),
+      assignedToName: json['assignedToName'] as String?,
     );
   }
 
