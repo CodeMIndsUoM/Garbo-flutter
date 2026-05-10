@@ -26,6 +26,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   RouteProvider? _routeProvider;
   bool _providerListenerAttached = false;
   String _lastSnapshotToken = '';
+  int? _loadedAssignedForUserId;
 
   @override
   void initState() {
@@ -40,6 +41,22 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       _routeProvider!.addListener(_syncFromWebSocket);
       _providerListenerAttached = true;
       _syncFromWebSocket();
+    }
+
+    final currentUserId = context.read<AuthProvider>().currentUser?.empId;
+    if (currentUserId != null && _loadedAssignedForUserId != currentUserId) {
+      _loadedAssignedForUserId = currentUserId;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _routeProvider
+            ?.loadAssignedRouteForCollector(currentUserId)
+            .catchError((error) {
+              debugPrint('Failed to load assigned route for collector: $error');
+              return null;
+            });
+      });
     }
   }
 
