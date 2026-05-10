@@ -2,16 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 /// GamificationTasksProvider manages user's gamification tasks and achievements
 class GamificationTasksProvider extends ChangeNotifier {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   List<UserTaskProgress> _userTasks = [];
   List<GamificationTaskDto> _availableTasks = [];
@@ -45,7 +43,7 @@ class GamificationTasksProvider extends ChangeNotifier {
 
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/api/users/$userId/gamification-tasks'))
+          .get(Uri.parse('$_baseUrl/users/$userId/gamification-tasks'))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
@@ -134,7 +132,7 @@ class GamificationTasksProvider extends ChangeNotifier {
   Future<void> loadAvailableTasks(String role) async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/api/admins/gamification/tasks/active?role=$role'))
+          .get(Uri.parse('$_baseUrl/admins/gamification/tasks/active?role=$role'))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
