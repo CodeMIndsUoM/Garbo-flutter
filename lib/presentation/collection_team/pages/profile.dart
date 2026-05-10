@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/performance_stats_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -21,10 +22,7 @@ class CollectionTeamProfile extends StatefulWidget {
 }
 
 class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   bool _didLoadGamification = false;
   CollectorPerformanceStats? _performanceStats;
@@ -113,7 +111,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/api/users/$userId/performance-stats'))
+          .get(Uri.parse('$_baseUrl/users/$userId/performance-stats'))
           .timeout(const Duration(seconds: 10));
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;

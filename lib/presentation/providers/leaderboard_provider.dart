@@ -3,15 +3,13 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 /// LeaderboardProvider manages real-time leaderboard data from WebSocket updates
 class LeaderboardProvider extends ChangeNotifier {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   final WebSocketProvider webSocketProvider;
 
@@ -36,7 +34,7 @@ class LeaderboardProvider extends ChangeNotifier {
   Future<void> loadSnapshot({int limit = 10}) async {
     try {
       final response = await http
-          .get(Uri.parse('$_baseUrl/api/leaderboard/top?limit=$limit'))
+          .get(Uri.parse('$_baseUrl/leaderboard/top?limit=$limit'))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {

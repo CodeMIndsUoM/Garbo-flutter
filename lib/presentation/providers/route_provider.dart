@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
@@ -9,10 +10,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 /// RouteProvider manages real-time route data from WebSocket updates
 class RouteProvider extends ChangeNotifier {
   final WebSocketProvider webSocketProvider;
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   RouteUpdatePayload? _currentRouteUpdate;
   List<VehicleRoute> _routes = [];
@@ -27,8 +25,6 @@ class RouteProvider extends ChangeNotifier {
   final Set<String> _reportedCompletedRoutes = <String>{};
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _messageSubscription;
-
-  static const Duration _binCollectionAckTimeout = Duration(seconds: 5);
 
   RouteUpdatePayload? get currentRouteUpdate => _currentRouteUpdate;
   List<VehicleRoute> get routes => _routes;
@@ -399,16 +395,12 @@ class RouteProvider extends ChangeNotifier {
     List<int>? vehicleCapacities,
     String? sessionId,
   }) async {
-    if (!webSocketProvider.isAuthenticated) {
-      throw Exception('WebSocket is not connected/authenticated.');
-    }
-
     final requestSessionId = sessionId ?? _lastOptimizedSessionId;
 
-    webSocketProvider.sendMessage(
-      type: 'ROUTE_OPTIMIZE',
-      userId: userId,
-      payload: {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/routes/optimize'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
         if (requestSessionId != null && requestSessionId.isNotEmpty)
           'sessionId': requestSessionId,
         'userId': userId,
@@ -417,11 +409,22 @@ class RouteProvider extends ChangeNotifier {
         'depotLat': depotLat,
         'depotLng': depotLng,
         'selectedBinIds': selectedBinIds,
-      },
-    );
+      }),
+    ).timeout(const Duration(seconds: 20));
 
-    if (requestSessionId != null && requestSessionId.isNotEmpty) {
-      _lastOptimizedSessionId = requestSessionId;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Failed to optimize route: ${response.body}');
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      final routeData = _routeUpdateFromSnapshot(decoded);
+      if (routeData != null) {
+        _applyRouteUpdatePayload(routeData);
+        _lastOptimizedSessionId = routeData.sessionId;
+      } else if (decoded['sessionId'] != null) {
+        _lastOptimizedSessionId = decoded['sessionId'].toString();
+      }
     }
   }
 
@@ -432,148 +435,56 @@ class RouteProvider extends ChangeNotifier {
     String priority = 'MEDIUM',
     double basePoints = 10.0,
   }) async {
-    if (webSocketProvider.isAuthenticated) {
-      for (int attempt = 0; attempt < 2; attempt++) {
-        final ackFuture = _waitForBinCollectionAckOrProgress(
-          userId: userId,
-          binId: binId,
-        );
+    final response = await http.post(
+      Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'binId': binId,
+        'priority': priority,
+        'basePoints': basePoints,
+        'sessionId': sessionId,
+      }),
+    ).timeout(const Duration(seconds: 20));
 
-        webSocketProvider.sendMessage(
-          type: 'BIN_COLLECTED',
-          userId: userId,
-          payload: {
-            'userId': userId,
-            'sessionId': sessionId,
-            'binId': binId,
-            'priority': priority,
-            'basePoints': basePoints,
-          },
-        );
-
-        final ackState = await ackFuture;
-        if (ackState == _BinCollectionAckState.acked) {
-          return;
-        }
-
-        if (ackState == _BinCollectionAckState.authRace && attempt == 0) {
-          await Future<void>.delayed(const Duration(milliseconds: 700));
-          continue;
-        }
-
-        break;
-      }
-
-      debugPrint(
-        'BIN_COLLECTION_ACK not received for bin $binId. Falling back to HTTP reporting.',
-      );
-    }
-
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/api/bincollectors/$userId/collect-bin'),
-          headers: {'Content-Type': 'application/json'},
-          body:
-              '{"binId":$binId,"priority":"$priority","basePoints":$basePoints}',
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
       final responseBody = response.body;
       throw Exception(
         'Failed to report collection (status ${response.statusCode}): $responseBody',
       );
     }
-
-    debugPrint(
-      'WebSocket unavailable. Collection reported over HTTP fallback for bin $binId.',
-    );
   }
 
-  Future<_BinCollectionAckState> _waitForBinCollectionAckOrProgress({
-    required int userId,
-    required int binId,
-  }) async {
-    final completer = Completer<_BinCollectionAckState>();
-    StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? subscription;
-    Timer? timeout;
-
-    void finish(_BinCollectionAckState value) {
-      timeout?.cancel();
-      subscription?.cancel();
-      if (!completer.isCompleted) {
-        completer.complete(value);
-      }
+  RouteUpdatePayload? _routeUpdateFromSnapshot(Map<String, dynamic> snapshot) {
+    final route = snapshot['route'];
+    if (route is! Map<String, dynamic>) {
+      return null;
     }
 
-    timeout = Timer(_binCollectionAckTimeout, () => finish(_BinCollectionAckState.failed));
+    final routes = route['routes'];
+    if (routes is! Map<String, dynamic>) {
+      return null;
+    }
 
-    subscription = webSocketProvider.messageStream.listen((message) {
-      if (message.type == 'BIN_COLLECTION_ACK') {
-        final payload = message.payload;
-        if (payload == null) {
-          return;
-        }
-
-        int? toInt(dynamic value) {
-          if (value is int) {
-            return value;
-          }
-          if (value is num) {
-            return value.toInt();
-          }
-          return int.tryParse(value?.toString() ?? '');
-        }
-
-        final ackUserId = toInt(payload['userId']);
-        final ackBinId = toInt(payload['binId']);
-        if (ackUserId == userId && ackBinId == binId) {
-          finish(_BinCollectionAckState.acked);
-        }
-      }
-
-      if (message.type == 'TASK_PROGRESS_UPDATE') {
-        final payload = message.payload;
-        if (payload == null) {
-          return;
-        }
-
-        int? toInt(dynamic value) {
-          if (value is int) {
-            return value;
-          }
-          if (value is num) {
-            return value.toInt();
-          }
-          return int.tryParse(value?.toString() ?? '');
-        }
-
-        final updateUserId = toInt(payload['userId']);
-        final updateBinId = toInt(payload['binId']);
-        if (updateUserId == userId && updateBinId == binId) {
-          finish(_BinCollectionAckState.acked);
-        }
-      }
-
-      if (message.type == 'ERROR') {
-        final payload = message.payload;
-        final errorText = (message.error ?? payload?['error']?.toString() ?? '')
-            .toLowerCase();
-        if (errorText.contains('not authenticated') ||
-            errorText.contains('unable to resolve authenticated user')) {
-          finish(_BinCollectionAckState.authRace);
-          return;
-        }
-        if (errorText.contains('bin collection') ||
-            errorText.contains('collector not found') ||
-            errorText.contains('bin_collected')) {
-          finish(_BinCollectionAckState.failed);
-        }
-      }
+    return RouteUpdatePayload.fromJson({
+      'sessionId': snapshot['sessionId']?.toString() ?? '',
+      'userId': snapshot['userId'] is num
+          ? (snapshot['userId'] as num).toInt()
+          : snapshot['userId'],
+      'totalVehiclesUsed': route['totalVehiclesUsed'] is num
+          ? (route['totalVehiclesUsed'] as num).toInt()
+          : 0,
+      'routes': routes,
+      'updatedAt': DateTime.now().millisecondsSinceEpoch,
     });
+  }
 
-    final result = await completer.future;
-    return result;
+  void _applyRouteUpdatePayload(RouteUpdatePayload routeData) {
+    _currentRouteUpdate = routeData;
+    _routes = routeData.routes.values.toList();
+    _lastUpdateTime = routeData.updatedAt;
+    _errorMessage = null;
+    _upsertRouteHistory(routeData);
+    notifyListeners();
   }
 
   @override
@@ -582,8 +493,6 @@ class RouteProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-
-enum _BinCollectionAckState { acked, authRace, failed }
 
 /// Route statistics model
 class RouteStatistics {
