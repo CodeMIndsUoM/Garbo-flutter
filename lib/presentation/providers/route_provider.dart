@@ -23,6 +23,8 @@ class RouteProvider extends ChangeNotifier {
   final Map<String, Map<int, DateTime>> _binTimestampsBySession = {};
   final Map<String, DateTime> _routeStartedAtBySession = {};
   final Set<String> _reportedCompletedRoutes = <String>{};
+  final Set<String> _assignedSessionIds = <String>{};
+  int? _boundUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _messageSubscription;
 
@@ -40,6 +42,15 @@ class RouteProvider extends ChangeNotifier {
     _listenToRouteUpdates();
   }
 
+  void bindToUser(int userId) {
+    if (_boundUserId == userId) {
+      return;
+    }
+    _boundUserId = userId;
+    _resetRouteState();
+    notifyListeners();
+  }
+
   /// Listen to ROUTE_UPDATE messages from WebSocket
   void _listenToRouteUpdates() {
     _messageSubscription?.cancel();
@@ -50,6 +61,9 @@ class RouteProvider extends ChangeNotifier {
           final payload = message.payload;
           if (payload != null) {
             final routeData = RouteUpdatePayload.fromJson(payload);
+            if (!_shouldAcceptRouteUpdate(routeData)) {
+              return;
+            }
             _currentRouteUpdate = routeData;
             _routes = routeData.routes.values.toList();
             _lastUpdateTime = routeData.updatedAt;
@@ -454,6 +468,197 @@ class RouteProvider extends ChangeNotifier {
     }
   }
 
+  Future<String?> loadAssignedRouteForCollector(int userId) async {
+    bindToUser(userId);
+
+    final assignmentResponse = await http
+        .get(Uri.parse('$_baseUrl/route-sessions/user/$userId/active'))
+        .timeout(const Duration(seconds: 15));
+
+    if (assignmentResponse.statusCode < 200 ||
+        assignmentResponse.statusCode >= 300) {
+      throw Exception(
+        'Failed to fetch active route assignment (status ${assignmentResponse.statusCode}).',
+      );
+    }
+
+    final decoded = jsonDecode(assignmentResponse.body);
+    List<dynamic> assignments;
+    if (decoded is Map<String, dynamic>) {
+      final data = decoded['data'];
+      assignments = data is List ? data : const [];
+    } else if (decoded is List) {
+      assignments = decoded;
+    } else {
+      assignments = const [];
+    }
+
+    final sessionIds = <String>{};
+    for (final item in assignments) {
+      if (item is! Map<String, dynamic>) {
+        continue;
+      }
+      final rawSessionId = item['sessionId']?.toString().trim();
+      if (rawSessionId != null && rawSessionId.isNotEmpty) {
+        sessionIds.add(rawSessionId);
+      }
+    }
+
+    _assignedSessionIds
+      ..clear()
+      ..addAll(sessionIds);
+
+    if (_assignedSessionIds.isEmpty) {
+      _resetRouteState(keepBoundUser: true);
+      _errorMessage = null;
+      notifyListeners();
+      return null;
+    }
+
+    final orderedSessionIds = _assignedSessionIds.toList()..sort();
+    for (final sessionId in orderedSessionIds) {
+      final loadedFromPersisted = await _loadPersistedSessionRoutes(
+        sessionId: sessionId,
+        userId: userId,
+      );
+
+      if (!loadedFromPersisted) {
+        await _loadSessionSnapshot(
+          sessionId: sessionId,
+          userId: userId,
+        );
+      }
+    }
+
+    final sessionId = orderedSessionIds.last;
+    _lastOptimizedSessionId = sessionId;
+    return sessionId;
+  }
+
+  Future<bool> _loadPersistedSessionRoutes({
+    required String sessionId,
+    required int userId,
+  }) async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/route-sessions/$sessionId/routes'))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) {
+      return false;
+    }
+
+    final routeEntries = decoded.whereType<Map<String, dynamic>>().toList();
+    if (routeEntries.isEmpty) {
+      return false;
+    }
+
+    final routesMap = <int, VehicleRoute>{};
+    for (var index = 0; index < routeEntries.length; index++) {
+      final route = routeEntries[index];
+      final vehicleKey = route['vehicleKey']?.toString() ?? '$index';
+      final vehicleId = int.tryParse(vehicleKey) ?? index;
+      final capacity = _toInt(route['capacity']);
+      final totalBins = _toInt(route['totalBins']);
+      final estimatedDurationSeconds = _toDouble(route['estimatedDurationSeconds']);
+
+      final rawStops = route['binStops'];
+      final stopItems = rawStops is List
+          ? rawStops.whereType<Map<String, dynamic>>().toList()
+          : const <Map<String, dynamic>>[];
+      stopItems.sort(
+        (left, right) => _toInt(left['stopOrder']).compareTo(_toInt(right['stopOrder'])),
+      );
+
+      final stops = stopItems
+          .map(
+            (stop) => BinStop(
+              stopOrder: _toInt(stop['stopOrder']),
+              binId: _toInt(stop['binId']),
+              lat: _toDouble(stop['lat']),
+              lng: _toDouble(stop['lng']),
+              durationFromPrevStopSeconds: _toDouble(stop['durationFromPrevSeconds']),
+            ),
+          )
+          .toList(growable: false);
+
+      routesMap[vehicleId] = VehicleRoute(
+        vehicleId: vehicleId,
+        capacity: capacity,
+        totalBins: totalBins,
+        estimatedDurationSeconds: estimatedDurationSeconds,
+        binSequence: stops,
+      );
+    }
+
+    _applyRouteUpdatePayload(
+      RouteUpdatePayload(
+        sessionId: sessionId,
+        userId: userId,
+        totalVehiclesUsed: routesMap.length,
+        routes: routesMap,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    return true;
+  }
+
+  Future<void> _loadSessionSnapshot({
+    required String sessionId,
+    required int userId,
+  }) async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/route-sessions/$sessionId'))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to fetch route session snapshot (status ${response.statusCode}).',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Invalid route session snapshot format.');
+    }
+
+    final routeData = _routeUpdateFromSnapshot({
+      ...decoded,
+      'sessionId': decoded['sessionId']?.toString() ?? sessionId,
+      'userId': decoded['userId'] ?? userId,
+    });
+
+    if (routeData == null) {
+      throw Exception('Snapshot does not contain route data.');
+    }
+
+    _applyRouteUpdatePayload(routeData);
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  double _toDouble(dynamic value) {
+    if (value is double) {
+      return value;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
+  }
+
   RouteUpdatePayload? _routeUpdateFromSnapshot(Map<String, dynamic> snapshot) {
     final route = snapshot['route'];
     if (route is! Map<String, dynamic>) {
@@ -479,12 +684,50 @@ class RouteProvider extends ChangeNotifier {
   }
 
   void _applyRouteUpdatePayload(RouteUpdatePayload routeData) {
+    if (!_shouldAcceptRouteUpdate(routeData)) {
+      return;
+    }
     _currentRouteUpdate = routeData;
     _routes = routeData.routes.values.toList();
     _lastUpdateTime = routeData.updatedAt;
     _errorMessage = null;
     _upsertRouteHistory(routeData);
     notifyListeners();
+  }
+
+  bool _shouldAcceptRouteUpdate(RouteUpdatePayload routeData) {
+    final expectedUser = _boundUserId;
+    if (expectedUser != null) {
+      final payloadUserId = routeData.userId;
+      if (payloadUserId != null && payloadUserId != expectedUser) {
+        return false;
+      }
+    }
+
+    if (_assignedSessionIds.isNotEmpty &&
+        !_assignedSessionIds.contains(routeData.sessionId)) {
+      _assignedSessionIds.add(routeData.sessionId);
+    }
+
+    return true;
+  }
+
+  void _resetRouteState({bool keepBoundUser = false}) {
+    _currentRouteUpdate = null;
+    _routes = [];
+    _routeHistory.clear();
+    _lastOptimizedSessionId = null;
+    _activeNavigationSessionId = null;
+    _errorMessage = null;
+    _lastUpdateTime = 0;
+    _binStatusesBySession.clear();
+    _binTimestampsBySession.clear();
+    _routeStartedAtBySession.clear();
+    _reportedCompletedRoutes.clear();
+    _assignedSessionIds.clear();
+    if (!keepBoundUser) {
+      _boundUserId = null;
+    }
   }
 
   @override
