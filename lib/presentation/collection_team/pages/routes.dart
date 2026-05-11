@@ -241,7 +241,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  void handleSkipBin(RouteData route) {
+  void handleSkipBin(RouteData route) async {
     final provider = _routeProvider;
     if (provider == null) {
       return;
@@ -259,26 +259,44 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       return;
     }
 
+    final messenger = ScaffoldMessenger.of(context);
     provider.markBinSkipped(route.id, binId);
 
-    final currentUserId = context.read<AuthProvider>().currentUser?.empId;
-    if (currentUserId != null) {
-      provider
-          .reportRouteCompletionIfEligible(
-            userId: currentUserId,
-            sessionId: route.id,
-          )
-          .catchError((_) {});
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bin skipped'),
-          duration: Duration(seconds: 1),
-          backgroundColor: AppColors.grey600,
-        ),
+    try {
+      final currentUserId = context.read<AuthProvider>().currentUser?.empId;
+      await provider.reportBinSkipped(
+        sessionId: route.id,
+        binId: binId,
+        userId: currentUserId,
       );
+
+      if (currentUserId != null && currentUserId > 0) {
+        await provider.reportRouteCompletionIfEligible(
+          userId: currentUserId,
+          sessionId: route.id,
+        );
+      }
+
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Bin skipped'),
+            duration: Duration(seconds: 1),
+            backgroundColor: AppColors.grey600,
+          ),
+        );
+      }
+    } catch (_) {
+      provider.markBinPending(route.id, binId);
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to skip bin. Please try again.'),
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
     }
   }
 
@@ -306,24 +324,30 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         final authProvider = context.read<AuthProvider>();
         final messenger = ScaffoldMessenger.of(context);
         updatedBinId = _extractBinId(currentBin);
-        if (updatedBinId != null) {
-          provider.markBinCollected(route.id, updatedBinId);
-          final currentUserId = authProvider.currentUser?.empId;
-          if (currentUserId != null) {
-            await provider.reportBinCollected(
-              userId: currentUserId,
-              sessionId: route.id,
-              binId: updatedBinId,
-            );
-            try {
-              await provider.reportRouteCompletionIfEligible(
-                userId: currentUserId,
-                sessionId: route.id,
-              );
-            } catch (e) {
-              debugPrint('Route completion reporting skipped after collect: $e');
-            }
-          }
+        if (updatedBinId == null) {
+          throw StateError('Unable to resolve bin id for collection.');
+        }
+
+        provider.markBinCollected(route.id, updatedBinId);
+
+        final currentUserId = authProvider.currentUser?.empId;
+        if (currentUserId == null || currentUserId <= 0) {
+          throw StateError('Collector id is required to sync collection.');
+        }
+
+        await provider.reportBinCollected(
+          userId: currentUserId,
+          sessionId: route.id,
+          binId: updatedBinId,
+        );
+
+        try {
+          await provider.reportRouteCompletionIfEligible(
+            userId: currentUserId,
+            sessionId: route.id,
+          );
+        } catch (e) {
+          debugPrint('Route completion reporting skipped after collect: $e');
         }
 
         if (mounted) {
@@ -352,7 +376,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
   }
 
-  void handleUndoBin(RouteData route) {
+  void handleUndoBin(RouteData route) async {
     final provider = _routeProvider;
     if (provider == null) {
       return;
@@ -389,16 +413,35 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       return;
     }
 
+    final previousStatus = statuses[lastCompletedIndex];
     provider.markBinPending(route.id, binId);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Collection undone'),
-          duration: Duration(seconds: 1),
-          backgroundColor: AppColors.grey600,
-        ),
-      );
+    try {
+      await provider.reportBinPending(sessionId: route.id, binId: binId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Collection undone'),
+            duration: Duration(seconds: 1),
+            backgroundColor: AppColors.grey600,
+          ),
+        );
+      }
+    } catch (_) {
+      if (previousStatus == BinCollectionStatus.skipped) {
+        provider.markBinSkipped(route.id, binId);
+      } else {
+        provider.markBinCollected(route.id, binId);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to undo collection. Please try again.'),
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
     }
   }
 

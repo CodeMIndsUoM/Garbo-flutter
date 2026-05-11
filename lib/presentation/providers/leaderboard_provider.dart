@@ -17,6 +17,7 @@ class LeaderboardProvider extends ChangeNotifier {
   String? _errorMessage;
   int _lastUpdateTime = 0;
   LeaderboardChangedUserPayload? _lastChangedUser;
+  LeaderboardEntryDto? _userRankEntry;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
       _messageSubscription;
 
@@ -24,6 +25,7 @@ class LeaderboardProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get lastUpdateTime => _lastUpdateTime;
   LeaderboardChangedUserPayload? get lastChangedUser => _lastChangedUser;
+  LeaderboardEntryDto? get userRankEntry => _userRankEntry;
   bool get hasData => _leaderboardEntries.isNotEmpty;
 
   LeaderboardProvider(this.webSocketProvider) {
@@ -55,6 +57,40 @@ class LeaderboardProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load leaderboard snapshot: $e');
+    }
+  }
+
+  /// Fetch the current logged-in user's rank from the server
+  Future<void> fetchUserRank(int userId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/leaderboard/user/$userId'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode != 200) {
+        _userRankEntry = null;
+        notifyListeners();
+        return;
+      }
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (body['success'] != true) {
+        _userRankEntry = null;
+        notifyListeners();
+        return;
+      }
+
+      final data = body['data'];
+      if (data != null && data is Map<String, dynamic>) {
+        _userRankEntry = LeaderboardEntryDto.fromJson(data);
+      } else {
+        _userRankEntry = null;
+      }
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to fetch user rank: $e');
+      _userRankEntry = null;
     }
   }
 
