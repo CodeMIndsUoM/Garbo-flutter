@@ -1384,20 +1384,22 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
         );
         final currentUserId = authProvider.currentUser?.empId;
         try {
-          if (currentUserId != null) {
-            await routeProvider.reportBinCollected(
+          if (currentUserId == null || currentUserId <= 0) {
+            throw StateError('Collector id is required to sync collection.');
+          }
+
+          await routeProvider.reportBinCollected(
+            userId: currentUserId,
+            sessionId: markerData.sessionId,
+            binId: markerData.stop.binId,
+          );
+          try {
+            await routeProvider.reportRouteCompletionIfEligible(
               userId: currentUserId,
               sessionId: markerData.sessionId,
-              binId: markerData.stop.binId,
             );
-            try {
-              await routeProvider.reportRouteCompletionIfEligible(
-                userId: currentUserId,
-                sessionId: markerData.sessionId,
-              );
-            } catch (e) {
-              debugPrint('Route completion reporting skipped after collect: $e');
-            }
+          } catch (e) {
+            debugPrint('Route completion reporting skipped after collect: $e');
           }
           if (!mounted) {
             return;
@@ -1433,15 +1435,39 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
           markerData.stop.binId,
         );
         final currentUserId = authProvider.currentUser?.empId;
-        if (currentUserId != null) {
-          routeProvider
-              .reportRouteCompletionIfEligible(
-                userId: currentUserId,
-                sessionId: markerData.sessionId,
-              )
-              .catchError((_) {});
+        try {
+          await routeProvider.reportBinSkipped(
+            sessionId: markerData.sessionId,
+            binId: markerData.stop.binId,
+            userId: currentUserId,
+          );
+          if (currentUserId != null && currentUserId > 0) {
+            await routeProvider.reportRouteCompletionIfEligible(
+              userId: currentUserId,
+              sessionId: markerData.sessionId,
+            );
+          }
+        } catch (_) {
+          routeProvider.markBinPending(
+            markerData.sessionId,
+            markerData.stop.binId,
+          );
+          if (!mounted) {
+            return;
+          }
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Failed to skip bin. Please try again.'),
+              duration: Duration(seconds: 2),
+              backgroundColor: AppColors.red500,
+            ),
+          );
+          return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!mounted) {
+          return;
+        }
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Bin marked as skipped.'),
             duration: Duration(seconds: 1),

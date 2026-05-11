@@ -449,21 +449,75 @@ class RouteProvider extends ChangeNotifier {
     String priority = 'MEDIUM',
     double basePoints = 10.0,
   }) async {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
+    final persistResponse = await http.patch(
+      Uri.parse(
+        '$_baseUrl/route-sessions/$sessionId/bins/$binId/collect?collectorId=$userId',
+      ),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'binId': binId,
-        'priority': priority,
-        'basePoints': basePoints,
-        'sessionId': sessionId,
-      }),
+    ).timeout(const Duration(seconds: 20));
+
+    if (persistResponse.statusCode < 200 || persistResponse.statusCode >= 300) {
+      final responseBody = persistResponse.body;
+      throw Exception(
+        'Failed to persist collection (status ${persistResponse.statusCode}): $responseBody',
+      );
+    }
+
+    // Keep collector gamification sync as best-effort after DB state is persisted.
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'binId': binId,
+          'priority': priority,
+          'basePoints': basePoints,
+          'sessionId': sessionId,
+        }),
+      ).timeout(const Duration(seconds: 20));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint(
+          'Collector realtime sync failed for session $sessionId, bin $binId: ${response.statusCode} ${response.body}',
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        'Collector realtime sync threw for session $sessionId, bin $binId: $e',
+      );
+    }
+  }
+
+  Future<void> reportBinSkipped({
+    required String sessionId,
+    required int binId,
+    int? userId,
+  }) async {
+    final suffix = userId != null ? '?collectorId=$userId' : '';
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/skip$suffix'),
+      headers: {'Content-Type': 'application/json'},
     ).timeout(const Duration(seconds: 20));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final responseBody = response.body;
       throw Exception(
-        'Failed to report collection (status ${response.statusCode}): $responseBody',
+        'Failed to persist skipped bin (status ${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<void> reportBinPending({
+    required String sessionId,
+    required int binId,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/pending'),
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to persist pending bin (status ${response.statusCode}): ${response.body}',
       );
     }
   }
@@ -516,6 +570,7 @@ class RouteProvider extends ChangeNotifier {
     }
 
     final orderedSessionIds = _assignedSessionIds.toList()..sort();
+    final loadedSessionIds = <String>[];
     for (final sessionId in orderedSessionIds) {
       final loadedFromPersisted = await _loadPersistedSessionRoutes(
         sessionId: sessionId,
@@ -523,14 +578,35 @@ class RouteProvider extends ChangeNotifier {
       );
 
       if (!loadedFromPersisted) {
-        await _loadSessionSnapshot(
-          sessionId: sessionId,
-          userId: userId,
-        );
+        try {
+          await _loadSessionSnapshot(
+            sessionId: sessionId,
+            userId: userId,
+          );
+        } catch (error) {
+          // Stale active assignments can outlive the in-memory snapshot cache
+          // after a backend restart. Skip 404s and keep trying other sessions.
+          if (_isMissingSessionSnapshotError(error)) {
+            continue;
+          }
+          rethrow;
+        }
       }
+
+      loadedSessionIds.add(sessionId);
     }
 
-    final sessionId = orderedSessionIds.last;
+    if (loadedSessionIds.isEmpty) {
+      _resetRouteState(keepBoundUser: true);
+      _assignedSessionIds
+        ..clear()
+        ..addAll(sessionIds);
+      _errorMessage = null;
+      notifyListeners();
+      return null;
+    }
+
+    final sessionId = loadedSessionIds.last;
     _lastOptimizedSessionId = sessionId;
     return sessionId;
   }
@@ -558,6 +634,20 @@ class RouteProvider extends ChangeNotifier {
     }
 
     final routesMap = <int, VehicleRoute>{};
+    final persistedStatuses = <int, BinCollectionStatus>{};
+    final persistedTimestamps = <int, DateTime>{};
+
+    BinCollectionStatus parseStopStatus(dynamic value) {
+      final raw = value?.toString().toUpperCase().trim();
+      if (raw == 'COLLECTED') {
+        return BinCollectionStatus.collected;
+      }
+      if (raw == 'SKIPPED') {
+        return BinCollectionStatus.skipped;
+      }
+      return BinCollectionStatus.pending;
+    }
+
     for (var index = 0; index < routeEntries.length; index++) {
       final route = routeEntries[index];
       final vehicleKey = route['vehicleKey']?.toString() ?? '$index';
@@ -573,6 +663,20 @@ class RouteProvider extends ChangeNotifier {
       stopItems.sort(
         (left, right) => _toInt(left['stopOrder']).compareTo(_toInt(right['stopOrder'])),
       );
+
+      for (final stop in stopItems) {
+        final binId = _toInt(stop['binId']);
+        final stopStatus = parseStopStatus(stop['status']);
+        persistedStatuses[binId] = stopStatus;
+
+        final collectedAtRaw = stop['collectedAt']?.toString();
+        if (collectedAtRaw != null && collectedAtRaw.isNotEmpty) {
+          final parsed = DateTime.tryParse(collectedAtRaw);
+          if (parsed != null) {
+            persistedTimestamps[binId] = parsed;
+          }
+        }
+      }
 
       final stops = stopItems
           .map(
@@ -594,6 +698,9 @@ class RouteProvider extends ChangeNotifier {
         binSequence: stops,
       );
     }
+
+    _binStatusesBySession[sessionId] = persistedStatuses;
+    _binTimestampsBySession[sessionId] = persistedTimestamps;
 
     _applyRouteUpdatePayload(
       RouteUpdatePayload(
@@ -637,6 +744,12 @@ class RouteProvider extends ChangeNotifier {
     }
 
     _applyRouteUpdatePayload(routeData);
+  }
+
+  bool _isMissingSessionSnapshotError(Object error) {
+    final message = error.toString();
+    return message.contains('Failed to fetch route session snapshot') &&
+        message.contains('status 404');
   }
 
   int _toInt(dynamic value) {

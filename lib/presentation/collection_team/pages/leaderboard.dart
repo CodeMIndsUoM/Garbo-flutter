@@ -20,7 +20,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       if (!mounted) {
         return;
       }
-      context.read<LeaderboardProvider>().loadSnapshot();
+      final authProvider = context.read<AuthProvider>();
+      final leaderboardProvider = context.read<LeaderboardProvider>();
+      leaderboardProvider.loadSnapshot();
+      
+      // Fetch user's current rank
+      if (authProvider.currentUser?.empId != null) {
+        leaderboardProvider.fetchUserRank(authProvider.currentUser!.empId!.toInt());
+      }
     });
   }
 
@@ -37,9 +44,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 final entries = _buildDisplayEntries(
                   leaderboardProvider.getTopEntries(10),
                 );
-                final userEntry = leaderboardProvider.getUserRank(
-                  authProvider.currentUser?.empId ?? 0,
-                );
+                final userEntry = leaderboardProvider.userRankEntry;
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
@@ -48,7 +53,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     children: [
                       // Header
                       Text(
-                        'Collection Team Leaderboard',
+                        'Operational Staff Leaderboard',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -57,7 +62,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        'Top performers this week',
+                        'Current rankings by score',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -65,108 +70,97 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                       SizedBox(height: 24),
 
-                      // Current user rank card (if in top 10)
-                      if (userEntry != null)
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [AppColors.blue50, AppColors.indigo50],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.blue200,
-                              width: 1.27,
-                            ),
+                      // Current user rank card
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: userEntry != null
+                                ? [AppColors.blue50, AppColors.indigo50]
+                                : [Colors.grey[50]!, Colors.grey[100]!],
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  color: AppColors.blue500,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '#${userEntry.rank}',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Your Rank',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      userEntry.name,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      '${userEntry.rewardPoints.toStringAsFixed(0)} points',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: AppColors.green700,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.amber[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.amber[200]!),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, color: Colors.amber[700]),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'You\'re not in the top 10 yet. Keep collecting!',
-                                  style: TextStyle(
-                                    color: Colors.amber[900],
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: userEntry != null
+                                ? AppColors.blue200
+                                : Colors.grey[300]!,
+                            width: 1.27,
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: userEntry != null
+                                    ? AppColors.blue500
+                                    : Colors.grey[400],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  userEntry != null
+                                      ? '#${userEntry.rank}'
+                                      : '—',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Your Rank',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    userEntry?.name ??
+                                        authProvider.currentUser?.empName ??
+                                        'Loading...',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    userEntry != null
+                                        ? '${userEntry.rewardPoints.toStringAsFixed(0)} points'
+                                        : 'Calculating...',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: userEntry != null
+                                          ? AppColors.green700
+                                          : Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                       SizedBox(height: 32),
 
                       // Leaderboard list
                       Text(
-                        'Top 10 Collectors',
+                        'Top Rankings',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
