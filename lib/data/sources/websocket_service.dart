@@ -111,6 +111,7 @@ class WebSocketService {
     if (userId != null) {
       _subscribe('/topic/users/$userId', _handleUserMessageFrame);
       _subscribe('/topic/routes/users/$userId', _handleRouteSnapshotFrame);
+      _requestAssignedRoutes(userId);
     }
 
     if (_connectCompleter != null && !_connectCompleter!.isCompleted) {
@@ -129,6 +130,17 @@ class WebSocketService {
       }
     } catch (e) {
       debugPrint('Failed to subscribe to $destination: $e');
+    }
+  }
+
+  void _requestAssignedRoutes(int userId) {
+    try {
+      _client?.send(
+        destination: '/app/routes/refresh',
+        body: jsonEncode({'userId': userId}),
+      );
+    } catch (e) {
+      debugPrint('Failed to request assigned routes: $e');
     }
   }
 
@@ -242,7 +254,20 @@ class WebSocketService {
 
   /// Send a message to the server
   void send(WebSocketMessage<dynamic> message) {
-    debugPrint('STOMP send() is disabled; use REST for client-initiated actions.');
+    final client = _client;
+    if (client == null) {
+      return;
+    }
+
+    if (message.type.toUpperCase() != 'ROUTE_REFRESH') {
+      debugPrint('STOMP send() is only enabled for ROUTE_REFRESH.');
+      return;
+    }
+
+    client.send(
+      destination: '/app/routes/refresh',
+      body: jsonEncode(message.toJson()),
+    );
   }
 
   /// Disconnect WebSocket
