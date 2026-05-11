@@ -189,9 +189,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       ? authUser!.email
       : '--';
     final joined = _formatJoinedDate(authUser?.createdAt);
-    final status = authUser == null
-      ? '--'
-      : (authUser.onDuty ? 'On Duty' : 'Off Duty');
+    final status = _formatDutyStatus(authUser);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -361,6 +359,40 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     ];
     final month = monthNames[parsed.month - 1];
     return '$month ${parsed.day}, ${parsed.year}';
+  }
+
+  String _formatDutyStatus(AppUser? user) {
+    if (user == null) {
+      return '--';
+    }
+
+    if (!user.onDuty) {
+      return 'Off Duty';
+    }
+
+    final startedAtRaw = user.lastLoginAt ?? user.createdAt;
+    if (startedAtRaw == null || startedAtRaw.trim().isEmpty) {
+      return 'On Duty';
+    }
+
+    final startedAt = DateTime.tryParse(startedAtRaw);
+    if (startedAt == null) {
+      return 'On Duty';
+    }
+
+    final elapsed = DateTime.now().difference(startedAt);
+    if (elapsed.isNegative) {
+      return 'On Duty';
+    }
+
+    final hours = elapsed.inHours;
+    final minutes = elapsed.inMinutes.remainder(60);
+
+    if (hours > 0) {
+      return 'On Duty for ${hours}h ${minutes}m';
+    }
+
+    return 'On Duty for ${minutes}m';
   }
 
   Widget buildInfoItem(IconData icon, String label, String value) {
