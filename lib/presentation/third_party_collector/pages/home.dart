@@ -145,7 +145,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const ThirdPartyHeader(
             title: 'Home',
             subtitle: 'Lets gets things done smoothly',
-            notificationCount: 1,
           ),
           Expanded(
             child: RefreshIndicator(

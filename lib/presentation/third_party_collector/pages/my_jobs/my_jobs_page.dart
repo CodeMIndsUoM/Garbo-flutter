@@ -292,40 +292,117 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
             Widget buildTimeChip(String label, int? days) {
               final selected = localCreatedWithinDays == days;
-              return ChoiceChip(
-                label: Text(label),
-                selected: selected,
-                onSelected: (_) {
+              return GestureDetector(
+                onTap: () {
                   setModalState(() => localCreatedWithinDays = days);
                 },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.green700 : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected ? AppColors.green700 : AppColors.grey200,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (selected) ...[
+                        const Icon(Icons.check, size: 16, color: Colors.white),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        label,
+                        style: AppTypography.labelMd.copyWith(
+                          color: selected ? Colors.white : AppColors.grey700,
+                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            Widget buildWasteChip(String type, bool selected) {
+              return GestureDetector(
+                onTap: () {
+                  setModalState(() {
+                    if (selected) {
+                      localWasteTypes.remove(type);
+                    } else {
+                      localWasteTypes.add(type);
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.emerald50 : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected ? AppColors.green700 : AppColors.grey200,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (selected) ...[
+                        Icon(Icons.check, size: 16, color: AppColors.green700),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        type.replaceAll('_', ' '),
+                        style: AppTypography.labelMd.copyWith(
+                          color: selected ? AppColors.green700 : AppColors.grey700,
+                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
 
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  16 + MediaQuery.of(ctx).viewInsets.bottom,
+                  20,
+                  8,
+                  20,
+                  20 + MediaQuery.of(ctx).viewInsets.bottom,
                 ),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Drag handle
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.grey300,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      // Header
                       Row(
                         children: [
                           Text(
                             'Advanced Filters',
-                            style: AppTypography.titleMd,
+                            style: AppTypography.h3,
                           ),
                           const Spacer(),
                           TextButton(
@@ -336,29 +413,67 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                                 queryController.clear();
                               });
                             },
-                            child: const Text('Reset'),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Reset',
+                              style: AppTypography.bodySm.copyWith(
+                                color: AppColors.green700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
+                      // Search section
                       Text('Search', style: AppTypography.titleSm),
                       const SizedBox(height: 8),
                       TextField(
                         controller: queryController,
                         decoration: InputDecoration(
                           hintText: 'Citizen, address, request id',
-                          prefixIcon: const Icon(Icons.search_rounded),
+                          hintStyle: AppTypography.bodyMd.copyWith(
+                            color: AppColors.grey400,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: AppColors.grey400,
+                            size: 22,
+                          ),
                           filled: true,
                           fillColor: AppColors.grey50,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: AppColors.grey200),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.green700,
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 20),
+                      // Divider
+                      Divider(color: AppColors.grey200, height: 1),
+                      const SizedBox(height: 20),
+                      // Waste Type section
                       Text('Waste Type', style: AppTypography.titleSm),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       if (wasteTypes.isEmpty)
                         Text(
                           'No waste types available yet',
@@ -369,31 +484,24 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       else
                         Wrap(
                           spacing: 8,
-                          runSpacing: 8,
+                          runSpacing: 10,
                           children: wasteTypes
-                              .map(
-                                (type) => FilterChip(
-                                  label: Text(type.replaceAll('_', ' ')),
-                                  selected: localWasteTypes.contains(type),
-                                  onSelected: (selected) {
-                                    setModalState(() {
-                                      if (selected) {
-                                        localWasteTypes.add(type);
-                                      } else {
-                                        localWasteTypes.remove(type);
-                                      }
-                                    });
-                                  },
-                                ),
-                              )
+                              .map((type) => buildWasteChip(
+                                    type,
+                                    localWasteTypes.contains(type),
+                                  ))
                               .toList(growable: false),
                         ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 20),
+                      // Divider
+                      Divider(color: AppColors.grey200, height: 1),
+                      const SizedBox(height: 20),
+                      // Offer Age section
                       Text('Offer Age', style: AppTypography.titleSm),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
-                        runSpacing: 8,
+                        runSpacing: 10,
                         children: [
                           buildTimeChip('Any', null),
                           buildTimeChip('Last 24h', 1),
@@ -401,7 +509,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                           buildTimeChip('Last 30d', 30),
                         ],
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 28),
+                      // Apply button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -409,13 +518,19 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.green700,
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: const Icon(Icons.check_rounded, size: 20),
+                          label: Text(
+                            'Apply Filters',
+                            style: AppTypography.buttonLg.copyWith(
+                              color: Colors.white,
                             ),
                           ),
-                          icon: const Icon(Icons.check_rounded),
-                          label: const Text('Apply Filters'),
                         ),
                       ),
                     ],
@@ -608,7 +723,6 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           const ThirdPartyHeader(
             title: 'My Jobs',
             subtitle: 'Track your offers and collections',
-            notificationCount: 1,
           ),
           Expanded(
             child: RefreshIndicator(
