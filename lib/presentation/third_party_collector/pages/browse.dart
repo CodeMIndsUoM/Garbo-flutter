@@ -228,7 +228,6 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
           const ThirdPartyHeader(
             title: 'Browse Requests',
             subtitle: 'See nearby waste pick up requests',
-            notificationCount: 1,
           ),
           Expanded(
             child: RefreshIndicator(

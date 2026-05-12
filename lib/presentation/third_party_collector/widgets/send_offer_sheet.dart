@@ -748,33 +748,40 @@ class _SendOfferRoute<T> extends PageRouteBuilder<T> {
         barrierDismissible: true,
         barrierColor: AppColors.scrim,
         barrierLabel: 'Dismiss',
-        transitionDuration: const Duration(milliseconds: 420),
-        reverseTransitionDuration: const Duration(milliseconds: 280),
+        transitionDuration: const Duration(milliseconds: 650),
+        reverseTransitionDuration: const Duration(milliseconds: 850),
         pageBuilder: (context, animation, secondaryAnimation) => child,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final motion = CurvedAnimation(
+          // Smooth slide — same feel for open and close
+          final slide = Tween<Offset>(
+            begin: const Offset(0, 1.0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
             parent: animation,
-            curve: const Cubic(0.05, 0.7, 0.1, 1.0),
-            reverseCurve: const Cubic(0.3, 0.0, 0.8, 0.15),
-          );
-          final fade = CurvedAnimation(
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeOutCubic,
+          ));
+
+          // Scrim (background dim) fades in/out smoothly
+          final scrimFade = CurvedAnimation(
             parent: animation,
-            curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
-            reverseCurve: const Interval(0.3, 1.0, curve: Curves.easeInCubic),
+            curve: Curves.easeOut,
+            reverseCurve: Curves.easeOut,
           );
-          return FadeTransition(
-            opacity: fade,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 1),
-                end: Offset.zero,
-              ).animate(motion),
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.97, end: 1.0).animate(motion),
-                alignment: Alignment.bottomCenter,
+
+          return Stack(
+            children: [
+              // Animated scrim overlay
+              FadeTransition(
+                opacity: scrimFade,
+                child: const SizedBox.expand(),
+              ),
+              // Sheet slides up/down
+              SlideTransition(
+                position: slide,
                 child: child,
               ),
-            ),
+            ],
           );
         },
       );

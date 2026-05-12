@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/pages/forgot_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/role_selection.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
@@ -16,15 +18,40 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<Login> with TickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
+  bool _isLoading = false;
+
+  // Success transition
+  bool _showSuccessOverlay = false;
+  late final AnimationController _overlayController;
+  late final Animation<double> _overlayFade;
+  late final AnimationController _checkController;
+  late final Animation<double> _checkScale;
 
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials();
+
+    _overlayController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _overlayFade = CurvedAnimation(
+      parent: _overlayController,
+      curve: Curves.easeOut,
+    );
+
+    _checkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _checkScale = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _checkController, curve: Curves.elasticOut),
+    );
   }
 
   // Load saved credentials from SharedPreferences
@@ -63,6 +90,8 @@ class _LoginState extends State<Login> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
       final url = Uri.parse('${ApiConstants.baseUrl}/auth/login');
       final response = await http.post(
@@ -82,6 +111,7 @@ class _LoginState extends State<Login> {
         final empName = body['empName'];
 
         if (empId == null) {
+          setState(() => _isLoading = false);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -117,6 +147,7 @@ class _LoginState extends State<Login> {
         final nextRoute = AppRouter.routeForRole(role);
         if (mounted) {
           if (nextRoute == null) {
+            setState(() => _isLoading = false);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -127,13 +158,19 @@ class _LoginState extends State<Login> {
             return;
           }
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            nextRoute,
-            (route) => false,
-          );
+          // Play success transition
+          await _playSuccessTransition();
+
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              nextRoute,
+              (route) => false,
+            );
+          }
         }
       } else {
+        setState(() => _isLoading = false);
         final body = json.decode(response.body);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -142,6 +179,7 @@ class _LoginState extends State<Login> {
         }
       }
     } catch (e) {
+      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -150,222 +188,335 @@ class _LoginState extends State<Login> {
     }
   }
 
+  Future<void> _playSuccessTransition() async {
+    setState(() => _showSuccessOverlay = true);
+    _overlayController.forward();
+    await Future.delayed(const Duration(milliseconds: 200));
+    _checkController.forward();
+    await Future.delayed(const Duration(milliseconds: 1000));
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _overlayController.dispose();
+    _checkController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
-      backgroundColor: Colors.lightBlue[50],
+      backgroundColor: AppColors.emerald50,
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 20),
-                // Logo
-                Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.local_shipping,
-                        size: 60,
-                        color: Colors.green[700],
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'GARBO',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                    ],
-                  ),
+      body: Stack(
+        children: [
+          SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                SizedBox(height: 20),
-                // Card with login form
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                child: IntrinsicHeight(
                   child: Padding(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Welcome Back text
+                        const Spacer(flex: 2),
+                        // Logo
                         Text(
-                          'Welcome Back!',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          'GARBO',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.displayLg.copyWith(
+                            color: AppColors.green700,
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 6,
                           ),
                         ),
+                        const SizedBox(height: 6),
                         Text(
-                          'Happy to see you back to continue.',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
+                          'Smart Waste Management',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.grey500,
+                            letterSpacing: 1,
                           ),
                         ),
-                        SizedBox(height: 30),
-                        // Username field
-                        Text(
-                          'Username',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                        const SizedBox(height: 32),
+                        // Card
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 28,
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          controller: _usernameController,
-                          decoration: InputDecoration(
-                            hintText: 'Enter your username',
-                            prefixIcon: Icon(Icons.person_outline),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        // Password field
-                        Text(
-                          'Password',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            hintText: 'Enter your password',
-                            prefixIcon: Icon(Icons.lock_outline),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        // Remember me and Forgot password
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _rememberMe,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _rememberMe = value ?? false;
-                                    });
-                                  },
-                                  activeColor: Colors.green[700],
-                                ),
-                                Text(
-                                  'Remember me',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[800],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => Forgotpassword(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                'Forgot password?',
-                                style: TextStyle(
-                                  color: Colors.green[700],
-                                  fontSize: 13,
-                                ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.shadowSm,
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        // Login button
-                        ElevatedButton(
-                          onPressed: _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green[700],
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            ],
                           ),
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        // Create account
-                        Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextButton(
-                                onPressed: () {},
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size(0, 0),
+                              Text(
+                                'Welcome Back!',
+                                style: AppTypography.h1,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Happy to see you back to continue.',
+                                style: AppTypography.bodyMd.copyWith(
+                                  color: AppColors.grey500,
                                 ),
-                                child: Text(
-                                  "Don't have an account? ",
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.black87,
+                              ),
+                              const SizedBox(height: 28),
+                              // Username
+                              Text('Username', style: AppTypography.titleSm),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _usernameController,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your username',
+                                  hintStyle: AppTypography.bodyMd.copyWith(
+                                    color: AppColors.grey400,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.person_outline,
+                                    color: AppColors.grey400,
+                                    size: 22,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.grey200),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.grey200),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.green700,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColors.grey50,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
                                   ),
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const RoleSelection(),
+                              const SizedBox(height: 20),
+                              // Password
+                              Text('Password', style: AppTypography.titleSm),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your password',
+                                  hintStyle: AppTypography.bodyMd.copyWith(
+                                    color: AppColors.grey400,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline,
+                                    color: AppColors.grey400,
+                                    size: 22,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.grey200),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: AppColors.grey200),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.green700,
+                                      width: 1.5,
                                     ),
-                                  );
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size(0, 0),
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColors.grey50,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
                                 ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Remember me and Forgot password
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: Checkbox(
+                                          value: _rememberMe,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _rememberMe = value ?? false;
+                                            });
+                                          },
+                                          activeColor: AppColors.green700,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Remember me',
+                                        style: AppTypography.bodySm.copyWith(
+                                          color: AppColors.grey700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => Forgotpassword(),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: const Size(0, 0),
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      'Forgot password?',
+                                      style: AppTypography.bodySm.copyWith(
+                                        color: AppColors.green700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              // Login button
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleLogin,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.green700,
+                                    disabledBackgroundColor: AppColors.emerald500,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.5,
+                                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Login',
+                                          style: AppTypography.buttonLg.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              // Create account
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Don't have an account? ",
+                                    style: AppTypography.bodySm.copyWith(
+                                      color: AppColors.grey500,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const RoleSelection(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Create Account',
+                                      style: AppTypography.bodySm.copyWith(
+                                        color: AppColors.green700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(flex: 3),
+                        // Terms and Privacy — anchored at bottom
+                        Padding(
+                          padding: EdgeInsets.only(bottom: bottomPadding + 16),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              Text(
+                                'By signing up, you agree to our ',
+                                style: AppTypography.captionSm.copyWith(
+                                  color: AppColors.grey500,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {},
                                 child: Text(
-                                  'Create Account',
-                                  style: TextStyle(
-                                    color: Colors.green[700],
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
+                                  'Terms of Service',
+                                  style: AppTypography.captionSm.copyWith(
+                                    color: AppColors.grey700,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                ' and ',
+                                style: AppTypography.captionSm.copyWith(
+                                  color: AppColors.grey500,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {},
+                                child: Text(
+                                  'Privacy Policy',
+                                  style: AppTypography.captionSm.copyWith(
+                                    color: AppColors.grey700,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
                               ),
@@ -376,50 +527,55 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
-                // Terms and Privacy
-                Center(
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
+              ),
+            );
+          },
+        ),
+      ),
+          // Success overlay
+          if (_showSuccessOverlay)
+            FadeTransition(
+              opacity: _overlayFade,
+              child: Container(
+                color: AppColors.green700,
+                width: double.infinity,
+                height: double.infinity,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'By signing up, you agree to our ',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                      InkWell(
-                        onTap: () {},
-                        child: Text(
-                          'Terms of Service',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.green[700],
-                            decoration: TextDecoration.underline,
+                      ScaleTransition(
+                        scale: _checkScale,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            color: AppColors.green700,
+                            size: 44,
                           ),
                         ),
                       ),
-                      Text(
-                        ' and ',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                      InkWell(
-                        onTap: () {},
+                      const SizedBox(height: 20),
+                      FadeTransition(
+                        opacity: _checkScale,
                         child: Text(
-                          'Privacy Policy',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.green[700],
-                            decoration: TextDecoration.underline,
+                          'Login Successful',
+                          style: AppTypography.h2.copyWith(
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }

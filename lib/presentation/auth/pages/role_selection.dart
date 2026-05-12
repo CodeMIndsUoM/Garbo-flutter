@@ -17,12 +17,12 @@ class RoleSelection extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Select Your Role',
-          style: TextStyle(color: Colors.black),
+          style: AppTypography.titleLg,
         ),
       ),
       body: SafeArea(
@@ -110,7 +110,7 @@ class RoleSelection extends StatelessWidget {
           border: Border.all(color: AppColors.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppColors.shadowSm,
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
