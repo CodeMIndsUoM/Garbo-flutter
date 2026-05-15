@@ -24,6 +24,12 @@ class CollectionTeamDashboard extends StatefulWidget {
 class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   bool _didPrimeGamification = false;
 
+  bool _isSameDay(DateTime value, DateTime reference) {
+    return value.year == reference.year &&
+        value.month == reference.month &&
+        value.day == reference.day;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -265,14 +271,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       return dateKey(parsed);
     }
 
-    bool isSameDay(DateTime value) {
-      return value.year == now.year &&
-          value.month == now.month &&
-          value.day == now.day;
-    }
-
     final sessionsToday = routeProvider.routeHistory
-        .where((session) => isSameDay(session.generatedAt))
+        .where((session) => _isSameDay(session.generatedAt, now))
         .toList(growable: false);
 
     final assignedBins = sessionsToday.fold<int>(
@@ -499,7 +499,13 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   }
 
   Widget buildTodaysRoutes(RouteProvider routeProvider) {
-    final sessions = routeProvider.routeHistory.reversed.take(2).toList();
+    final now = DateTime.now();
+    final sessions = routeProvider.routeHistory
+        .where((session) => _isSameDay(session.generatedAt, now))
+        .toList(growable: false)
+        .reversed
+        .take(2)
+        .toList(growable: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

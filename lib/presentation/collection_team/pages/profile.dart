@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
@@ -110,16 +111,32 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     });
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
       final response = await http
-          .get(Uri.parse('$_baseUrl/users/$userId/performance-stats'))
+          .get(
+            Uri.parse('$_baseUrl/users/$userId/performance-stats'),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 10));
 
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final decoded = jsonDecode(response.body);
+      final body = decoded is Map<String, dynamic>
+          ? decoded
+          : <String, dynamic>{};
+
       if (response.statusCode != 200 || body['success'] != true) {
         setState(() {
           _performanceStats = null;
           _performanceError =
-              body['message']?.toString() ?? 'Failed to load performance stats';
+              body['message']?.toString() ??
+              body['error']?.toString() ??
+              'Failed to load performance stats';
           _isPerformanceLoading = false;
         });
         return;

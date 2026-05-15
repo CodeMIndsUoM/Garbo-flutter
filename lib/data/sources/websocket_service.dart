@@ -185,7 +185,7 @@ class WebSocketService {
         'userId': jsonData['userId'],
         'totalVehiclesUsed': route['totalVehiclesUsed'],
         'routes': route['routes'],
-        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+        'updatedAt': jsonData['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch,
       };
 
       final message = WebSocketMessage<Map<String, dynamic>>(

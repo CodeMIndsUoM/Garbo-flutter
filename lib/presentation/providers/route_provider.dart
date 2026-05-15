@@ -24,6 +24,7 @@ class RouteProvider extends ChangeNotifier {
   final Map<String, DateTime> _routeStartedAtBySession = {};
   final Set<String> _reportedCompletedRoutes = <String>{};
   final Set<String> _assignedSessionIds = <String>{};
+  final Map<String, int> _sessionUpdatedAtById = <String, int>{};
   int? _boundUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _messageSubscription;
@@ -548,6 +549,7 @@ class RouteProvider extends ChangeNotifier {
     }
 
     final sessionIds = <String>{};
+    final nextSessionUpdatedAtById = <String, int>{};
     for (final item in assignments) {
       if (item is! Map<String, dynamic>) {
         continue;
@@ -555,12 +557,19 @@ class RouteProvider extends ChangeNotifier {
       final rawSessionId = item['sessionId']?.toString().trim();
       if (rawSessionId != null && rawSessionId.isNotEmpty) {
         sessionIds.add(rawSessionId);
+        final updatedAt = _toInt(item['updatedAt']);
+        if (updatedAt > 0) {
+          nextSessionUpdatedAtById[rawSessionId] = updatedAt;
+        }
       }
     }
 
     _assignedSessionIds
       ..clear()
       ..addAll(sessionIds);
+    _sessionUpdatedAtById
+      ..clear()
+      ..addAll(nextSessionUpdatedAtById);
 
     if (_assignedSessionIds.isEmpty) {
       _resetRouteState(keepBoundUser: true);
@@ -708,7 +717,8 @@ class RouteProvider extends ChangeNotifier {
         userId: userId,
         totalVehiclesUsed: routesMap.length,
         routes: routesMap,
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: _sessionUpdatedAtById[sessionId] ??
+            DateTime.now().millisecondsSinceEpoch,
       ),
     );
     return true;
@@ -788,11 +798,13 @@ class RouteProvider extends ChangeNotifier {
       'userId': snapshot['userId'] is num
           ? (snapshot['userId'] as num).toInt()
           : snapshot['userId'],
+      'updatedAt': snapshot['updatedAt'] is num
+          ? (snapshot['updatedAt'] as num).toInt()
+          : DateTime.now().millisecondsSinceEpoch,
       'totalVehiclesUsed': route['totalVehiclesUsed'] is num
           ? (route['totalVehiclesUsed'] as num).toInt()
           : 0,
       'routes': routes,
-      'updatedAt': DateTime.now().millisecondsSinceEpoch,
     });
   }
 
@@ -838,6 +850,7 @@ class RouteProvider extends ChangeNotifier {
     _routeStartedAtBySession.clear();
     _reportedCompletedRoutes.clear();
     _assignedSessionIds.clear();
+    _sessionUpdatedAtById.clear();
     if (!keepBoundUser) {
       _boundUserId = null;
     }
