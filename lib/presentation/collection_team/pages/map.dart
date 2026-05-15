@@ -58,6 +58,12 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   final Set<String> _loadingRoadPolylineKeys = <String>{};
   String _lastRoadGeometrySignature = '';
 
+  bool _isSameDay(DateTime value, DateTime reference) {
+    return value.year == reference.year &&
+        value.month == reference.month &&
+        value.day == reference.day;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,7 +81,10 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   @override
   Widget build(BuildContext context) {
     final routeProvider = context.watch<RouteProvider>();
-    final sessions = routeProvider.routeHistory;
+    final today = DateTime.now();
+    final sessions = routeProvider.routeHistory
+        .where((session) => _isSameDay(session.generatedAt, today))
+        .toList(growable: false);
     final requestedSessionId =
         routeProvider.activeNavigationSessionId ??
         _selectedSessionId ??
