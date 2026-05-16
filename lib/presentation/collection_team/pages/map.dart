@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -146,6 +147,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.garbo.swms',
+          tileProvider: SilentNetworkTileProvider(),
           maxZoom: 19,
         ),
         if (mapData.polylines.isNotEmpty)

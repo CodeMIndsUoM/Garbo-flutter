@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -42,8 +43,12 @@ class GamificationTasksProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final headers = await _buildAuthHeaders();
       final response = await http
-          .get(Uri.parse('$_baseUrl/users/$userId/gamification-tasks'))
+          .get(
+            Uri.parse('$_baseUrl/users/$userId/gamification-tasks'),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
@@ -131,8 +136,12 @@ class GamificationTasksProvider extends ChangeNotifier {
   /// Load available gamification tasks for the user's role
   Future<void> loadAvailableTasks(String role) async {
     try {
+      final headers = await _buildAuthHeaders();
       final response = await http
-          .get(Uri.parse('$_baseUrl/admins/gamification/tasks/active?role=$role'))
+          .get(
+            Uri.parse('$_baseUrl/admins/gamification/tasks/active?role=$role'),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
@@ -192,5 +201,14 @@ class GamificationTasksProvider extends ChangeNotifier {
   void dispose() {
     _taskProgressSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    return <String, String>{
+      'Content-Type': 'application/json',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 }
