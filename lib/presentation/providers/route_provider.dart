@@ -24,6 +24,8 @@ class RouteProvider extends ChangeNotifier {
   final Map<String, Map<int, DateTime>> _binTimestampsBySession = {};
   final Map<String, DateTime> _routeStartedAtBySession = {};
   final Set<String> _reportedCompletedRoutes = <String>{};
+  final Set<String> _pendingRouteCompletionReports = <String>{};
+  final Set<int> _pendingAssignedRouteRetries = <int>{};
   final Set<String> _assignedSessionIds = <String>{};
   final Map<String, int> _sessionUpdatedAtById = <String, int>{};
   int? _boundUserId;
@@ -330,7 +332,8 @@ class RouteProvider extends ChangeNotifier {
     required int userId,
     required String sessionId,
   }) async {
-    if (_reportedCompletedRoutes.contains(sessionId)) {
+    if (_reportedCompletedRoutes.contains(sessionId) ||
+        _pendingRouteCompletionReports.contains(sessionId)) {
       return;
     }
 
@@ -358,29 +361,65 @@ class RouteProvider extends ChangeNotifier {
         ? now.difference(startedAt).inSeconds.clamp(0, 86400)
         : 0;
 
-    final headers = await _buildAuthHeaders();
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/bincollectors/$userId/route-completion'),
-          headers: headers,
-          body: jsonEncode({
-            'sessionId': sessionId,
-            'assignedBins': assignedBins,
-            'collectedBins': collectedBins,
-            'missedBins': missedBins,
-            'durationSeconds': durationSeconds,
-            'completedAt': now.toIso8601String(),
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
+    _pendingRouteCompletionReports.add(sessionId);
+    try {
+      final headers = await _buildAuthHeaders();
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/bincollectors/$userId/route-completion'),
+            headers: headers,
+            body: jsonEncode({
+              'sessionId': sessionId,
+              'assignedBins': assignedBins,
+              'collectedBins': collectedBins,
+              'missedBins': missedBins,
+              'durationSeconds': durationSeconds,
+              'completedAt': now.toIso8601String(),
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
 
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Failed to report route completion (status ${response.statusCode}).',
+      if (response.statusCode != 200) {
+        debugPrint(
+          'Route completion sync failed for session $sessionId: ${response.statusCode} ${response.body}',
+        );
+        _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+        return;
+      }
+
+      _reportedCompletedRoutes.add(sessionId);
+    } on TimeoutException catch (e) {
+      debugPrint(
+        'Route completion sync timed out for session $sessionId: $e',
       );
+      _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+    } catch (e) {
+      debugPrint(
+        'Route completion sync threw for session $sessionId: $e',
+      );
+      _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+    } finally {
+      _pendingRouteCompletionReports.remove(sessionId);
     }
+  }
 
-    _reportedCompletedRoutes.add(sessionId);
+  void _scheduleRouteCompletionRetry({
+    required int userId,
+    required String sessionId,
+  }) {
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (_reportedCompletedRoutes.contains(sessionId)) {
+        return;
+      }
+      try {
+        await reportRouteCompletionIfEligible(
+          userId: userId,
+          sessionId: sessionId,
+        );
+      } catch (_) {
+        // Completion reporting is best-effort after route state is already persisted.
+      }
+    });
   }
 
   int getCollectedCount(String sessionId) {
@@ -513,9 +552,11 @@ class RouteProvider extends ChangeNotifier {
   Future<void> reportBinPending({
     required String sessionId,
     required int binId,
+    int? userId,
   }) async {
+    final suffix = userId != null ? '?collectorId=$userId' : '';
     final response = await http.patch(
-      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/pending'),
+      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/pending$suffix'),
       headers: {'Content-Type': 'application/json'},
     ).timeout(const Duration(seconds: 20));
 
@@ -542,14 +583,20 @@ class RouteProvider extends ChangeNotifier {
         );
         return fallbackSessionId;
       }
-      rethrow;
+      debugPrint(
+        'Active assignment fetch timed out for user $userId; scheduling background retry.',
+      );
+      _scheduleAssignedRouteRetry(userId);
+      return null;
     }
 
     if (assignmentResponse.statusCode < 200 ||
         assignmentResponse.statusCode >= 300) {
-      throw Exception(
-        'Failed to fetch active route assignment (status ${assignmentResponse.statusCode}).',
+      debugPrint(
+        'Failed to fetch active route assignment for user $userId (status ${assignmentResponse.statusCode}).',
       );
+      _scheduleAssignedRouteRetry(userId);
+      return _fallbackAssignedSessionIdForUser(userId);
     }
 
     final decoded = jsonDecode(assignmentResponse.body);
@@ -607,6 +654,12 @@ class RouteProvider extends ChangeNotifier {
             sessionId: sessionId,
             userId: userId,
           );
+        } on TimeoutException {
+          debugPrint(
+            'Route session snapshot fetch timed out for session $sessionId; will retry in background.',
+          );
+          _scheduleAssignedRouteRetry(userId);
+          continue;
         } catch (error) {
           // Stale active assignments can outlive the in-memory snapshot cache
           // after a backend restart. Skip 404s and keep trying other sessions.
@@ -635,6 +688,24 @@ class RouteProvider extends ChangeNotifier {
     return sessionId;
   }
 
+  void _scheduleAssignedRouteRetry(int userId) {
+    if (!_pendingAssignedRouteRetries.add(userId)) {
+      return;
+    }
+
+    Future<void>.delayed(const Duration(seconds: 3), () async {
+      _pendingAssignedRouteRetries.remove(userId);
+      if (_boundUserId != null && _boundUserId != userId) {
+        return;
+      }
+      try {
+        await loadAssignedRouteForCollector(userId);
+      } catch (_) {
+        // Assigned-route bootstrap is retried opportunistically in background.
+      }
+    });
+  }
+
   String? _fallbackAssignedSessionIdForUser(int userId) {
     if (_boundUserId != null && _boundUserId != userId) {
       return null;
@@ -661,9 +732,17 @@ class RouteProvider extends ChangeNotifier {
     required String sessionId,
     required int userId,
   }) async {
-    final response = await http
-        .get(Uri.parse('$_baseUrl/route-sessions/$sessionId/routes'))
-        .timeout(const Duration(seconds: 15));
+    http.Response response;
+    try {
+      response = await http
+          .get(Uri.parse('$_baseUrl/route-sessions/$sessionId/routes'))
+          .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      debugPrint(
+        'Persisted route fetch timed out for session $sessionId.',
+      );
+      return false;
+    }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       return false;
