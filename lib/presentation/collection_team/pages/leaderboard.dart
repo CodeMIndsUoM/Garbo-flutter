@@ -13,20 +13,34 @@ class LeaderboardPage extends StatefulWidget {
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
+  int? _initializedForUserId;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
       final authProvider = context.read<AuthProvider>();
       final leaderboardProvider = context.read<LeaderboardProvider>();
+      final currentUserId = authProvider.currentUser?.empId;
+      if (_initializedForUserId == currentUserId) {
+        return;
+      }
+      _initializedForUserId = currentUserId;
+      leaderboardProvider.trackUser(
+        currentUserId,
+        role: authProvider.currentUser?.role,
+      );
       leaderboardProvider.loadSnapshot();
       
       // Fetch user's current rank
-      if (authProvider.currentUser?.empId != null) {
-        leaderboardProvider.fetchUserRank(authProvider.currentUser!.empId!.toInt());
+      if (currentUserId != null) {
+        leaderboardProvider.fetchUserRank(
+          currentUserId.toInt(),
+          role: authProvider.currentUser?.role,
+        );
       }
     });
   }
@@ -53,7 +67,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     children: [
                       // Header
                       Text(
-                        'Operational Staff Leaderboard',
+                        'Leaderboard',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -160,7 +174,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
                       // Leaderboard list
                       Text(
-                        'Top Rankings',
+                        'Top 10 Earners',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -169,111 +183,153 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                       SizedBox(height: 16),
 
-                      // Leaderboard entries
-                      ...entries.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        final isCurrentUser =
-                            item.userId == authProvider.currentUser?.empId;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isCurrentUser
-                                  ? AppColors.blue50
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isCurrentUser
-                                    ? AppColors.blue200
-                                    : Colors.grey[200]!,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            child: Row(
+                      if (leaderboardProvider.isLoadingSnapshot &&
+                          entries.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (leaderboardProvider.errorMessage != null &&
+                          entries.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Column(
                               children: [
-                                // Rank badge
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: _getRankColor(index),
-                                    borderRadius: BorderRadius.circular(10),
+                                Text(
+                                  leaderboardProvider.errorMessage!,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.red500,
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      '${index + 1}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                SizedBox(width: 12),
-                                // User info
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.name,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.grey900,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        item.role == 'COLLECTOR'
-                                            ? 'Bin Collector'
-                                            : 'Field Mentor',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Points
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      item.rewardPoints.toStringAsFixed(0),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.green700,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    if (item.rankChangeFromPrevious != null)
-                                      Text(
-                                        leaderboardProvider
-                                            .getRankChangeIndicator(item),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(leaderboardProvider
-                                              .getRankChangeColor(item)),
-                                        ),
-                                      ),
-                                  ],
+                                const SizedBox(height: 12),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      leaderboardProvider.loadSnapshot(),
+                                  child: const Text('Retry'),
                                 ),
                               ],
                             ),
                           ),
-                        );
-                      }),
+                        )
+                      else if (entries.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              'No earners available yet.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ...entries.asMap().entries.map((entry) {
+                          final item = entry.value;
+                          final isCurrentUser =
+                              item.userId == authProvider.currentUser?.empId;
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isCurrentUser
+                                    ? AppColors.blue50
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isCurrentUser
+                                      ? AppColors.blue200
+                                      : Colors.grey[200]!,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: _getRankColor(item.rank - 1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${item.rank}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.name,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.grey900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          item.role == 'COLLECTOR'
+                                              ? 'Bin Collector'
+                                              : 'Field Mentor',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        item.rewardPoints.toStringAsFixed(0),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.green700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      if (item.rankChangeFromPrevious != null)
+                                        Text(
+                                          leaderboardProvider
+                                              .getRankChangeIndicator(item),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(leaderboardProvider
+                                                .getRankChangeColor(item)),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
 
                       SizedBox(height: 16),
                       // Last update time
@@ -319,87 +375,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
     for (final entry in source) {
       final key = entry.userId != null
-          ? 'id:${entry.userId}'
+          ? 'id:${entry.userId}|role:${entry.role.toLowerCase()}'
           : 'name:${entry.name.toLowerCase()}|role:${entry.role.toLowerCase()}';
-      if (seenKeys.contains(key)) {
-        continue;
+      if (seenKeys.add(key)) {
+        unique.add(entry);
       }
-      seenKeys.add(key);
-      unique.add(entry);
     }
 
-    final normalizedNameCounts = <String, int>{};
-    final renamed = <LeaderboardEntryDto>[];
-    for (final entry in unique) {
-      final normalizedName = entry.name.trim().toLowerCase();
-      final seenCount = normalizedNameCounts[normalizedName] ?? 0;
-      normalizedNameCounts[normalizedName] = seenCount + 1;
-
-      if (seenCount == 0) {
-        renamed.add(entry);
-        continue;
-      }
-
-      final alias = _generateRandomAlias(entry, seenCount);
-      renamed.add(
-        LeaderboardEntryDto(
-          rank: entry.rank,
-          userId: entry.userId,
-          name: alias,
-          rewardPoints: entry.rewardPoints,
-          role: entry.role,
-          rankChangeFromPrevious: entry.rankChangeFromPrevious,
-        ),
-      );
-    }
-
-    final needed = 10 - renamed.length;
-    for (var i = 0; i < needed; i++) {
-      final name = 'Collector User ${i + 1}';
-      renamed.add(
-        LeaderboardEntryDto(
-          rank: renamed.length + 1,
-          userId: null,
-          name: name,
-          rewardPoints: 0,
-          role: 'COLLECTOR',
-          rankChangeFromPrevious: null,
-        ),
-      );
-    }
-
-    return renamed.take(10).toList(growable: false);
-  }
-
-  String _generateRandomAlias(LeaderboardEntryDto entry, int duplicateIndex) {
-    const firstNames = [
-      'Nalin',
-      'Kavindu',
-      'Shehan',
-      'Dinuka',
-      'Sahan',
-      'Ravindu',
-      'Tharindu',
-      'Kasun',
-      'Mithun',
-      'Janith',
-    ];
-    const lastNames = [
-      'Perera',
-      'Silva',
-      'Fernando',
-      'Jayasinghe',
-      'Kumara',
-      'Bandara',
-      'Wijesinghe',
-      'Ranasinghe',
-      'De Silva',
-      'Karunaratne',
-    ];
-
-    final seed = (entry.userId ?? entry.rank) + duplicateIndex;
-    final first = firstNames[seed % firstNames.length];
-    final last = lastNames[(seed * 3) % lastNames.length];
-    return '$first $last';
+    return unique.take(10).toList(growable: false);
   }
 }

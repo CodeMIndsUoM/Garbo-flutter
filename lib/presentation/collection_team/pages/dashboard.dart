@@ -60,8 +60,12 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           return;
         }
 
-        final userId = context.read<AuthProvider>().currentUser?.empId;
-        context.read<LeaderboardProvider>().trackUser(userId);
+        final authProvider = context.read<AuthProvider>();
+        final userId = authProvider.currentUser?.empId;
+        context.read<LeaderboardProvider>().trackUser(
+          userId,
+          role: authProvider.currentUser?.role,
+        );
       });
     }
   }

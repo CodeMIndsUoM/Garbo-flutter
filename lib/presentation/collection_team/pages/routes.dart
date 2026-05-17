@@ -413,6 +413,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     if (provider == null) {
       return;
     }
+    final authProvider = context.read<AuthProvider>();
 
     final bins = getBinsForRoute(route);
     if (bins.isEmpty) {
@@ -449,7 +450,11 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     provider.markBinPending(route.id, binId);
 
     try {
-      await provider.reportBinPending(sessionId: route.id, binId: binId);
+      await provider.reportBinPending(
+        sessionId: route.id,
+        binId: binId,
+        userId: authProvider.currentUser?.empId,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -11,6 +11,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 /// GamificationTasksProvider manages user's gamification tasks and achievements
 class GamificationTasksProvider extends ChangeNotifier {
   static const String _baseUrl = ApiConstants.baseUrl;
+  static const Duration _tasksRequestTimeout = Duration(seconds: 20);
 
   List<UserTaskProgress> _userTasks = [];
   List<GamificationTaskDto> _availableTasks = [];
@@ -19,6 +20,11 @@ class GamificationTasksProvider extends ChangeNotifier {
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
       _taskProgressSubscription;
   int? _activeUserId;
+  String? _activeRole;
+  Future<void>? _userTasksLoadFuture;
+  Future<void>? _availableTasksLoadFuture;
+  bool _queuedUserTasksReload = false;
+  bool _queuedAvailableTasksReload = false;
 
   List<UserTaskProgress> get userTasks => _userTasks;
   List<GamificationTaskDto> get availableTasks => _availableTasks;
@@ -37,11 +43,28 @@ class GamificationTasksProvider extends ChangeNotifier {
 
   /// Load user's gamification tasks and progress
   Future<void> loadUserTasks(int userId) async {
+    if (_activeUserId == userId && _userTasksLoadFuture != null) {
+      _queuedUserTasksReload = true;
+      return _userTasksLoadFuture!;
+    }
+
     _activeUserId = userId;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
+    final future = _loadUserTasksInternal(userId);
+    _userTasksLoadFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_userTasksLoadFuture, future)) {
+        _userTasksLoadFuture = null;
+      }
+    }
+  }
+
+  Future<void> _loadUserTasksInternal(int userId) async {
     try {
       final headers = await _buildAuthHeaders();
       final response = await http
@@ -49,17 +72,15 @@ class GamificationTasksProvider extends ChangeNotifier {
             Uri.parse('$_baseUrl/users/$userId/gamification-tasks'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(_tasksRequestTimeout);
 
       if (response.statusCode != 200) {
-        _userTasks = [];
         _errorMessage = 'Failed to load tasks';
         return;
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['success'] != true || body['data'] is! List) {
-        _userTasks = [];
         _errorMessage = body['message']?.toString() ?? 'Failed to load tasks';
         return;
       }
@@ -71,13 +92,19 @@ class GamificationTasksProvider extends ChangeNotifier {
           .toList();
 
       _errorMessage = null;
+    } on TimeoutException catch (e) {
+      _errorMessage = _userTasks.isEmpty ? 'Failed to load tasks: $e' : null;
+      debugPrint('Error loading tasks: $e');
     } catch (e) {
-      _userTasks = [];
-      _errorMessage = 'Failed to load tasks: $e';
+      _errorMessage = _userTasks.isEmpty ? 'Failed to load tasks: $e' : null;
       debugPrint('Error loading tasks: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+      if (_queuedUserTasksReload && _activeUserId != null) {
+        _queuedUserTasksReload = false;
+        unawaited(loadUserTasks(_activeUserId!));
+      }
     }
   }
 
@@ -136,6 +163,24 @@ class GamificationTasksProvider extends ChangeNotifier {
 
   /// Load available gamification tasks for the user's role
   Future<void> loadAvailableTasks(String role) async {
+    if (_activeRole == role && _availableTasksLoadFuture != null) {
+      _queuedAvailableTasksReload = true;
+      return _availableTasksLoadFuture!;
+    }
+
+    _activeRole = role;
+    final future = _loadAvailableTasksInternal(role);
+    _availableTasksLoadFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_availableTasksLoadFuture, future)) {
+        _availableTasksLoadFuture = null;
+      }
+    }
+  }
+
+  Future<void> _loadAvailableTasksInternal(String role) async {
     try {
       final headers = await _buildAuthHeaders();
       final response = await http
@@ -143,10 +188,9 @@ class GamificationTasksProvider extends ChangeNotifier {
             Uri.parse('$_baseUrl/admins/gamification/tasks/active?role=$role'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(_tasksRequestTimeout);
 
       if (response.statusCode != 200) {
-        _availableTasks = [];
         _errorMessage = 'Failed to load available tasks';
         notifyListeners();
         return;
@@ -154,7 +198,6 @@ class GamificationTasksProvider extends ChangeNotifier {
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['success'] != true || body['data'] is! List) {
-        _availableTasks = [];
         _errorMessage = body['message']?.toString() ?? 'Failed to load available tasks';
         notifyListeners();
         return;
@@ -167,11 +210,23 @@ class GamificationTasksProvider extends ChangeNotifier {
           .toList();
       _errorMessage = null;
       notifyListeners();
-    } catch (e) {
-      _availableTasks = [];
-      _errorMessage = 'Failed to load available tasks: $e';
+    } on TimeoutException catch (e) {
+      _errorMessage = _availableTasks.isEmpty
+          ? 'Failed to load available tasks: $e'
+          : null;
       debugPrint('Error loading available tasks: $e');
       notifyListeners();
+    } catch (e) {
+      _errorMessage = _availableTasks.isEmpty
+          ? 'Failed to load available tasks: $e'
+          : null;
+      debugPrint('Error loading available tasks: $e');
+      notifyListeners();
+    } finally {
+      if (_queuedAvailableTasksReload && _activeRole != null) {
+        _queuedAvailableTasksReload = false;
+        unawaited(loadAvailableTasks(_activeRole!));
+      }
     }
   }
 

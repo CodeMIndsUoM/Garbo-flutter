@@ -20,6 +20,10 @@ class LeaderboardProvider extends ChangeNotifier {
   LeaderboardChangedUserPayload? _lastChangedUser;
   LeaderboardEntryDto? _userRankEntry;
   int? _trackedUserId;
+  String? _trackedRole;
+  bool _isLoadingSnapshot = false;
+  bool _isLoadingUserRank = false;
+  bool _pendingSnapshotReload = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
       _messageSubscription;
 
@@ -29,41 +33,60 @@ class LeaderboardProvider extends ChangeNotifier {
   LeaderboardChangedUserPayload? get lastChangedUser => _lastChangedUser;
   LeaderboardEntryDto? get userRankEntry => _userRankEntry;
   bool get hasData => _leaderboardEntries.isNotEmpty;
+  bool get isLoadingSnapshot => _isLoadingSnapshot;
 
   LeaderboardProvider(this.webSocketProvider) {
     _listenToLeaderboardUpdates();
-    loadSnapshot();
   }
 
-  void trackUser(int? userId) {
-    if (_trackedUserId == userId) {
+  void trackUser(int? userId, {String? role}) {
+    if (_trackedUserId == userId && _trackedRole == role) {
       return;
     }
     _trackedUserId = userId;
+    _trackedRole = role;
     if (userId == null) {
       _userRankEntry = null;
       notifyListeners();
       return;
     }
-    fetchUserRank(userId);
+    loadSnapshot();
   }
 
   Future<void> loadSnapshot({int limit = 10}) async {
+    if (_isLoadingSnapshot) {
+      _pendingSnapshotReload = true;
+      return;
+    }
+
+    _isLoadingSnapshot = true;
+    _errorMessage = null;
+    notifyListeners();
     try {
       final headers = await _buildAuthHeaders();
+      final roleQuery =
+          _trackedRole != null && _trackedRole!.isNotEmpty
+              ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
+              : '';
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit'),
+            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit$roleQuery'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode != 200) {
+        _errorMessage =
+            'Failed to load leaderboard (${response.statusCode})';
+        notifyListeners();
         return;
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['success'] != true || body['data'] is! Map<String, dynamic>) {
+        _errorMessage =
+            body['message']?.toString() ?? 'Failed to load leaderboard';
+        notifyListeners();
         return;
       }
 
@@ -74,25 +97,43 @@ class LeaderboardProvider extends ChangeNotifier {
       _lastChangedUser = leaderboardData.changedUser;
       _errorMessage = null;
       if (_trackedUserId != null) {
-        await fetchUserRank(_trackedUserId!);
+        await fetchUserRank(_trackedUserId!, role: _trackedRole);
       } else {
         notifyListeners();
       }
     } catch (e) {
       debugPrint('Failed to load leaderboard snapshot: $e');
+      _errorMessage = 'Failed to load leaderboard: $e';
+      notifyListeners();
+    } finally {
+      _isLoadingSnapshot = false;
+      notifyListeners();
+      if (_pendingSnapshotReload) {
+        _pendingSnapshotReload = false;
+        unawaited(loadSnapshot(limit: limit));
+      }
     }
   }
 
   /// Fetch the current logged-in user's rank from the server
-  Future<void> fetchUserRank(int userId) async {
+  Future<void> fetchUserRank(int userId, {String? role}) async {
+    if (_isLoadingUserRank) {
+      return;
+    }
+
+    _isLoadingUserRank = true;
     try {
       final headers = await _buildAuthHeaders();
+      final roleQuery =
+          role != null && role.isNotEmpty
+              ? '?role=${Uri.encodeQueryComponent(role)}'
+              : '';
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/leaderboard/user/$userId'),
+            Uri.parse('$_baseUrl/leaderboard/user/$userId$roleQuery'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode != 200) {
         _userRankEntry = null;
@@ -118,6 +159,8 @@ class LeaderboardProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Failed to fetch user rank: $e');
       _userRankEntry = null;
+    } finally {
+      _isLoadingUserRank = false;
     }
   }
 
@@ -141,13 +184,8 @@ class LeaderboardProvider extends ChangeNotifier {
             debugPrint(
               'Leaderboard update received: ${_leaderboardEntries.length} entries, changedUser=${_lastChangedUser?.userId}, rankDelta=${_lastChangedUser?.rankDelta}, scoreDelta=${_lastChangedUser?.scoreDelta}',
             );
-            final shouldRefreshTrackedUser =
-                _trackedUserId != null &&
-                (_lastChangedUser == null ||
-                    _lastChangedUser!.userId == _trackedUserId);
-
-            if (shouldRefreshTrackedUser) {
-              fetchUserRank(_trackedUserId!);
+            if (_trackedUserId != null) {
+              unawaited(loadSnapshot());
             } else {
               notifyListeners();
             }

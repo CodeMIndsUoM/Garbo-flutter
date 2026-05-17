@@ -24,6 +24,7 @@ class CollectionTeamProfile extends StatefulWidget {
 
 class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   static const String _baseUrl = ApiConstants.baseUrl;
+  static const Duration _performanceStatsTimeout = Duration(seconds: 20);
 
   bool _didLoadGamification = false;
   CollectorPerformanceStats? _performanceStats;
@@ -33,6 +34,8 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _performanceSocketSubscription;
   Timer? _performanceRefreshDebounce;
+  Future<void>? _performanceLoadFuture;
+  bool _queuedPerformanceReload = false;
 
   @override
   void didChangeDependencies() {
@@ -118,11 +121,30 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   }
 
   Future<void> _loadPerformanceStats(int userId) async {
+    if (_performanceLoadFuture != null && _activeUserId == userId) {
+      _queuedPerformanceReload = true;
+      return _performanceLoadFuture!;
+    }
+
     setState(() {
-      _isPerformanceLoading = true;
-      _performanceError = null;
+      _isPerformanceLoading = _performanceStats == null;
+      if (_performanceStats == null) {
+        _performanceError = null;
+      }
     });
 
+    final future = _loadPerformanceStatsInternal(userId);
+    _performanceLoadFuture = future;
+    try {
+      await future;
+    } finally {
+      if (identical(_performanceLoadFuture, future)) {
+        _performanceLoadFuture = null;
+      }
+    }
+  }
+
+  Future<void> _loadPerformanceStatsInternal(int userId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
@@ -136,7 +158,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             Uri.parse('$_baseUrl/users/$userId/performance-stats'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(_performanceStatsTimeout);
 
       final decoded = jsonDecode(response.body);
       final body = decoded is Map<String, dynamic>
@@ -145,11 +167,12 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
       if (response.statusCode != 200 || body['success'] != true) {
         setState(() {
-          _performanceStats = null;
-          _performanceError =
-              body['message']?.toString() ??
-              body['error']?.toString() ??
-              'Failed to load performance stats';
+          if (_performanceStats == null) {
+            _performanceError =
+                body['message']?.toString() ??
+                body['error']?.toString() ??
+                'Failed to load performance stats';
+          }
           _isPerformanceLoading = false;
         });
         return;
@@ -158,8 +181,9 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       final data = body['data'];
       if (data is! Map<String, dynamic>) {
         setState(() {
-          _performanceStats = null;
-          _performanceError = 'Invalid performance stats response';
+          if (_performanceStats == null) {
+            _performanceError = 'Invalid performance stats response';
+          }
           _isPerformanceLoading = false;
         });
         return;
@@ -170,13 +194,40 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         _performanceError = null;
         _isPerformanceLoading = false;
       });
-    } catch (e) {
+    } on TimeoutException catch (e) {
       setState(() {
-        _performanceStats = null;
-        _performanceError = 'Failed to load performance stats: $e';
+        if (_performanceStats == null) {
+          _performanceError = 'Failed to load performance stats: $e';
+        }
         _isPerformanceLoading = false;
       });
+      _schedulePerformanceStatsRetry(userId);
+    } catch (e) {
+      setState(() {
+        if (_performanceStats == null) {
+          _performanceError = 'Failed to load performance stats: $e';
+        }
+        _isPerformanceLoading = false;
+      });
+    } finally {
+      if (_queuedPerformanceReload && _activeUserId == userId) {
+        _queuedPerformanceReload = false;
+        unawaited(_loadPerformanceStats(userId));
+      }
     }
+  }
+
+  void _schedulePerformanceStatsRetry(int userId) {
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (!mounted || _activeUserId != userId) {
+        return;
+      }
+      try {
+        await _loadPerformanceStats(userId);
+      } catch (_) {
+        // Keep retry path quiet; realtime updates will trigger more refreshes.
+      }
+    });
   }
 
   @override
