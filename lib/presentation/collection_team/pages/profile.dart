@@ -55,8 +55,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
       if (userId != null) {
         _activeUserId = userId;
-        gamificationProvider.loadUserTasks(userId);
-        _loadPerformanceStats(userId);
+        _refreshProfileProgress(gamificationProvider, userId);
       }
       if (role != null && role.isNotEmpty) {
         gamificationProvider.loadAvailableTasks(role);
@@ -92,9 +91,23 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         if (!mounted || _activeUserId == null) {
           return;
         }
-        _loadPerformanceStats(_activeUserId!);
+        _refreshProfileProgress(
+          context.read<GamificationTasksProvider>(),
+          _activeUserId!,
+        );
       });
     });
+  }
+
+  Future<void> _refreshProfileProgress(
+    GamificationTasksProvider gamificationProvider,
+    int userId,
+  ) async {
+    await gamificationProvider.loadUserTasks(userId);
+    if (!mounted) {
+      return;
+    }
+    await _loadPerformanceStats(userId);
   }
 
   @override
@@ -617,6 +630,52 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
           );
         }
 
+        if (gamificationProvider.errorMessage != null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Color(0xFFEAB308),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Achievements',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  gamificationProvider.errorMessage!,
+                  style: const TextStyle(
+                    color: AppColors.red500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -753,6 +812,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
   /// Build a completed task card with green checkmark
   Widget _buildCompletedTaskCard(UserTaskProgress task) {
+    final progressPercent = task.progressPercentage;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -790,39 +850,45 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  task.taskDescription,
+                  _shortTaskDescription(task.taskDescription),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.grey500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(
-                      Icons.check,
-                      color: AppColors.green700,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
                     Text(
-                      'Completed',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.green700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '+${task.pointsEarned.toStringAsFixed(0)} pts',
+                      '+${task.availablePoints.toStringAsFixed(0)} pts',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppColors.green700,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFEAB308),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progressPercent / 100,
+                    backgroundColor: AppColors.grey200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.green700,
+                    ),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.grey500,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -887,7 +953,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  task.taskDescription,
+                  _shortTaskDescription(task.taskDescription),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.grey500,
@@ -896,17 +962,12 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text(
-                      'Progress',
-                      style: TextStyle(fontSize: 11, color: AppColors.grey500),
-                    ),
-                    const Spacer(),
                     Text(
-                      '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)}',
+                      '+${task.availablePoints.toStringAsFixed(0)} pts',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppColors.grey600,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFEAB308),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -925,10 +986,11 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${progressPercent.toStringAsFixed(0)}% complete',
+                  '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
                   style: const TextStyle(
                     fontSize: 10,
-                    color: AppColors.grey400,
+                    color: AppColors.grey500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -938,6 +1000,18 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       ),
     );
   }
+
+  String _shortTaskDescription(String description) {
+    final normalized = description.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) {
+      return 'Complete to earn points.';
+    }
+    if (normalized.length <= 42) {
+      return normalized;
+    }
+    return '${normalized.substring(0, 39).trimRight()}...';
+  }
+
 }
 
 class DashedLinePainter extends CustomPainter {

@@ -76,17 +76,24 @@ class WebSocketService {
 
       _client!.activate();
 
-      await _connectCompleter!.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('STOMP connection timeout');
-        },
-      );
+      try {
+        await _connectCompleter!.future.timeout(const Duration(seconds: 20));
+      } on TimeoutException {
+        debugPrint(
+          'STOMP initial connect timed out; keeping client active for background reconnect.',
+        );
+        if (!_manualDisconnect) {
+          _setStatus(ConnectionStatus.reconnecting);
+        }
+        return;
+      }
       
     } catch (e) {
       debugPrint('STOMP connection error: $e');
       _isConnected = false;
-      _setStatus(ConnectionStatus.error);
+      if (!_manualDisconnect) {
+        _setStatus(ConnectionStatus.error);
+      }
       rethrow;
     }
   }

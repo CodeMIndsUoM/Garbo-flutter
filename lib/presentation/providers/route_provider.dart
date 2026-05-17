@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
@@ -357,10 +358,11 @@ class RouteProvider extends ChangeNotifier {
         ? now.difference(startedAt).inSeconds.clamp(0, 86400)
         : 0;
 
+    final headers = await _buildAuthHeaders();
     final response = await http
         .post(
-          Uri.parse('$_baseUrl/api/bincollectors/$userId/route-completion'),
-          headers: {'Content-Type': 'application/json'},
+          Uri.parse('$_baseUrl/bincollectors/$userId/route-completion'),
+          headers: headers,
           body: jsonEncode({
             'sessionId': sessionId,
             'assignedBins': assignedBins,
@@ -466,9 +468,10 @@ class RouteProvider extends ChangeNotifier {
 
     // Keep collector gamification sync as best-effort after DB state is persisted.
     try {
+      final headers = await _buildAuthHeaders();
       final response = await http.post(
         Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({
           'binId': binId,
           'priority': priority,
@@ -526,9 +529,21 @@ class RouteProvider extends ChangeNotifier {
   Future<String?> loadAssignedRouteForCollector(int userId) async {
     bindToUser(userId);
 
-    final assignmentResponse = await http
-        .get(Uri.parse('$_baseUrl/route-sessions/user/$userId/active'))
-        .timeout(const Duration(seconds: 15));
+    http.Response assignmentResponse;
+    try {
+      assignmentResponse = await http
+          .get(Uri.parse('$_baseUrl/route-sessions/user/$userId/active'))
+          .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      final fallbackSessionId = _fallbackAssignedSessionIdForUser(userId);
+      if (fallbackSessionId != null) {
+        debugPrint(
+          'Active assignment fetch timed out; using existing realtime route session $fallbackSessionId.',
+        );
+        return fallbackSessionId;
+      }
+      rethrow;
+    }
 
     if (assignmentResponse.statusCode < 200 ||
         assignmentResponse.statusCode >= 300) {
@@ -618,6 +633,28 @@ class RouteProvider extends ChangeNotifier {
     final sessionId = loadedSessionIds.last;
     _lastOptimizedSessionId = sessionId;
     return sessionId;
+  }
+
+  String? _fallbackAssignedSessionIdForUser(int userId) {
+    if (_boundUserId != null && _boundUserId != userId) {
+      return null;
+    }
+
+    if (_routeHistory.isNotEmpty) {
+      final latest = _routeHistory.last;
+      _assignedSessionIds.add(latest.sessionId);
+      _lastOptimizedSessionId = latest.sessionId;
+      return latest.sessionId;
+    }
+
+    final currentSessionId = _currentRouteUpdate?.sessionId;
+    if (currentSessionId != null && currentSessionId.isNotEmpty) {
+      _assignedSessionIds.add(currentSessionId);
+      _lastOptimizedSessionId = currentSessionId;
+      return currentSessionId;
+    }
+
+    return null;
   }
 
   Future<bool> _loadPersistedSessionRoutes({
@@ -854,6 +891,15 @@ class RouteProvider extends ChangeNotifier {
     if (!keepBoundUser) {
       _boundUserId = null;
     }
+  }
+
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    return <String, String>{
+      'Content-Type': 'application/json',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 
   @override

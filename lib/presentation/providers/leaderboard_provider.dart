@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
@@ -18,6 +19,7 @@ class LeaderboardProvider extends ChangeNotifier {
   int _lastUpdateTime = 0;
   LeaderboardChangedUserPayload? _lastChangedUser;
   LeaderboardEntryDto? _userRankEntry;
+  int? _trackedUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
       _messageSubscription;
 
@@ -33,10 +35,27 @@ class LeaderboardProvider extends ChangeNotifier {
     loadSnapshot();
   }
 
+  void trackUser(int? userId) {
+    if (_trackedUserId == userId) {
+      return;
+    }
+    _trackedUserId = userId;
+    if (userId == null) {
+      _userRankEntry = null;
+      notifyListeners();
+      return;
+    }
+    fetchUserRank(userId);
+  }
+
   Future<void> loadSnapshot({int limit = 10}) async {
     try {
+      final headers = await _buildAuthHeaders();
       final response = await http
-          .get(Uri.parse('$_baseUrl/leaderboard/top?limit=$limit'))
+          .get(
+            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit'),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
@@ -54,7 +73,11 @@ class LeaderboardProvider extends ChangeNotifier {
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
       _errorMessage = null;
-      notifyListeners();
+      if (_trackedUserId != null) {
+        await fetchUserRank(_trackedUserId!);
+      } else {
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('Failed to load leaderboard snapshot: $e');
     }
@@ -63,8 +86,12 @@ class LeaderboardProvider extends ChangeNotifier {
   /// Fetch the current logged-in user's rank from the server
   Future<void> fetchUserRank(int userId) async {
     try {
+      final headers = await _buildAuthHeaders();
       final response = await http
-          .get(Uri.parse('$_baseUrl/leaderboard/user/$userId'))
+          .get(
+            Uri.parse('$_baseUrl/leaderboard/user/$userId'),
+            headers: headers,
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
@@ -114,7 +141,16 @@ class LeaderboardProvider extends ChangeNotifier {
             debugPrint(
               'Leaderboard update received: ${_leaderboardEntries.length} entries, changedUser=${_lastChangedUser?.userId}, rankDelta=${_lastChangedUser?.rankDelta}, scoreDelta=${_lastChangedUser?.scoreDelta}',
             );
-            notifyListeners();
+            final shouldRefreshTrackedUser =
+                _trackedUserId != null &&
+                (_lastChangedUser == null ||
+                    _lastChangedUser!.userId == _trackedUserId);
+
+            if (shouldRefreshTrackedUser) {
+              fetchUserRank(_trackedUserId!);
+            } else {
+              notifyListeners();
+            }
           }
         } catch (e) {
           debugPrint('Error parsing leaderboard update: $e');
@@ -131,6 +167,15 @@ class LeaderboardProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    return <String, String>{
+      'Content-Type': 'application/json',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
   /// Get top N entries
   List<LeaderboardEntryDto> getTopEntries(int limit) {
     return _leaderboardEntries.take(limit).toList();
@@ -138,6 +183,9 @@ class LeaderboardProvider extends ChangeNotifier {
 
   /// Get user's rank (returns null if not in top 10)
   LeaderboardEntryDto? getUserRank(int userId) {
+    if (_userRankEntry?.userId == userId) {
+      return _userRankEntry;
+    }
     try {
       return _leaderboardEntries.firstWhere(
         (entry) => entry.userId == userId,

@@ -82,6 +82,7 @@ class UserTaskProgress {
   final String taskCode;
   final String taskTitle;
   final String taskDescription;
+  final double availablePoints;
   final double currentProgress; // 0.0 to 100.0 for percentage, or actual count
   final double targetProgress; // Target value (e.g., 100 bins)
   final bool isCompleted;
@@ -94,6 +95,7 @@ class UserTaskProgress {
     required this.taskCode,
     required this.taskTitle,
     required this.taskDescription,
+    required this.availablePoints,
     required this.currentProgress,
     required this.targetProgress,
     required this.isCompleted,
@@ -112,6 +114,7 @@ class UserTaskProgress {
       taskCode: json['taskCode']?.toString() ?? '',
       taskTitle: json['taskTitle']?.toString() ?? '',
       taskDescription: json['taskDescription']?.toString() ?? '',
+      availablePoints: (json['availablePoints'] as num?)?.toDouble() ?? 0.0,
       currentProgress: (json['currentProgress'] as num?)?.toDouble() ?? 0.0,
       targetProgress: (json['targetProgress'] as num?)?.toDouble() ?? 100.0,
       isCompleted: completedValue as bool? ?? false,
@@ -126,6 +129,7 @@ class UserTaskProgress {
     'taskCode': taskCode,
     'taskTitle': taskTitle,
     'taskDescription': taskDescription,
+    'availablePoints': availablePoints,
     'currentProgress': currentProgress,
     'targetProgress': targetProgress,
     'isCompleted': isCompleted,
