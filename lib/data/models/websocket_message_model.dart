@@ -337,6 +337,7 @@ class TaskProgressItemPayload {
   final String taskCode;
   final String taskTitle;
   final String taskDescription;
+  final double availablePoints;
   final double currentProgress;
   final double targetProgress;
   final bool isCompleted;
@@ -348,6 +349,7 @@ class TaskProgressItemPayload {
     required this.taskCode,
     required this.taskTitle,
     required this.taskDescription,
+    required this.availablePoints,
     required this.currentProgress,
     required this.targetProgress,
     required this.isCompleted,
@@ -373,6 +375,7 @@ class TaskProgressItemPayload {
       taskCode: json['taskCode']?.toString() ?? '',
       taskTitle: json['taskTitle']?.toString() ?? '',
       taskDescription: json['taskDescription']?.toString() ?? '',
+      availablePoints: (json['availablePoints'] as num?)?.toDouble() ?? 0.0,
       currentProgress: (json['currentProgress'] as num?)?.toDouble() ?? 0.0,
       targetProgress: (json['targetProgress'] as num?)?.toDouble() ?? 1.0,
       isCompleted: toBool(json['isCompleted']),

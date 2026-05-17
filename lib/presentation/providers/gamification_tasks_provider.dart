@@ -106,6 +106,7 @@ class GamificationTasksProvider extends ChangeNotifier {
             taskCode: item.taskCode,
             taskTitle: item.taskTitle,
             taskDescription: item.taskDescription,
+            availablePoints: item.availablePoints,
             currentProgress: item.currentProgress,
             targetProgress: item.targetProgress,
             isCompleted: item.isCompleted,
@@ -179,12 +180,13 @@ class GamificationTasksProvider extends ChangeNotifier {
     final index = _userTasks.indexWhere((t) => t.taskId == taskId);
     if (index != -1) {
       final task = _userTasks[index];
-      _userTasks[index] = UserTaskProgress(
+        _userTasks[index] = UserTaskProgress(
         userId: task.userId,
         taskId: task.taskId,
         taskCode: task.taskCode,
         taskTitle: task.taskTitle,
         taskDescription: task.taskDescription,
+        availablePoints: task.availablePoints,
         currentProgress: newProgress,
         targetProgress: task.targetProgress,
         isCompleted: isCompleted ?? (newProgress >= task.targetProgress),
