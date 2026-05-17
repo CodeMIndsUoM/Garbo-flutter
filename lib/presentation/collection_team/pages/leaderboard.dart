@@ -33,15 +33,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         currentUserId,
         role: authProvider.currentUser?.role,
       );
-      leaderboardProvider.loadSnapshot();
-      
-      // Fetch user's current rank
-      if (currentUserId != null) {
-        leaderboardProvider.fetchUserRank(
-          currentUserId.toInt(),
-          role: authProvider.currentUser?.role,
-        );
-      }
     });
   }
 

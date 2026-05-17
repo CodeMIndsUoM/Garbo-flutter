@@ -68,9 +68,10 @@ class LeaderboardProvider extends ChangeNotifier {
           _trackedRole != null && _trackedRole!.isNotEmpty
               ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
               : '';
+      final userQuery = _trackedUserId != null ? '&userId=$_trackedUserId' : '';
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit$roleQuery'),
+            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit$roleQuery$userQuery'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 20));
@@ -95,12 +96,26 @@ class LeaderboardProvider extends ChangeNotifier {
       _leaderboardEntries = leaderboardData.entries;
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
-      _errorMessage = null;
-      if (_trackedUserId != null) {
-        await fetchUserRank(_trackedUserId!, role: _trackedRole);
+      final currentUser = payload['currentUser'];
+      if (currentUser is Map<String, dynamic>) {
+        _userRankEntry = LeaderboardEntryDto.fromJson(currentUser);
+        final alreadyPresent = _leaderboardEntries.any(
+          (entry) => entry.userId == _userRankEntry?.userId,
+        );
+        if (!alreadyPresent &&
+            _userRankEntry != null &&
+            _userRankEntry!.rank > 0 &&
+            _userRankEntry!.rank <= limit) {
+          _leaderboardEntries = [
+            ..._leaderboardEntries,
+            _userRankEntry!,
+          ]..sort((a, b) => a.rank.compareTo(b.rank));
+        }
       } else {
-        notifyListeners();
+        _userRankEntry = null;
       }
+      _errorMessage = null;
+      notifyListeners();
     } catch (e) {
       debugPrint('Failed to load leaderboard snapshot: $e');
       _errorMessage = 'Failed to load leaderboard: $e';
@@ -117,6 +132,18 @@ class LeaderboardProvider extends ChangeNotifier {
 
   /// Fetch the current logged-in user's rank from the server
   Future<void> fetchUserRank(int userId, {String? role}) async {
+    if (_trackedUserId == userId && _leaderboardEntries.isNotEmpty) {
+      final topEntry = _leaderboardEntries.cast<LeaderboardEntryDto?>().firstWhere(
+        (entry) => entry?.userId == userId,
+        orElse: () => _userRankEntry,
+      );
+      if (topEntry != null) {
+        _userRankEntry = topEntry;
+        notifyListeners();
+        return;
+      }
+    }
+
     if (_isLoadingUserRank) {
       return;
     }
