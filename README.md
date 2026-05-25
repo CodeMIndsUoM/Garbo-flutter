@@ -37,19 +37,19 @@ Important:
 
 | Mobile Role | Email | Password | Mobile Destination |
 |-------|--------|--------|--------|
-| Citizen | `citizen.one@garbo.com` | `Citizen123` | Citizen home |
+| Citizen | `citizen.one@garbo.com` | `Citizen123` | Citizen home |Moratuwa
 | Collection Team | `collector.test@garbo.com` | `Collector123` | Collection team dashboard |
 | Field Staff | `sasindu@gmail.com` | `Sj1234` | Field staff dashboard |
-| Third-Party Collector | `thirdparty.one@garbo.com` | `ThirdParty123` | Third-party collector home |
+| Third-Party Collector | `thirdparty.one@garbo.com` | `ThirdParty123` | Third-party collector home |Colombo,Moratuwa
 
 Additional seeded demo accounts:
 
 | Mobile Role | Email | Password | Mobile Destination |
 |-------|--------|--------|--------|
-| Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |
-| Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |
-| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdParty123` | Third-party collector home |
-| Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |
+| Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |Colombo
+| Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |Kaduwela
+| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdParty123` | Third-party collector home |Dehiwala-Mt. Lavinia,Kaduwela
+| Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |Sri Jayewardenepura Kotte,Colombo
 
 ### Create Seed Users
 
