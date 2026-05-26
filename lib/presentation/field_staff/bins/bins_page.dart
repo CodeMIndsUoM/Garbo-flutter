@@ -225,6 +225,8 @@ class _BinsPageState extends State<BinsPage> {
     ),
   ];
 
+  // DEVELOPER NOTE: Main build for the Bins list page.
+  // Coordinates the search bar, filter chips, list structure, and pull-to-refresh mechanism.
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -312,6 +314,8 @@ class _BinsPageState extends State<BinsPage> {
     );
   }
 
+  // DEVELOPER NOTE: Search bar input layout.
+  // Configure styling elements such as height, color theme, border, padding, and hint text styling below.
   Widget _buildSearchBar() {
     return Container(
       height: 48,
@@ -377,6 +381,8 @@ class _BinsPageState extends State<BinsPage> {
     }
   }
 
+  // DEVELOPER NOTE: Trigger confirm dialog to undo a bin report.
+  // View or edit alert dialog layouts, action buttons, shape, color styling, and text styles in this block.
   Future<void> _handleUndo(BinModel bin) async {
     final confirm = await showDialog<bool>(
       context: context,

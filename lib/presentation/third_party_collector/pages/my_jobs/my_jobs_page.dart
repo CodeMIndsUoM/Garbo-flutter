@@ -252,6 +252,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     }
   }
 
+  // DEVELOPER NOTE: Modal trigger for choosing cancellation reasons.
+  // The layout lists various reasons in a bottom sheet overlay. Modify selection options here.
   Future<String?> _askCancelReason() async {
     return showModalBottomSheet<String>(
       context: context,
@@ -714,6 +716,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   // ─── Build ──────────────────────────────────────────────────────────
 
+  // DEVELOPER NOTE: Main build coordinates the job view tabs (Offers vs Active collections),
+  // header spacing, scroll structures, search inputs, and filters rail.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -861,6 +865,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
+  // DEVELOPER NOTE: Renders the lists of offers under various states (Pending, Accepted, Rejected).
+  // Customize spacing (e.g. SizedBox height), card paddings, and card components here.
   Widget _buildOfferStatusList(OfferStatus status) {
     final offers = _offersByStatus(status);
     if (offers.isEmpty) {
