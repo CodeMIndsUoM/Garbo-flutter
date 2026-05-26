@@ -341,8 +341,12 @@ class TaskProgressItemPayload {
   final double currentProgress;
   final double targetProgress;
   final bool isCompleted;
+  final bool isNew;
   final String? completedAt;
   final double pointsEarned;
+  final String? startAt;
+  final String? endAt;
+  final String? activePeriodLabel;
 
   TaskProgressItemPayload({
     required this.taskId,
@@ -353,8 +357,12 @@ class TaskProgressItemPayload {
     required this.currentProgress,
     required this.targetProgress,
     required this.isCompleted,
+    required this.isNew,
     this.completedAt,
     required this.pointsEarned,
+    this.startAt,
+    this.endAt,
+    this.activePeriodLabel,
   });
 
   factory TaskProgressItemPayload.fromJson(Map<String, dynamic> json) {
@@ -379,8 +387,12 @@ class TaskProgressItemPayload {
       currentProgress: (json['currentProgress'] as num?)?.toDouble() ?? 0.0,
       targetProgress: (json['targetProgress'] as num?)?.toDouble() ?? 1.0,
       isCompleted: toBool(json['isCompleted']),
+      isNew: toBool(json['isNew']),
       completedAt: json['completedAt']?.toString(),
       pointsEarned: (json['pointsEarned'] as num?)?.toDouble() ?? 0.0,
+      startAt: json['startAt']?.toString(),
+      endAt: json['endAt']?.toString(),
+      activePeriodLabel: json['activePeriodLabel']?.toString(),
     );
   }
 }

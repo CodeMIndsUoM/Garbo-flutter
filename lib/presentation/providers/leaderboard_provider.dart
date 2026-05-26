@@ -93,7 +93,7 @@ class LeaderboardProvider extends ChangeNotifier {
 
       final payload = body['data'] as Map<String, dynamic>;
       final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
-      _leaderboardEntries = leaderboardData.entries;
+      _leaderboardEntries = _filterEntriesByTrackedRole(leaderboardData.entries);
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
       final currentUser = payload['currentUser'];
@@ -102,10 +102,7 @@ class LeaderboardProvider extends ChangeNotifier {
         final alreadyPresent = _leaderboardEntries.any(
           (entry) => entry.userId == _userRankEntry?.userId,
         );
-        if (!alreadyPresent &&
-            _userRankEntry != null &&
-            _userRankEntry!.rank > 0 &&
-            _userRankEntry!.rank <= limit) {
+        if (!alreadyPresent && _userRankEntry != null && _userRankEntry!.rank > 0) {
           _leaderboardEntries = [
             ..._leaderboardEntries,
             _userRankEntry!,
@@ -203,9 +200,13 @@ class LeaderboardProvider extends ChangeNotifier {
             final leaderboardData = LeaderboardUpdatePayload.fromJson(
               payload,
             );
-            _leaderboardEntries = leaderboardData.entries;
+            _leaderboardEntries = _filterEntriesByTrackedRole(
+              leaderboardData.entries,
+            );
             _lastUpdateTime = leaderboardData.updatedAt;
-            _lastChangedUser = leaderboardData.changedUser;
+            _lastChangedUser = _shouldKeepChangedUser(leaderboardData.changedUser)
+                ? leaderboardData.changedUser
+                : null;
             _errorMessage = null;
 
             debugPrint(
@@ -301,5 +302,31 @@ class LeaderboardProvider extends ChangeNotifier {
     }
     return changed.userId == entry.userId &&
         changed.role.toUpperCase() == entry.role.toUpperCase();
+  }
+
+  List<LeaderboardEntryDto> _filterEntriesByTrackedRole(
+    List<LeaderboardEntryDto> entries,
+  ) {
+    final trackedRole = _trackedRole?.trim();
+    if (trackedRole == null || trackedRole.isEmpty) {
+      return entries;
+    }
+
+    return entries
+        .where((entry) => entry.role.toUpperCase() == trackedRole.toUpperCase())
+        .toList();
+  }
+
+  bool _shouldKeepChangedUser(LeaderboardChangedUserPayload? changedUser) {
+    if (changedUser == null) {
+      return false;
+    }
+
+    final trackedRole = _trackedRole?.trim();
+    if (trackedRole == null || trackedRole.isEmpty) {
+      return true;
+    }
+
+    return changedUser.role.toUpperCase() == trackedRole.toUpperCase();
   }
 }
