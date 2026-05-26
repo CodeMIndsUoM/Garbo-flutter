@@ -137,8 +137,12 @@ class GamificationTasksProvider extends ChangeNotifier {
             currentProgress: item.currentProgress,
             targetProgress: item.targetProgress,
             isCompleted: item.isCompleted,
+            isNew: item.isNew,
             completedAt: item.completedAt,
             pointsEarned: item.pointsEarned,
+            startAt: item.startAt,
+            endAt: item.endAt,
+            activePeriodLabel: item.activePeriodLabel,
           );
 
           if (index == -1) {
@@ -245,10 +249,14 @@ class GamificationTasksProvider extends ChangeNotifier {
         currentProgress: newProgress,
         targetProgress: task.targetProgress,
         isCompleted: isCompleted ?? (newProgress >= task.targetProgress),
+        isNew: task.isNew && newProgress <= 0,
         completedAt: (isCompleted ?? (newProgress >= task.targetProgress))
             ? DateTime.now().toIso8601String()
             : task.completedAt,
         pointsEarned: task.pointsEarned,
+        startAt: task.startAt,
+        endAt: task.endAt,
+        activePeriodLabel: task.activePeriodLabel,
       );
       notifyListeners();
     }

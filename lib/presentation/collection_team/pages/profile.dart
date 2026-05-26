@@ -891,13 +891,20 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.taskTitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.taskTitle,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    if (task.isNew) _buildNewBadge(),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -907,11 +914,22 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                     color: AppColors.grey500,
                   ),
                 ),
+                if (_buildTaskDuration(task) != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _buildTaskDuration(task)!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.grey600,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      '+${task.availablePoints.toStringAsFixed(0)} pts',
+                      '${task.pointsEarned.toStringAsFixed(0)} pts earned',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFFEAB308),
@@ -994,13 +1012,20 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.taskTitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey700,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.taskTitle,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                    ),
+                    if (task.isNew) _buildNewBadge(),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -1010,11 +1035,22 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                     color: AppColors.grey500,
                   ),
                 ),
+                if (_buildTaskDuration(task) != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _buildTaskDuration(task)!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.grey600,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      '+${task.availablePoints.toStringAsFixed(0)} pts',
+                      '${task.pointsEarned.toStringAsFixed(0)} pts earned',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFFEAB308),
@@ -1057,10 +1093,71 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     if (normalized.isEmpty) {
       return 'Complete to earn points.';
     }
-    if (normalized.length <= 42) {
+    if (normalized.length <= 34) {
       return normalized;
     }
-    return '${normalized.substring(0, 39).trimRight()}...';
+    return '${normalized.substring(0, 31).trimRight()}...';
+  }
+
+  Widget _buildNewBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDBEAFE),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Text(
+        'NEW',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: AppColors.blue500,
+        ),
+      ),
+    );
+  }
+
+  String? _buildTaskDuration(UserTaskProgress task) {
+    final label = task.activePeriodLabel?.trim();
+    if (label != null && label.isNotEmpty) {
+      return label;
+    }
+    if ((task.startAt == null || task.startAt!.isEmpty) &&
+        (task.endAt == null || task.endAt!.isEmpty)) {
+      return null;
+    }
+    final start = task.startAt != null ? DateTime.tryParse(task.startAt!) : null;
+    final end = task.endAt != null ? DateTime.tryParse(task.endAt!) : null;
+    final startLabel = start != null ? _formatTaskDate(start) : null;
+    final endLabel = end != null ? _formatTaskDate(end) : null;
+    if (startLabel != null && endLabel != null) {
+      return '$startLabel - $endLabel';
+    }
+    if (endLabel != null) {
+      return 'Valid until $endLabel';
+    }
+    if (startLabel != null) {
+      return 'Started $startLabel';
+    }
+    return null;
+  }
+
+  String _formatTaskDate(DateTime value) {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${monthNames[value.month - 1]} ${value.day}';
   }
 
 }
