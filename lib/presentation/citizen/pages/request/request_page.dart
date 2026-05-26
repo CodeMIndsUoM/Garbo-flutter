@@ -41,6 +41,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   bool showMyRequests = false;
   bool _submitting = false;
   bool _loadingRequests = false;
+  bool _isHandlingOfferAction = false;
   String? _citizenId;
   String? _requestPhotoPath;
   List<CollectionRequestModel> _requests = const [];
@@ -316,11 +317,13 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     int requestId,
     CollectionOfferModel offer,
   ) async {
+    if (_isHandlingOfferAction) return;
     final result = await showDialog<RatingResult>(
       context: sheetCtx,
       builder: (_) => const RateOfferDialog(),
     );
     if (result == null) return;
+    setState(() => _isHandlingOfferAction = true);
     try {
       await _apiService.confirmOffer(
         offerId: offer.id,
@@ -335,6 +338,10 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not submit rating: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _isHandlingOfferAction = false);
+      }
     }
   }
 
@@ -343,6 +350,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     int offerId,
     bool accept,
   ) async {
+    if (_isHandlingOfferAction) return;
+    setState(() => _isHandlingOfferAction = true);
     try {
       if (accept) {
         await _apiService.acceptOffer(offerId);
@@ -376,6 +385,10 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not update offer: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() => _isHandlingOfferAction = false);
+      }
     }
   }
 
