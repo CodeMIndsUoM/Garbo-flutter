@@ -199,6 +199,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Welcome banner container (styling for background color, border radius, and shadow offsets is defined below).
   Widget _buildWelcomeCard() {
     return Container(
       width: double.infinity,
@@ -221,6 +222,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           Text(
             'Welcome Back!',
             style: AppTypography.h1.copyWith(color: Colors.white),
+            
           ),
           const SizedBox(height: 4),
           Text(
@@ -257,6 +259,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Dashboard metrics stat pill (adjust width, height, colors, and layout structure of metrics cards here).
   Widget _buildStatPill(String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -282,6 +285,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Today's Impact Card layout (control typography, background card margins/padding, colors, and icon alignments below).
   Widget _buildTodaysImpactCard() {
     return Container(
       width: double.infinity,
