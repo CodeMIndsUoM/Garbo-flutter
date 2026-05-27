@@ -40,11 +40,12 @@ class LeaderboardProvider extends ChangeNotifier {
   }
 
   void trackUser(int? userId, {String? role}) {
-    if (_trackedUserId == userId && _trackedRole == role) {
+    final normalizedRole = _normalizeRole(role);
+    if (_trackedUserId == userId && _trackedRole == normalizedRole) {
       return;
     }
     _trackedUserId = userId;
-    _trackedRole = role;
+    _trackedRole = normalizedRole;
     if (userId == null) {
       _userRankEntry = null;
       notifyListeners();
@@ -96,20 +97,11 @@ class LeaderboardProvider extends ChangeNotifier {
       _leaderboardEntries = _filterEntriesByTrackedRole(leaderboardData.entries);
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
-      final currentUser = payload['currentUser'];
-      if (currentUser is Map<String, dynamic>) {
-        _userRankEntry = LeaderboardEntryDto.fromJson(currentUser);
-        final alreadyPresent = _leaderboardEntries.any(
-          (entry) => entry.userId == _userRankEntry?.userId,
-        );
-        if (!alreadyPresent && _userRankEntry != null && _userRankEntry!.rank > 0) {
-          _leaderboardEntries = [
-            ..._leaderboardEntries,
-            _userRankEntry!,
-          ]..sort((a, b) => a.rank.compareTo(b.rank));
-        }
-      } else {
+      if (_trackedUserId == null) {
         _userRankEntry = null;
+      }
+      if (_trackedUserId != null) {
+        await fetchUserRank(_trackedUserId!, role: _trackedRole);
       }
       _errorMessage = null;
       notifyListeners();
@@ -129,6 +121,7 @@ class LeaderboardProvider extends ChangeNotifier {
 
   /// Fetch the current logged-in user's rank from the server
   Future<void> fetchUserRank(int userId, {String? role}) async {
+    final normalizedRole = _normalizeRole(role);
     if (_trackedUserId == userId && _leaderboardEntries.isNotEmpty) {
       final topEntry = _leaderboardEntries.cast<LeaderboardEntryDto?>().firstWhere(
         (entry) => entry?.userId == userId,
@@ -149,8 +142,8 @@ class LeaderboardProvider extends ChangeNotifier {
     try {
       final headers = await _buildAuthHeaders();
       final roleQuery =
-          role != null && role.isNotEmpty
-              ? '?role=${Uri.encodeQueryComponent(role)}'
+          normalizedRole != null && normalizedRole.isNotEmpty
+              ? '?role=${Uri.encodeQueryComponent(normalizedRole)}'
               : '';
       final response = await http
           .get(
@@ -307,13 +300,13 @@ class LeaderboardProvider extends ChangeNotifier {
   List<LeaderboardEntryDto> _filterEntriesByTrackedRole(
     List<LeaderboardEntryDto> entries,
   ) {
-    final trackedRole = _trackedRole?.trim();
+    final trackedRole = _normalizeRole(_trackedRole);
     if (trackedRole == null || trackedRole.isEmpty) {
       return entries;
     }
 
     return entries
-        .where((entry) => entry.role.toUpperCase() == trackedRole.toUpperCase())
+        .where((entry) => _normalizeRole(entry.role) == trackedRole)
         .toList();
   }
 
@@ -322,11 +315,32 @@ class LeaderboardProvider extends ChangeNotifier {
       return false;
     }
 
-    final trackedRole = _trackedRole?.trim();
+    final trackedRole = _normalizeRole(_trackedRole);
     if (trackedRole == null || trackedRole.isEmpty) {
       return true;
     }
 
-    return changedUser.role.toUpperCase() == trackedRole.toUpperCase();
+    return _normalizeRole(changedUser.role) == trackedRole;
+  }
+
+  String? _normalizeRole(String? role) {
+    final value = role?.trim();
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    final normalized = value
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_')
+        .toUpperCase();
+
+    if (normalized == 'BIN_COLLECTOR' || normalized == 'COLLECTION_TEAM') {
+      return 'COLLECTOR';
+    }
+    if (normalized == 'FIELD_STAFF') {
+      return 'FIELD_MENTOR';
+    }
+
+    return normalized;
   }
 }
