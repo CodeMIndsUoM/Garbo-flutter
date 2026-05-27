@@ -15,6 +15,7 @@ import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_nav
 import 'package:garbo_swms/presentation/third_party_collector/widgets/complete_collection_sheet.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/offer_details_sheet.dart';
+import 'package:garbo_swms/presentation/third_party_collector/widgets/cancellation_reason_sheet.dart';
 import 'package:geolocator/geolocator.dart';
 
 enum _TabType { offer, active }
@@ -228,6 +229,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
     if (result != true) return;
 
+    // Wait for the details sheet pop transition to complete before triggering the next sheet
+    await Future.delayed(const Duration(milliseconds: 850));
+    if (!mounted) return;
+
     try {
       if (offer.status == 'PENDING') {
         await _apiService.withdrawOffer(offer.id);
@@ -235,6 +240,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       } else if (offer.status == 'ACCEPTED' || offer.status == 'IN_PROGRESS') {
         final reason = await _askCancelReason();
         if (reason == null) return;
+
+        // Wait for the cancel reason sheet pop transition to complete before triggering API and snackbar
+        await Future.delayed(const Duration(milliseconds: 850));
+        if (!mounted) return;
+
         await _apiService.cancelOffer(
           offerId: offer.id,
           reason: reason,
@@ -252,35 +262,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     }
   }
 
-  // DEVELOPER NOTE: Modal trigger for choosing cancellation reasons.
-  // The layout lists various reasons in a bottom sheet overlay. Modify selection options here.
+  // Modal trigger for choosing cancellation reasons.
+  // Pushes the custom CancellationReasonSheet route for slow movement transition.
   Future<String?> _askCancelReason() async {
-    return showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) {
-        const reasons = [
-          'VEHICLE_BREAKDOWN',
-          'WRONG_ADDRESS',
-          'CITIZEN_UNREACHABLE',
-          'ROUTE_CHANGED',
-          'OTHER',
-        ];
-        return SafeArea(
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              const ListTile(title: Text('Select cancellation reason')),
-              ...reasons.map(
-                (reason) => ListTile(
-                  title: Text(reason.replaceAll('_', ' ')),
-                  onTap: () => Navigator.of(ctx).pop(reason),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    return CancellationReasonSheet.show(context);
   }
 
   Future<void> _openAdvancedFilters() async {
