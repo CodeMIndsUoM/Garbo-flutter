@@ -31,7 +31,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       _initializedForUserId = currentUserId;
       leaderboardProvider.trackUser(
         currentUserId,
-        role: authProvider.currentUser?.role,
+        role: 'COLLECTOR',
       );
     });
   }
