@@ -13,6 +13,7 @@ class AppUser {
   final bool onDuty;
   final double rewardPoints;
   final String? createdAt;
+  final String? lastLoginAt;
 
   AppUser({
     required this.empId,
@@ -22,6 +23,7 @@ class AppUser {
     required this.onDuty,
     required this.rewardPoints,
     this.createdAt,
+    this.lastLoginAt,
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class AppUser {
       onDuty: json['onDuty'] as bool? ?? false,
       rewardPoints: (json['rewardPoints'] as num?)?.toDouble() ?? 0.0,
       createdAt: json['createdAt']?.toString(),
+      lastLoginAt: json['lastLoginAt']?.toString(),
     );
   }
 }
