@@ -61,11 +61,11 @@ class ProfileAchievementList extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.27, color: AppColors.grey100),
+        border: Border.all(width: 1.2, color: AppColors.grey200),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            blurRadius: 2,
+            blurRadius: 3,
             offset: Offset(0, 1),
           ),
         ],
@@ -77,7 +77,7 @@ class ProfileAchievementList extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: AppColors.emerald50,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(

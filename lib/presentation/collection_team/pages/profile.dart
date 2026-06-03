@@ -233,10 +233,10 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          HeaderReduced(),
+          const HeaderReduced(title: 'Profile'),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -282,8 +282,8 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -602,8 +602,15 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -874,8 +881,15 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.green700.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -883,7 +897,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -995,8 +1009,15 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1004,7 +1025,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.grey100,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(

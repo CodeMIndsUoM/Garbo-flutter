@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/presentation/collection_team/pages/settings.dart';
+import 'package:garbo_swms/presentation/widgets/notifications_page.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -9,7 +9,7 @@ class Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
       decoration: BoxDecoration(
         color: AppColors.green700,
         boxShadow: [
@@ -40,31 +40,21 @@ class Header extends StatelessWidget {
                         height: 1.2,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Hello, Mike !',
-                      style: TextStyle(
-                        color: AppColors.white90,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
                   ],
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const SettingsPage()),
+                      MaterialPageRoute(builder: (context) => const NotificationsPage()),
                     );
                   },
                   child: Container(
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
                     ),
-                    child: const Icon(Icons.menu, color: Colors.white, size: 24),
+                    child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
                   ),
                 ),
               ],

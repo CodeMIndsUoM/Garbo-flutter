@@ -198,7 +198,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 24),

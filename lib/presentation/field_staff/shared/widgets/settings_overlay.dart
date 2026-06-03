@@ -146,7 +146,7 @@ class SettingsOverlay extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: ShapeDecoration(
-              color: iconBgColor,
+              color: Colors.transparent,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

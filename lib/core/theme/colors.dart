@@ -53,7 +53,7 @@ abstract final class AppColors {
   static const Color amber600 = Color(0xFFD97706);
 
   // Neutrals
-  static const Color grey50 = Color(0xFFF8FAFC);
+  static const Color grey50 = Color(0xFFFFFFFF);
   static const Color grey100 = Color(0xFFF1F5F9);
   static const Color grey200 = Color(0xFFE2E8F0);
   static const Color grey300 = Color(0xFFCBD5E1);
