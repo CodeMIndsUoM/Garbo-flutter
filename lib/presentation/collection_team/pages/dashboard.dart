@@ -7,6 +7,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/profile.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
@@ -23,29 +24,50 @@ class CollectionTeamDashboard extends StatefulWidget {
 
 class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   bool _didPrimeGamification = false;
+  bool _didPrimeLeaderboard = false;
+
+  bool _isSameDay(DateTime value, DateTime reference) {
+    return value.year == reference.year &&
+        value.month == reference.month &&
+        value.day == reference.day;
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_didPrimeGamification) {
-      return;
+    if (!_didPrimeGamification) {
+      _didPrimeGamification = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+
+        final authProvider = context.read<AuthProvider>();
+        final gamificationProvider = context.read<GamificationTasksProvider>();
+        final user = authProvider.currentUser;
+
+        if (user != null) {
+          gamificationProvider.loadUserTasks(user.empId);
+          gamificationProvider.loadAvailableTasks(user.role);
+        }
+      });
     }
 
-    _didPrimeGamification = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
+    if (!_didPrimeLeaderboard) {
+      _didPrimeLeaderboard = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
 
-      final authProvider = context.read<AuthProvider>();
-      final gamificationProvider = context.read<GamificationTasksProvider>();
-      final user = authProvider.currentUser;
-
-      if (user != null) {
-        gamificationProvider.loadUserTasks(user.empId);
-        gamificationProvider.loadAvailableTasks(user.role);
-      }
-    });
+        final authProvider = context.read<AuthProvider>();
+        final userId = authProvider.currentUser?.empId;
+        context.read<LeaderboardProvider>().trackUser(
+          userId,
+          role: authProvider.currentUser?.role,
+        );
+      });
+    }
   }
 
   @override
@@ -60,11 +82,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         ? null
         : leaderboardProvider.getUserRank(currentUserId);
 
-    final points = userEntry?.rewardPoints ??
-        gamificationProvider.completedTasks.fold<double>(
-          0.0,
-          (sum, task) => sum + task.pointsEarned,
-        );
+    final points = userEntry?.rewardPoints ?? 0.0;
     final level = _resolveLevel(points);
     final levelProgress = _resolveLevelProgress(points);
 
@@ -265,14 +283,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       return dateKey(parsed);
     }
 
-    bool isSameDay(DateTime value) {
-      return value.year == now.year &&
-          value.month == now.month &&
-          value.day == now.day;
-    }
-
     final sessionsToday = routeProvider.routeHistory
-        .where((session) => isSameDay(session.generatedAt))
+        .where((session) => _isSameDay(session.generatedAt, now))
         .toList(growable: false);
 
     final assignedBins = sessionsToday.fold<int>(
@@ -499,7 +511,13 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   }
 
   Widget buildTodaysRoutes(RouteProvider routeProvider) {
-    final sessions = routeProvider.routeHistory.reversed.take(2).toList();
+    final now = DateTime.now();
+    final sessions = routeProvider.routeHistory
+        .where((session) => _isSameDay(session.generatedAt, now))
+        .toList(growable: false)
+        .reversed
+        .take(2)
+        .toList(growable: false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -710,6 +728,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: buildAchievementItem(
+                context: context,
                 icon: Icons.star_rounded,
                 title: task.taskTitle,
                 timeAgo: _relativeTime(_completionDate(task)),
@@ -721,70 +740,82 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   }
 
   Widget buildAchievementItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String timeAgo,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.grey100, width: 1.27),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 1),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.yellow, AppColors.yellowOrange],
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CollectionTeamProfile()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.grey100, width: 1.27),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                offset: const Offset(0, 1),
+                blurRadius: 3,
               ),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: AppColors.orange500, size: 24),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.yellow, AppColors.yellowOrange],
                   ),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  timeAgo,
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                  ),
+                child: Icon(icon, color: AppColors.orange500, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: AppColors.grey900,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      timeAgo,
+                      style: const TextStyle(
+                        color: AppColors.grey500,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.grey500,
+                size: 20,
+              ),
+            ],
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.grey500,
-            size: 20,
-          ),
-        ],
+        ),
       ),
     );
   }

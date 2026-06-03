@@ -186,7 +186,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       _showSnackBar('Please enter your address', isError: true);
       return;
     }
-    if (_selectedCouncils == null || _selectedCouncils.isEmpty) {
+    if (_selectedCouncils.isEmpty) {
       _showSnackBar('Please select at least one council', isError: true);
       return;
     }
@@ -652,7 +652,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       }
     }
     if (_currentStep == 2) {
-      if (_selectedCouncils == null || _selectedCouncils!.isEmpty) {
+      if (_selectedCouncils.isEmpty) {
         _showSnackBar('Please select at least one council', isError: true);
         return;
       }

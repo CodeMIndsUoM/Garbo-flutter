@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -58,6 +59,12 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   final Set<String> _loadingRoadPolylineKeys = <String>{};
   String _lastRoadGeometrySignature = '';
 
+  bool _isSameDay(DateTime value, DateTime reference) {
+    return value.year == reference.year &&
+        value.month == reference.month &&
+        value.day == reference.day;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,7 +82,10 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   @override
   Widget build(BuildContext context) {
     final routeProvider = context.watch<RouteProvider>();
-    final sessions = routeProvider.routeHistory;
+    final today = DateTime.now();
+    final sessions = routeProvider.routeHistory
+        .where((session) => _isSameDay(session.generatedAt, today))
+        .toList(growable: false);
     final requestedSessionId =
         routeProvider.activeNavigationSessionId ??
         _selectedSessionId ??
@@ -137,6 +147,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.garbo.swms',
+          tileProvider: SilentNetworkTileProvider(),
           maxZoom: 19,
         ),
         if (mapData.polylines.isNotEmpty)
@@ -1384,20 +1395,22 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
         );
         final currentUserId = authProvider.currentUser?.empId;
         try {
-          if (currentUserId != null) {
-            await routeProvider.reportBinCollected(
+          if (currentUserId == null || currentUserId <= 0) {
+            throw StateError('Collector id is required to sync collection.');
+          }
+
+          await routeProvider.reportBinCollected(
+            userId: currentUserId,
+            sessionId: markerData.sessionId,
+            binId: markerData.stop.binId,
+          );
+          try {
+            await routeProvider.reportRouteCompletionIfEligible(
               userId: currentUserId,
               sessionId: markerData.sessionId,
-              binId: markerData.stop.binId,
             );
-            try {
-              await routeProvider.reportRouteCompletionIfEligible(
-                userId: currentUserId,
-                sessionId: markerData.sessionId,
-              );
-            } catch (e) {
-              debugPrint('Route completion reporting skipped after collect: $e');
-            }
+          } catch (e) {
+            debugPrint('Route completion reporting skipped after collect: $e');
           }
           if (!mounted) {
             return;
@@ -1433,15 +1446,39 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
           markerData.stop.binId,
         );
         final currentUserId = authProvider.currentUser?.empId;
-        if (currentUserId != null) {
-          routeProvider
-              .reportRouteCompletionIfEligible(
-                userId: currentUserId,
-                sessionId: markerData.sessionId,
-              )
-              .catchError((_) {});
+        try {
+          await routeProvider.reportBinSkipped(
+            sessionId: markerData.sessionId,
+            binId: markerData.stop.binId,
+            userId: currentUserId,
+          );
+          if (currentUserId != null && currentUserId > 0) {
+            await routeProvider.reportRouteCompletionIfEligible(
+              userId: currentUserId,
+              sessionId: markerData.sessionId,
+            );
+          }
+        } catch (_) {
+          routeProvider.markBinPending(
+            markerData.sessionId,
+            markerData.stop.binId,
+          );
+          if (!mounted) {
+            return;
+          }
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Failed to skip bin. Please try again.'),
+              duration: Duration(seconds: 2),
+              backgroundColor: AppColors.red500,
+            ),
+          );
+          return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (!mounted) {
+          return;
+        }
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Bin marked as skipped.'),
             duration: Duration(seconds: 1),

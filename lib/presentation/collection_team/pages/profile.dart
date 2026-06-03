@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/performance_stats_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -21,10 +23,8 @@ class CollectionTeamProfile extends StatefulWidget {
 }
 
 class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
+  static const Duration _performanceStatsTimeout = Duration(seconds: 20);
 
   bool _didLoadGamification = false;
   CollectorPerformanceStats? _performanceStats;
@@ -34,6 +34,8 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _performanceSocketSubscription;
   Timer? _performanceRefreshDebounce;
+  Future<void>? _performanceLoadFuture;
+  bool _queuedPerformanceReload = false;
 
   @override
   void didChangeDependencies() {
@@ -56,8 +58,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
       if (userId != null) {
         _activeUserId = userId;
-        gamificationProvider.loadUserTasks(userId);
-        _loadPerformanceStats(userId);
+        _refreshProfileProgress(gamificationProvider, userId);
       }
       if (role != null && role.isNotEmpty) {
         gamificationProvider.loadAvailableTasks(role);
@@ -93,9 +94,23 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         if (!mounted || _activeUserId == null) {
           return;
         }
-        _loadPerformanceStats(_activeUserId!);
+        _refreshProfileProgress(
+          context.read<GamificationTasksProvider>(),
+          _activeUserId!,
+        );
       });
     });
+  }
+
+  Future<void> _refreshProfileProgress(
+    GamificationTasksProvider gamificationProvider,
+    int userId,
+  ) async {
+    await gamificationProvider.loadUserTasks(userId);
+    if (!mounted) {
+      return;
+    }
+    await _loadPerformanceStats(userId);
   }
 
   @override
@@ -106,22 +121,58 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   }
 
   Future<void> _loadPerformanceStats(int userId) async {
+    if (_performanceLoadFuture != null && _activeUserId == userId) {
+      _queuedPerformanceReload = true;
+      return _performanceLoadFuture!;
+    }
+
     setState(() {
-      _isPerformanceLoading = true;
-      _performanceError = null;
+      _isPerformanceLoading = _performanceStats == null;
+      if (_performanceStats == null) {
+        _performanceError = null;
+      }
     });
 
+    final future = _loadPerformanceStatsInternal(userId);
+    _performanceLoadFuture = future;
     try {
-      final response = await http
-          .get(Uri.parse('$_baseUrl/api/users/$userId/performance-stats'))
-          .timeout(const Duration(seconds: 10));
+      await future;
+    } finally {
+      if (identical(_performanceLoadFuture, future)) {
+        _performanceLoadFuture = null;
+      }
+    }
+  }
 
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
+  Future<void> _loadPerformanceStatsInternal(int userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/users/$userId/performance-stats'),
+            headers: headers,
+          )
+          .timeout(_performanceStatsTimeout);
+
+      final decoded = jsonDecode(response.body);
+      final body = decoded is Map<String, dynamic>
+          ? decoded
+          : <String, dynamic>{};
+
       if (response.statusCode != 200 || body['success'] != true) {
         setState(() {
-          _performanceStats = null;
-          _performanceError =
-              body['message']?.toString() ?? 'Failed to load performance stats';
+          if (_performanceStats == null) {
+            _performanceError =
+                body['message']?.toString() ??
+                body['error']?.toString() ??
+                'Failed to load performance stats';
+          }
           _isPerformanceLoading = false;
         });
         return;
@@ -130,8 +181,9 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       final data = body['data'];
       if (data is! Map<String, dynamic>) {
         setState(() {
-          _performanceStats = null;
-          _performanceError = 'Invalid performance stats response';
+          if (_performanceStats == null) {
+            _performanceError = 'Invalid performance stats response';
+          }
           _isPerformanceLoading = false;
         });
         return;
@@ -142,13 +194,40 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         _performanceError = null;
         _isPerformanceLoading = false;
       });
-    } catch (e) {
+    } on TimeoutException catch (e) {
       setState(() {
-        _performanceStats = null;
-        _performanceError = 'Failed to load performance stats: $e';
+        if (_performanceStats == null) {
+          _performanceError = 'Failed to load performance stats: $e';
+        }
         _isPerformanceLoading = false;
       });
+      _schedulePerformanceStatsRetry(userId);
+    } catch (e) {
+      setState(() {
+        if (_performanceStats == null) {
+          _performanceError = 'Failed to load performance stats: $e';
+        }
+        _isPerformanceLoading = false;
+      });
+    } finally {
+      if (_queuedPerformanceReload && _activeUserId == userId) {
+        _queuedPerformanceReload = false;
+        unawaited(_loadPerformanceStats(userId));
+      }
     }
+  }
+
+  void _schedulePerformanceStatsRetry(int userId) {
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (!mounted || _activeUserId != userId) {
+        return;
+      }
+      try {
+        await _loadPerformanceStats(userId);
+      } catch (_) {
+        // Keep retry path quiet; realtime updates will trigger more refreshes.
+      }
+    });
   }
 
   @override
@@ -191,9 +270,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       ? authUser!.email
       : '--';
     final joined = _formatJoinedDate(authUser?.createdAt);
-    final status = authUser == null
-      ? '--'
-      : (authUser.onDuty ? 'On Duty' : 'Off Duty');
+    final status = _formatDutyStatus(authUser);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -363,6 +440,40 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     ];
     final month = monthNames[parsed.month - 1];
     return '$month ${parsed.day}, ${parsed.year}';
+  }
+
+  String _formatDutyStatus(AppUser? user) {
+    if (user == null) {
+      return '--';
+    }
+
+    if (!user.onDuty) {
+      return 'Off Duty';
+    }
+
+    final startedAtRaw = user.lastLoginAt ?? user.createdAt;
+    if (startedAtRaw == null || startedAtRaw.trim().isEmpty) {
+      return 'On Duty';
+    }
+
+    final startedAt = DateTime.tryParse(startedAtRaw);
+    if (startedAt == null) {
+      return 'On Duty';
+    }
+
+    final elapsed = DateTime.now().difference(startedAt);
+    if (elapsed.isNegative) {
+      return 'On Duty';
+    }
+
+    final hours = elapsed.inHours;
+    final minutes = elapsed.inMinutes.remainder(60);
+
+    if (hours > 0) {
+      return 'On Duty for ${hours}h ${minutes}m';
+    }
+
+    return 'On Duty for ${minutes}m';
   }
 
   Widget buildInfoItem(IconData icon, String label, String value) {
@@ -570,6 +681,52 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
           );
         }
 
+        if (gamificationProvider.errorMessage != null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Color(0xFFEAB308),
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Achievements',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  gamificationProvider.errorMessage!,
+                  style: const TextStyle(
+                    color: AppColors.red500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -706,6 +863,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
   /// Build a completed task card with green checkmark
   Widget _buildCompletedTaskCard(UserTaskProgress task) {
+    final progressPercent = task.progressPercentage;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -733,49 +891,73 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.taskTitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.taskTitle,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    if (task.isNew) _buildNewBadge(),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  task.taskDescription,
+                  _shortTaskDescription(task.taskDescription),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.grey500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                if (_buildTaskDuration(task) != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _buildTaskDuration(task)!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.grey600,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(
-                      Icons.check,
-                      color: AppColors.green700,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
                     Text(
-                      'Completed',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.green700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '+${task.pointsEarned.toStringAsFixed(0)} pts',
+                      '${task.pointsEarned.toStringAsFixed(0)} pts earned',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppColors.green700,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFEAB308),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progressPercent / 100,
+                    backgroundColor: AppColors.grey200,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.green700,
+                    ),
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.grey500,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -830,36 +1012,49 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.taskTitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey700,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.taskTitle,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                    ),
+                    if (task.isNew) _buildNewBadge(),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  task.taskDescription,
+                  _shortTaskDescription(task.taskDescription),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.grey500,
                   ),
                 ),
+                if (_buildTaskDuration(task) != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _buildTaskDuration(task)!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.grey600,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Text(
-                      'Progress',
-                      style: TextStyle(fontSize: 11, color: AppColors.grey500),
-                    ),
-                    const Spacer(),
                     Text(
-                      '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)}',
+                      '${task.pointsEarned.toStringAsFixed(0)} pts earned',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: AppColors.grey600,
-                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFEAB308),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -878,10 +1073,11 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${progressPercent.toStringAsFixed(0)}% complete',
+                  '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
                   style: const TextStyle(
                     fontSize: 10,
-                    color: AppColors.grey400,
+                    color: AppColors.grey500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -891,6 +1087,79 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       ),
     );
   }
+
+  String _shortTaskDescription(String description) {
+    final normalized = description.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) {
+      return 'Complete to earn points.';
+    }
+    if (normalized.length <= 34) {
+      return normalized;
+    }
+    return '${normalized.substring(0, 31).trimRight()}...';
+  }
+
+  Widget _buildNewBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFDBEAFE),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Text(
+        'NEW',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: AppColors.blue500,
+        ),
+      ),
+    );
+  }
+
+  String? _buildTaskDuration(UserTaskProgress task) {
+    final label = task.activePeriodLabel?.trim();
+    if (label != null && label.isNotEmpty) {
+      return label;
+    }
+    if ((task.startAt == null || task.startAt!.isEmpty) &&
+        (task.endAt == null || task.endAt!.isEmpty)) {
+      return null;
+    }
+    final start = task.startAt != null ? DateTime.tryParse(task.startAt!) : null;
+    final end = task.endAt != null ? DateTime.tryParse(task.endAt!) : null;
+    final startLabel = start != null ? _formatTaskDate(start) : null;
+    final endLabel = end != null ? _formatTaskDate(end) : null;
+    if (startLabel != null && endLabel != null) {
+      return '$startLabel - $endLabel';
+    }
+    if (endLabel != null) {
+      return 'Valid until $endLabel';
+    }
+    if (startLabel != null) {
+      return 'Started $startLabel';
+    }
+    return null;
+  }
+
+  String _formatTaskDate(DateTime value) {
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${monthNames[value.month - 1]} ${value.day}';
+  }
+
 }
 
 class DashedLinePainter extends CustomPainter {
