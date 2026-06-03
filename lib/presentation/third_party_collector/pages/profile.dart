@@ -97,7 +97,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: AppColors.grey50,
+        backgroundColor: Colors.white,
         body: const Center(
           child: CircularProgressIndicator(color: AppColors.green700),
         ),
@@ -106,7 +106,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildProfileHeader(context)),
@@ -148,7 +148,9 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
         20,
         22,
       ),
-      decoration: const BoxDecoration(color: AppColors.green700),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -159,7 +161,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                 width: 80,
                 height: 80,
                 decoration: const BoxDecoration(
-                  color: AppColors.white20,
+                  color: AppColors.grey200,
                   shape: BoxShape.circle,
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -176,13 +178,13 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                         filterQuality: FilterQuality.low,
                         errorBuilder: (_, __, ___) => const Icon(
                           Icons.person_outline_rounded,
-                          color: Colors.white,
+                          color: AppColors.grey600,
                           size: 40,
                         ),
                       )
                     : const Icon(
                         Icons.person_outline_rounded,
-                        color: Colors.white,
+                        color: AppColors.grey600,
                         size: 40,
                       ),
               ),
@@ -193,21 +195,21 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                   children: [
                     Text(
                       _empName,
-                      style: AppTypography.h2.copyWith(color: Colors.white),
+                      style: AppTypography.h2.copyWith(color: AppColors.grey900),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(
                           Icons.star_rounded,
-                          color: AppColors.yellow400,
+                          color: AppColors.amber600,
                           size: 16,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0',
                           style: AppTypography.titleSm.copyWith(
-                            color: Colors.white,
+                            color: AppColors.grey900,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -215,7 +217,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                         Text(
                           '• ${_reviewCountLabel()}',
                           style: AppTypography.bodySm.copyWith(
-                            color: AppColors.white80,
+                            color: AppColors.grey600,
                           ),
                         ),
                       ],
@@ -224,7 +226,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                     Text(
                       _memberSinceLabel(),
                       style: AppTypography.bodySm.copyWith(
-                        color: AppColors.white80,
+                        color: AppColors.grey600,
                       ),
                     ),
                     if (_company != null && _company!.isNotEmpty) ...[
@@ -232,7 +234,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                       Text(
                         _company!,
                         style: AppTypography.bodySm.copyWith(
-                          color: AppColors.white80,
+                          color: AppColors.grey600,
                         ),
                       ),
                     ],
@@ -260,15 +262,23 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.white20,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            offset: Offset(0, 2),
+            blurRadius: 4,
+          ),
+        ],
       ),
       child: Column(
         children: [
           Text(
             value,
             style: AppTypography.displaySm.copyWith(
-              color: Colors.white,
+              color: AppColors.grey900,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -278,7 +288,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
             child: Text(
               label,
               maxLines: 1,
-              style: AppTypography.labelSm.copyWith(color: AppColors.white90),
+              style: AppTypography.labelSm.copyWith(color: AppColors.grey600),
             ),
           ),
         ],
@@ -299,13 +309,14 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.green700,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.green800.withValues(alpha: 0.18),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
+            blurRadius: 10,
             spreadRadius: -3,
           ),
         ],
@@ -319,13 +330,13 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
               Expanded(
                 child: Text(
                   "Today's Impact",
-                  style: AppTypography.h3.copyWith(color: Colors.white),
+                  style: AppTypography.h3.copyWith(color: AppColors.grey900),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.white20,
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
@@ -333,14 +344,14 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                   children: [
                     const Icon(
                       Icons.star_rounded,
-                      color: AppColors.yellow400,
+                      color: AppColors.amber600,
                       size: 14,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.captionSm.copyWith(
-                        color: Colors.white,
+                        color: AppColors.grey700,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -366,22 +377,23 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.white20,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey100, width: 1),
       ),
       child: Column(
         children: [
           Text(
             value,
             style: AppTypography.h2.copyWith(
-              color: Colors.white,
+              color: AppColors.grey900,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: AppTypography.bodySm.copyWith(color: AppColors.white90),
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
           ),
         ],
       ),
@@ -395,6 +407,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -482,6 +495,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),

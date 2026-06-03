@@ -13,33 +13,38 @@ void main() {
       providers: [
         /// Auth provider must come first as other providers depend on it
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        
+
         /// WebSocket provider depends on Auth provider
         ChangeNotifierProxyProvider<AuthProvider, WebSocketProvider>(
           create: (context) => WebSocketProvider(context.read<AuthProvider>()),
           update: (context, authProvider, websocketProvider) =>
               websocketProvider ?? WebSocketProvider(authProvider),
         ),
-        
+
         /// Route provider depends on WebSocket provider
         ChangeNotifierProxyProvider<WebSocketProvider, RouteProvider>(
           create: (context) => RouteProvider(context.read<WebSocketProvider>()),
           update: (context, wsProvider, routeProvider) =>
               routeProvider ?? RouteProvider(wsProvider),
         ),
-        
+
         /// Leaderboard provider depends on WebSocket provider
         ChangeNotifierProxyProvider<WebSocketProvider, LeaderboardProvider>(
-          create: (context) => LeaderboardProvider(context.read<WebSocketProvider>()),
+          create: (context) =>
+              LeaderboardProvider(context.read<WebSocketProvider>()),
           update: (context, wsProvider, leaderboardProvider) =>
               leaderboardProvider ?? LeaderboardProvider(wsProvider),
         ),
-        
+
         /// Gamification tasks provider for achievement tracking
-        ChangeNotifierProxyProvider<WebSocketProvider, GamificationTasksProvider>(
+        ChangeNotifierProxyProvider<
+          WebSocketProvider,
+          GamificationTasksProvider
+        >(
           create: (_) => GamificationTasksProvider(),
           update: (context, wsProvider, gamificationProvider) {
-            final provider = gamificationProvider ?? GamificationTasksProvider();
+            final provider =
+                gamificationProvider ?? GamificationTasksProvider();
             provider.attachWebSocket(wsProvider);
             return provider;
           },

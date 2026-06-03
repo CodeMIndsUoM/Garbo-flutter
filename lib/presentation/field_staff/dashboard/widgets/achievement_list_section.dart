@@ -12,7 +12,11 @@ class AchievementListSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.emoji_events_outlined, color: AppColors.grey900, size: 24),
+            const Icon(
+              Icons.emoji_events_outlined,
+              color: AppColors.grey900,
+              size: 24,
+            ),
             const SizedBox(width: 8),
             Text('Recent Achievements', style: AppTypography.titleLg),
           ],
@@ -50,7 +54,7 @@ class AchievementListSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.27, color: AppColors.grey100),
+        border: Border.all(color: Colors.transparent),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
@@ -77,12 +81,21 @@ class AchievementListSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: AppTypography.titleSm.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Text(subtitle, style: AppTypography.caption),
               ],
             ),
           ),
-          const Icon(Icons.check_circle_outline, color: AppColors.green700, size: 24),
+          const Icon(
+            Icons.check_circle_outline,
+            color: AppColors.green700,
+            size: 24,
+          ),
         ],
       ),
     );

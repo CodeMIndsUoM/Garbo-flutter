@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
-import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/profile.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
@@ -87,7 +86,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     final levelProgress = _resolveLevelProgress(points);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           const HeaderReduced(),
@@ -132,87 +131,58 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required double levelProgress,
   }) {
     final rankText = userEntry?.rank != null ? '#${userEntry!.rank}' : '--';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+ 
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const LeaderboardPage()),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.blue50, AppColors.indigo50],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.blue200, width: 1.27),
+        border: Border.all(color: AppColors.grey200, width: 1.27),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
+            blurRadius: 10,
           ),
-          child: Column(
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.blue500,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.emoji_events,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Level $level',
-                            style: const TextStyle(
-                              color: AppColors.grey900,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            'Current Rank $rankText',
-                            style: const TextStyle(
-                              color: AppColors.grey600,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.blue50,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.emoji_events,
+                      color: AppColors.blue500,
+                      size: 24,
+                    ),
                   ),
+                  const SizedBox(width: 12),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${points.toStringAsFixed(0)} pts',
+                        'Level $level',
                         style: const TextStyle(
-                          color: AppColors.blue600,
-                          fontSize: 16,
+                          color: AppColors.grey900,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
-                        '${_pointsToNextLevel(points).toStringAsFixed(0)} to Level ${level + 1}',
+                        'Current Rank $rankText',
                         style: const TextStyle(
-                          color: AppColors.grey500,
-                          fontSize: 11,
+                          color: AppColors.grey600,
+                          fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -220,33 +190,54 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: LinearProgressIndicator(
-                  value: levelProgress,
-                  backgroundColor: Colors.white.withValues(alpha: 0.6),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    AppColors.blue500,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${points.toStringAsFixed(0)} pts',
+                    style: const TextStyle(
+                      color: AppColors.blue600,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  minHeight: 12,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Level rule: every 250 points increases 1 level.',
-                  style: TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                  Text(
+                    '${_pointsToNextLevel(points).toStringAsFixed(0)} to Level ${level + 1}',
+                    style: const TextStyle(
+                      color: AppColors.grey500,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 20),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: LinearProgressIndicator(
+              value: levelProgress,
+              backgroundColor: AppColors.grey100,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.blue500,
+              ),
+              minHeight: 12,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Level rule: every 250 points increases 1 level.',
+              style: TextStyle(
+                color: AppColors.grey600,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -591,17 +582,10 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
-        gradient: gradientColors != null
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: gradientColors,
-              )
-            : null,
-        color: gradientColors == null ? Colors.white : null,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: gradientColors != null ? priorityBg : AppColors.grey200,
+          color: AppColors.grey200,
           width: 1.27,
         ),
       ),

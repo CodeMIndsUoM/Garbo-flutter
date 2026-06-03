@@ -25,7 +25,7 @@ class LeaderboardProvider extends ChangeNotifier {
   bool _isLoadingUserRank = false;
   bool _pendingSnapshotReload = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
-      _messageSubscription;
+  _messageSubscription;
 
   List<LeaderboardEntryDto> get leaderboardEntries => _leaderboardEntries;
   String? get errorMessage => _errorMessage;
@@ -65,21 +65,21 @@ class LeaderboardProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final headers = await _buildAuthHeaders();
-      final roleQuery =
-          _trackedRole != null && _trackedRole!.isNotEmpty
-              ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
-              : '';
+      final roleQuery = _trackedRole != null && _trackedRole!.isNotEmpty
+          ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
+          : '';
       final userQuery = _trackedUserId != null ? '&userId=$_trackedUserId' : '';
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit$roleQuery$userQuery'),
+            Uri.parse(
+              '$_baseUrl/leaderboard/top?limit=$limit$roleQuery$userQuery',
+            ),
             headers: headers,
           )
           .timeout(const Duration(seconds: 20));
 
       if (response.statusCode != 200) {
-        _errorMessage =
-            'Failed to load leaderboard (${response.statusCode})';
+        _errorMessage = 'Failed to load leaderboard (${response.statusCode})';
         notifyListeners();
         return;
       }
@@ -94,7 +94,9 @@ class LeaderboardProvider extends ChangeNotifier {
 
       final payload = body['data'] as Map<String, dynamic>;
       final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
-      _leaderboardEntries = _filterEntriesByTrackedRole(leaderboardData.entries);
+      _leaderboardEntries = _filterEntriesByTrackedRole(
+        leaderboardData.entries,
+      );
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
       if (_trackedUserId == null) {
@@ -123,10 +125,12 @@ class LeaderboardProvider extends ChangeNotifier {
   Future<void> fetchUserRank(int userId, {String? role}) async {
     final normalizedRole = _normalizeRole(role);
     if (_trackedUserId == userId && _leaderboardEntries.isNotEmpty) {
-      final topEntry = _leaderboardEntries.cast<LeaderboardEntryDto?>().firstWhere(
-        (entry) => entry?.userId == userId,
-        orElse: () => _userRankEntry,
-      );
+      final topEntry = _leaderboardEntries
+          .cast<LeaderboardEntryDto?>()
+          .firstWhere(
+            (entry) => entry?.userId == userId,
+            orElse: () => _userRankEntry,
+          );
       if (topEntry != null) {
         _userRankEntry = topEntry;
         notifyListeners();
@@ -141,10 +145,9 @@ class LeaderboardProvider extends ChangeNotifier {
     _isLoadingUserRank = true;
     try {
       final headers = await _buildAuthHeaders();
-      final roleQuery =
-          normalizedRole != null && normalizedRole.isNotEmpty
-              ? '?role=${Uri.encodeQueryComponent(normalizedRole)}'
-              : '';
+      final roleQuery = normalizedRole != null && normalizedRole.isNotEmpty
+          ? '?role=${Uri.encodeQueryComponent(normalizedRole)}'
+          : '';
       final response = await http
           .get(
             Uri.parse('$_baseUrl/leaderboard/user/$userId$roleQuery'),
@@ -190,14 +193,13 @@ class LeaderboardProvider extends ChangeNotifier {
           // Parse the leaderboard update payload
           final payload = message.payload;
           if (payload != null) {
-            final leaderboardData = LeaderboardUpdatePayload.fromJson(
-              payload,
-            );
+            final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
             _leaderboardEntries = _filterEntriesByTrackedRole(
               leaderboardData.entries,
             );
             _lastUpdateTime = leaderboardData.updatedAt;
-            _lastChangedUser = _shouldKeepChangedUser(leaderboardData.changedUser)
+            _lastChangedUser =
+                _shouldKeepChangedUser(leaderboardData.changedUser)
                 ? leaderboardData.changedUser
                 : null;
             _errorMessage = null;
@@ -246,9 +248,7 @@ class LeaderboardProvider extends ChangeNotifier {
       return _userRankEntry;
     }
     try {
-      return _leaderboardEntries.firstWhere(
-        (entry) => entry.userId == userId,
-      );
+      return _leaderboardEntries.firstWhere((entry) => entry.userId == userId);
     } catch (e) {
       return null;
     }
@@ -257,7 +257,7 @@ class LeaderboardProvider extends ChangeNotifier {
   /// Get last update timestamp formatted
   String get lastUpdateFormatted {
     if (_lastUpdateTime == 0) return 'Never';
-    
+
     final dateTime = DateTime.fromMillisecondsSinceEpoch(_lastUpdateTime);
     final now = DateTime.now();
     final diff = now.difference(dateTime);

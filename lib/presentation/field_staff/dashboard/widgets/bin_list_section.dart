@@ -71,7 +71,7 @@ class BinListSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.27, color: AppColors.grey200),
+        border: Border.all(color: Colors.transparent),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,

@@ -18,7 +18,7 @@ class GamificationTasksProvider extends ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
-      _taskProgressSubscription;
+  _taskProgressSubscription;
   int? _activeUserId;
   String? _activeRole;
   Future<void>? _userTasksLoadFuture;
@@ -110,7 +110,9 @@ class GamificationTasksProvider extends ChangeNotifier {
 
   void attachWebSocket(WebSocketProvider webSocketProvider) {
     _taskProgressSubscription?.cancel();
-    _taskProgressSubscription = webSocketProvider.messageStream.listen((message) {
+    _taskProgressSubscription = webSocketProvider.messageStream.listen((
+      message,
+    ) {
       if (message.type != 'TASK_PROGRESS_UPDATE') {
         return;
       }
@@ -126,7 +128,9 @@ class GamificationTasksProvider extends ChangeNotifier {
         }
 
         for (final item in update.tasks) {
-          final index = _userTasks.indexWhere((task) => task.taskId == item.taskId);
+          final index = _userTasks.indexWhere(
+            (task) => task.taskId == item.taskId,
+          );
           final mapped = UserTaskProgress(
             userId: update.userId,
             taskId: item.taskId,
@@ -154,7 +158,9 @@ class GamificationTasksProvider extends ChangeNotifier {
 
         _userTasks.sort((a, b) {
           if (a.isCompleted == b.isCompleted) {
-            return a.taskTitle.toLowerCase().compareTo(b.taskTitle.toLowerCase());
+            return a.taskTitle.toLowerCase().compareTo(
+              b.taskTitle.toLowerCase(),
+            );
           }
           return a.isCompleted ? -1 : 1;
         });
@@ -202,7 +208,8 @@ class GamificationTasksProvider extends ChangeNotifier {
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['success'] != true || body['data'] is! List) {
-        _errorMessage = body['message']?.toString() ?? 'Failed to load available tasks';
+        _errorMessage =
+            body['message']?.toString() ?? 'Failed to load available tasks';
         notifyListeners();
         return;
       }
@@ -239,7 +246,7 @@ class GamificationTasksProvider extends ChangeNotifier {
     final index = _userTasks.indexWhere((t) => t.taskId == taskId);
     if (index != -1) {
       final task = _userTasks[index];
-        _userTasks[index] = UserTaskProgress(
+      _userTasks[index] = UserTaskProgress(
         userId: task.userId,
         taskId: task.taskId,
         taskCode: task.taskCode,

@@ -32,24 +32,17 @@ class ProfileCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: ShapeDecoration(
-        color: AppColors.green700, // Safe, high-contrast theme color
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        shadows: const [
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
             blurRadius: 10,
             offset: Offset(0, 8),
             spreadRadius: -6,
           ),
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 25,
-            offset: Offset(0, 20),
-            spreadRadius: -5,
-          )
         ],
       ),
       child: Column(
@@ -61,25 +54,23 @@ class ProfileCard extends StatelessWidget {
               Container(
                 width: 64,
                 height: 64,
-                decoration: ShapeDecoration(
-                  color: Colors.white.withValues(alpha: 0.25), // Increased contrast
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                decoration: BoxDecoration(
+                  color: AppColors.grey100,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
-                child: Text(_initials, style: AppTypography.displayLg.copyWith(color: Colors.white)),
+                child: Text(_initials, style: AppTypography.displayLg.copyWith(color: AppColors.grey900)),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: AppTypography.h2.copyWith(color: Colors.white)),
+                    Text(name, style: AppTypography.h2.copyWith(color: AppColors.grey900)),
                     const SizedBox(height: 2),
-                    Text(role, style: AppTypography.bodySm.copyWith(color: AppColors.white90)),
+                    Text(role, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
                     const SizedBox(height: 2),
-                    Text('ID: $employeeId', style: AppTypography.captionSm.copyWith(color: AppColors.white80)),
+                    Text('ID: $employeeId', style: AppTypography.captionSm.copyWith(color: AppColors.grey500)),
                   ],
                 ),
               ),
@@ -114,20 +105,19 @@ class ProfileCard extends StatelessWidget {
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: ShapeDecoration(
-        color: Colors.white.withValues(alpha: 0.15), // Increased contrast
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey100, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: Colors.white)),
+          Text(label, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: AppColors.grey600)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
+            style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey900),
             overflow: TextOverflow.ellipsis,
           ),
         ],

@@ -10,10 +10,8 @@ import 'package:garbo_swms/core/theme/colors.dart';
 ///   Text('Title', style: AppTypography.h3)
 ///   Text('On green', style: AppTypography.h1.copyWith(color: Colors.white))
 ///
-/// To switch to a bundled font (e.g. Arimo), register the font in pubspec.yaml
-/// and update [fontFamily] below — every style updates automatically.
 abstract final class AppTypography {
-  static const String? fontFamily = null;
+  static const String fontFamily = 'Manrope';
 
   // ── Display / Hero numbers ────────────────────────────────────────────
   static const TextStyle displayLg = TextStyle(

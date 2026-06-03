@@ -20,10 +20,7 @@ class RoleSelection extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Select Your Role',
-          style: AppTypography.titleLg,
-        ),
+        title: Text('Select Your Role', style: AppTypography.titleLg),
       ),
       body: SafeArea(
         child: Center(
@@ -59,13 +56,12 @@ class RoleSelection extends StatelessWidget {
                   context,
                   icon: Icons.person,
                   title: 'Citizen',
-                  description: 'Register as a citizen to report waste and request collections',
+                  description:
+                      'Register as a citizen to report waste and request collections',
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const Register(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const Register()),
                     );
                   },
                 ),
@@ -107,7 +103,7 @@ class RoleSelection extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
+          border: Border.all(color: AppColors.grey200, width: 1),
           boxShadow: [
             BoxShadow(
               color: AppColors.shadowSm,
@@ -125,21 +121,14 @@ class RoleSelection extends StatelessWidget {
                 color: AppColors.emerald50,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: AppColors.green700,
-              ),
+              child: Icon(icon, size: 32, color: AppColors.green700),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTypography.titleMd,
-                  ),
+                  Text(title, style: AppTypography.titleMd),
                   const SizedBox(height: 8),
                   Text(
                     description,
@@ -150,11 +139,7 @@ class RoleSelection extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: AppColors.grey400,
-              size: 20,
-            ),
+            Icon(Icons.arrow_forward_ios, color: AppColors.grey400, size: 20),
           ],
         ),
       ),

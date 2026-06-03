@@ -223,7 +223,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
-      backgroundColor: AppColors.emerald50,
+      backgroundColor: AppColors.grey50,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
@@ -272,6 +272,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.grey200, width: 1),
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.shadowSm,

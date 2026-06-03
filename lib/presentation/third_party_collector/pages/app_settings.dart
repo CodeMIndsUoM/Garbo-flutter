@@ -145,11 +145,11 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         20,
         18,
       ),
-      decoration: const BoxDecoration(color: AppColors.green700),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Row(
         children: [
           Material(
-            color: AppColors.white20,
+            color: AppColors.grey100,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -159,7 +159,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
                 height: 40,
                 child: Icon(
                   Icons.chevron_left_rounded,
-                  color: Colors.white,
+                  color: AppColors.grey900,
                   size: 26,
                 ),
               ),
@@ -172,13 +172,13 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
               children: [
                 Text(
                   'App Settings',
-                  style: AppTypography.h2.copyWith(color: Colors.white),
+                  style: AppTypography.h2.copyWith(color: AppColors.grey900),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Customize your app experience',
                   style: AppTypography.bodySm.copyWith(
-                    color: AppColors.white80,
+                    color: AppColors.grey500,
                   ),
                 ),
               ],
@@ -281,11 +281,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
     required String label,
     required String description,
   }) {
-    return _rowContent(
-      icon: icon,
-      label: label,
-      description: description,
-    );
+    return _rowContent(icon: icon, label: label, description: description);
   }
 
   Widget _rowContent({
@@ -324,10 +320,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 8),
-            trailing,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 8), trailing],
         ],
       ),
     );
@@ -346,7 +339,10 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
             children: [
               Text('Storage', style: AppTypography.h3),
               const SizedBox(height: 2),
-              Text('Free up space used by the app', style: AppTypography.bodySm),
+              Text(
+                'Free up space used by the app',
+                style: AppTypography.bodySm,
+              ),
             ],
           ),
         ),
@@ -432,7 +428,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.red100, width: 1),
+            border: Border.all(color: Colors.transparent),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

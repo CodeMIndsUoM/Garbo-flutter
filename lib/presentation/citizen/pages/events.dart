@@ -15,7 +15,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           CitizenHeader(name: 'Events'),
@@ -113,9 +113,9 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.emerald100,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.emerald200, width: 1),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

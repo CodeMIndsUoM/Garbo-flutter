@@ -14,7 +14,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           CitizenHeader(name: 'Profile'),
@@ -48,9 +48,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 4,
-      ),
+      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 4),
     );
   }
 
@@ -58,19 +56,13 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.emerald600,
-            AppColors.emerald700,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.emerald600.withValues(alpha: 0.2),
-            offset: const Offset(0, 4),
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
             blurRadius: 12,
           ),
         ],
@@ -83,14 +75,14 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
                   child: Text(
                     'M',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.grey900,
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                     ),
@@ -105,7 +97,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                     Text(
                       'Micheal',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.grey900,
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
@@ -114,7 +106,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                     Text(
                       'Citizen Account',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.grey500,
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                       ),
@@ -132,13 +124,13 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
               Container(
                 width: 1,
                 height: 32,
-                color: Colors.white.withValues(alpha: 0.2),
+                color: AppColors.grey200,
               ),
               buildStatItem('2', 'Events'),
               Container(
                 width: 1,
                 height: 32,
-                color: Colors.white.withValues(alpha: 0.2),
+                color: AppColors.grey200,
               ),
               buildStatItem('145', 'Points'),
             ],
@@ -147,7 +139,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: AppColors.emerald50,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -155,14 +147,14 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
               children: const [
                 Icon(
                   Icons.workspace_premium_outlined,
-                  color: Colors.white,
+                  color: AppColors.green700,
                   size: 16,
                 ),
                 SizedBox(width: 6),
                 Text(
                   'Active Member Since 2025',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.green700,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -181,7 +173,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.grey900,
             fontSize: 24,
             fontWeight: FontWeight.w700,
           ),
@@ -189,8 +181,8 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.8),
+          style: const TextStyle(
+            color: AppColors.grey600,
             fontSize: 12,
             fontWeight: FontWeight.w400,
           ),
@@ -267,11 +259,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
               color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 24,
-            ),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -407,11 +395,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                 color: backgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -438,11 +422,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.grey400,
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: AppColors.grey400, size: 20),
           ],
         ),
       ),
@@ -486,18 +466,15 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         icon: const Icon(Icons.logout, size: 18),
         label: const Text(
           'Logout',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: Colors.red,
           backgroundColor: Colors.red.withValues(alpha: 0.05),
-          side: const BorderSide(color: Colors.red, width: 1.5),
+          side: BorderSide.none,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(18)),
           ),
         ),
       ),
@@ -577,11 +554,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
             color: AppColors.emerald50,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 20,
-          ),
+          child: Icon(icon, color: iconColor, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(

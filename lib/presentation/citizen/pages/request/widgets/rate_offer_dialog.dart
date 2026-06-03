@@ -41,7 +41,10 @@ class _RateOfferDialogState extends State<RateOfferDialog> {
                 IconButton(
                   onPressed: () => setState(() => _rating = i),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
                   icon: Icon(
                     i <= _rating
                         ? Icons.star_rounded
@@ -59,7 +62,7 @@ class _RateOfferDialogState extends State<RateOfferDialog> {
             maxLength: 2000,
             decoration: const InputDecoration(
               hintText: 'Share a few words (optional)',
-              border: OutlineInputBorder(),
+              border: InputBorder.none,
             ),
           ),
         ],
@@ -72,9 +75,9 @@ class _RateOfferDialogState extends State<RateOfferDialog> {
         ElevatedButton(
           onPressed: () {
             final text = _feedback.text.trim();
-            Navigator.of(context).pop(
-              RatingResult(_rating, text.isEmpty ? null : text),
-            );
+            Navigator.of(
+              context,
+            ).pop(RatingResult(_rating, text.isEmpty ? null : text));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.emerald600,

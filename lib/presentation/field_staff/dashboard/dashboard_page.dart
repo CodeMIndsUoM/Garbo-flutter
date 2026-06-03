@@ -29,13 +29,11 @@ class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
   final ApiService _apiService = ApiService();
   List<BinModel> _bins = [];
-  String _userName = 'Field Staff';
   String _empId = '';
-  int _dayStreak = 0;
   bool _isLoading = true;
   bool _didAttachRealtimeListener = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
-      _binStatusSocketSubscription;
+  _binStatusSocketSubscription;
   Timer? _dashboardRefreshDebounce;
 
   @override
@@ -56,8 +54,9 @@ class _DashboardState extends State<Dashboard> {
 
   void _attachRealtimeDashboardRefresh(WebSocketProvider webSocketProvider) {
     _binStatusSocketSubscription?.cancel();
-    _binStatusSocketSubscription =
-        webSocketProvider.messageStream.listen((message) {
+    _binStatusSocketSubscription = webSocketProvider.messageStream.listen((
+      message,
+    ) {
       if (message.type != 'BIN_STATUS_UPDATED') {
         return;
       }
@@ -92,8 +91,6 @@ class _DashboardState extends State<Dashboard> {
   Future<void> _loadEmpIdAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
     _empId = prefs.getString('empId') ?? '';
-    _userName = prefs.getString('empName') ?? 'Field Staff';
-    _dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
     if (_empId.isEmpty) {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -105,16 +102,11 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _fetchDashboardData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final bins = await _apiService.getAssignedBins();
-      final name = await _apiService.getFieldMentorName(_empId);
-      final dayStreak = prefs.getInt('field_staff_day_streak') ?? 0;
 
       if (mounted) {
         setState(() {
           _bins = bins;
-          _userName = name;
-          _dayStreak = dayStreak;
           _isLoading = false;
         });
       }
@@ -157,34 +149,33 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final int pendingBins = _bins
-        .where((b) => b.status == BinStatus.notChecked)
-        .length;
-    final int? avgResponseMinutes = _calculateAvgResponseMinutes(_bins);
-
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          // Shared header across all tabs
-          StatHeader(
-            userName: _userName,
-            toCheckCount: pendingBins,
-            dayStreak: _dayStreak,
-            avgResponseLabel: avgResponseMinutes == null
-                ? '--'
-                : '${avgResponseMinutes}m',
-          ),
-          // Main content area — switches based on bottom nav
+          StatHeader(title: _tabTitle()),
           Expanded(child: _buildPage()),
-          // Bottom navigation bar
-          FieldBottomNavigation(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-          ),
         ],
       ),
+      bottomNavigationBar: FieldBottomNavigation(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
     );
+  }
+
+  String _tabTitle() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Dashboard';
+      case 1:
+        return 'Bins';
+      case 2:
+        return 'Profile';
+      default:
+        return 'Dashboard';
+    }
   }
 
   Widget _buildPage() {

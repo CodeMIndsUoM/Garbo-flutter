@@ -15,7 +15,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           CitizenHeader(name: 'Home'),
@@ -48,163 +48,136 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.emerald600,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.emerald700.withValues(alpha: 0.3),
-            offset: const Offset(0, 8),
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
             blurRadius: 16,
             spreadRadius: -4,
           ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned(
-            right: -50,
-            top: -50,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            left: -40,
-            bottom: -40,
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'M',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.emerald200,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'M',
+                      style: TextStyle(
+                        color: AppColors.green700,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: const [
-                              Flexible(
-                                child: Text(
-                                  'Hello, Micheal',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.2,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Flexible(
+                            child: Text(
+                              'Hello, Micheal',
+                              style: TextStyle(
+                                color: AppColors.citizenGrey900,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                height: 1.2,
                               ),
-                              SizedBox(width: 6),
-                              Text('👋', style: TextStyle(fontSize: 18)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Let's make our city cleaner",
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          SizedBox(width: 6),
+                          Text('👋', style: TextStyle(fontSize: 18)),
                         ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Let's make our city cleaner",
+                        style: TextStyle(
+                          color: AppColors.citizenGrey600,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(height: 1, color: AppColors.grey200),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: const [
+                    Icon(
+                      Icons.eco,
+                      color: AppColors.green700,
+                      size: 18,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Eco Points',
+                      style: TextStyle(
+                        color: AppColors.grey600,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(height: 1, color: Colors.white.withValues(alpha: 0.2)),
-                const SizedBox(height: 14),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.eco,
-                          color: Colors.white.withValues(alpha: 0.85),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Eco Points',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: const [
+                    Text(
+                      '145',
+                      style: TextStyle(
+                        color: AppColors.citizenGrey900,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: const [
-                        Text(
-                          '145',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          'pts',
-                          style: TextStyle(
-                            color: AppColors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    SizedBox(width: 4),
+                    Text(
+                      'pts',
+                      style: TextStyle(
+                        color: AppColors.citizenGrey500,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -281,15 +254,9 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         },
         child: Ink(
           decoration: BoxDecoration(
-            gradient: hasGradient
-                ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.emerald50, AppColors.emerald200],
-                  )
-                : null,
-            color: hasGradient ? null : Colors.white,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -308,18 +275,10 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.emerald600,
+                    color: AppColors.emerald50,
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.emerald700.withValues(alpha: 0.4),
-                        offset: const Offset(0, 4),
-                        blurRadius: 8,
-                        spreadRadius: -2,
-                      ),
-                    ],
                   ),
-                  child: Icon(icon, color: Colors.white, size: 24),
+                  child: Icon(icon, color: AppColors.green700, size: 24),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -462,13 +421,9 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.emerald200, AppColors.emerald100],
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.emerald200, width: 1),
+        border: Border.all(color: AppColors.emerald500.withValues(alpha: 0.3), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -485,12 +440,12 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.emerald600,
+              color: AppColors.emerald50,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.lightbulb_rounded,
-              color: Colors.white,
+              color: AppColors.green700,
               size: 20,
             ),
           ),
@@ -502,7 +457,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Waste Management Tip',
                   style: TextStyle(
-                    color: AppColors.emerald900,
+                    color: AppColors.citizenGrey900,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -512,7 +467,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Separate your recyclables from general waste to help reduce landfill impact and promote sustainability.',
                   style: TextStyle(
-                    color: AppColors.emerald800,
+                    color: AppColors.citizenGrey600,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     height: 1.4,

@@ -10,9 +10,9 @@ import 'package:garbo_swms/data/models/websocket_message_model.dart';
 class WebSocketService {
   StompClient? _client;
   late StreamController<WebSocketMessage<Map<String, dynamic>>>
-      _messageController;
+  _messageController;
   late StreamController<ConnectionStatus> _statusController;
-  
+
   int? _userId;
   bool _isConnected = false;
   bool _isAuthenticated = false;
@@ -25,17 +25,18 @@ class WebSocketService {
   /// Stream of incoming WebSocket messages
   Stream<WebSocketMessage<Map<String, dynamic>>> get messageStream =>
       _messageController.stream;
-  
+
   /// Stream of connection status changes
   Stream<ConnectionStatus> get statusStream => _statusController.stream;
-  
+
   /// Current connection status
   bool get isConnected => _isConnected;
   bool get isAuthenticated => _isAuthenticated;
   ConnectionStatus get currentStatus => _currentStatus;
 
   WebSocketService() {
-    _messageController = StreamController<WebSocketMessage<Map<String, dynamic>>>.broadcast();
+    _messageController =
+        StreamController<WebSocketMessage<Map<String, dynamic>>>.broadcast();
     _statusController = StreamController<ConnectionStatus>.broadcast();
   }
 
@@ -55,9 +56,9 @@ class WebSocketService {
       _userId = userId;
       _isConnected = false;
       _isAuthenticated = false;
-      
+
       _setStatus(ConnectionStatus.connecting);
-      
+
       final wsUrl = _toSockJsUrl(serverUrl);
       debugPrint('Connecting to STOMP socket: $wsUrl');
 
@@ -87,7 +88,6 @@ class WebSocketService {
         }
         return;
       }
-      
     } catch (e) {
       debugPrint('STOMP connection error: $e');
       _isConnected = false;
@@ -192,7 +192,8 @@ class WebSocketService {
         'userId': jsonData['userId'],
         'totalVehiclesUsed': route['totalVehiclesUsed'],
         'routes': route['routes'],
-        'updatedAt': jsonData['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch,
+        'updatedAt':
+            jsonData['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch,
       };
 
       final message = WebSocketMessage<Map<String, dynamic>>(

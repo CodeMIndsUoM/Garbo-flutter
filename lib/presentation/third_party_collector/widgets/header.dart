@@ -26,15 +26,8 @@ class ThirdPartyHeader extends StatelessWidget {
         20,
         18,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.green700,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-          ),
-        ],
+      decoration: const BoxDecoration(
+        color: Colors.white,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -45,13 +38,13 @@ class ThirdPartyHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AppTypography.h1.copyWith(color: Colors.white),
+                  style: AppTypography.h1.copyWith(color: AppColors.grey900),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: AppTypography.bodySm.copyWith(
-                    color: AppColors.white90,
+                    color: AppColors.grey600,
                   ),
                 ),
               ],
@@ -63,7 +56,7 @@ class ThirdPartyHeader extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.white20,
+                color: AppColors.grey100,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Stack(
@@ -72,7 +65,7 @@ class ThirdPartyHeader extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.notifications_outlined,
-                    color: Colors.white,
+                    color: AppColors.grey900,
                     size: 24,
                   ),
                   if (notificationCount > 0)

@@ -142,7 +142,10 @@ class RouteProvider extends ChangeNotifier {
       }
 
       final statuses = _binStatusesBySession.putIfAbsent(sessionId, () => {});
-      final timestamps = _binTimestampsBySession.putIfAbsent(sessionId, () => {});
+      final timestamps = _binTimestampsBySession.putIfAbsent(
+        sessionId,
+        () => {},
+      );
       final current = statuses[binId];
 
       if (current != BinCollectionStatus.collected) {
@@ -389,14 +392,10 @@ class RouteProvider extends ChangeNotifier {
 
       _reportedCompletedRoutes.add(sessionId);
     } on TimeoutException catch (e) {
-      debugPrint(
-        'Route completion sync timed out for session $sessionId: $e',
-      );
+      debugPrint('Route completion sync timed out for session $sessionId: $e');
       _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
     } catch (e) {
-      debugPrint(
-        'Route completion sync threw for session $sessionId: $e',
-      );
+      debugPrint('Route completion sync threw for session $sessionId: $e');
       _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
     } finally {
       _pendingRouteCompletionReports.remove(sessionId);
@@ -453,20 +452,22 @@ class RouteProvider extends ChangeNotifier {
   }) async {
     final requestSessionId = sessionId ?? _lastOptimizedSessionId;
 
-    final response = await http.post(
-      Uri.parse('$_baseUrl/routes/optimize'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        if (requestSessionId != null && requestSessionId.isNotEmpty)
-          'sessionId': requestSessionId,
-        'userId': userId,
-        'vehicleCount': vehicleCount,
-        'vehicleCapacities': vehicleCapacities,
-        'depotLat': depotLat,
-        'depotLng': depotLng,
-        'selectedBinIds': selectedBinIds,
-      }),
-    ).timeout(const Duration(seconds: 20));
+    final response = await http
+        .post(
+          Uri.parse('$_baseUrl/routes/optimize'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            if (requestSessionId != null && requestSessionId.isNotEmpty)
+              'sessionId': requestSessionId,
+            'userId': userId,
+            'vehicleCount': vehicleCount,
+            'vehicleCapacities': vehicleCapacities,
+            'depotLat': depotLat,
+            'depotLng': depotLng,
+            'selectedBinIds': selectedBinIds,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Failed to optimize route: ${response.body}');
@@ -491,12 +492,14 @@ class RouteProvider extends ChangeNotifier {
     String priority = 'MEDIUM',
     double basePoints = 10.0,
   }) async {
-    final persistResponse = await http.patch(
-      Uri.parse(
-        '$_baseUrl/route-sessions/$sessionId/bins/$binId/collect?collectorId=$userId',
-      ),
-      headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(seconds: 20));
+    final persistResponse = await http
+        .patch(
+          Uri.parse(
+            '$_baseUrl/route-sessions/$sessionId/bins/$binId/collect?collectorId=$userId',
+          ),
+          headers: {'Content-Type': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 20));
 
     if (persistResponse.statusCode < 200 || persistResponse.statusCode >= 300) {
       final responseBody = persistResponse.body;
@@ -508,16 +511,18 @@ class RouteProvider extends ChangeNotifier {
     // Keep collector gamification sync as best-effort after DB state is persisted.
     try {
       final headers = await _buildAuthHeaders();
-      final response = await http.post(
-        Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
-        headers: headers,
-        body: jsonEncode({
-          'binId': binId,
-          'priority': priority,
-          'basePoints': basePoints,
-          'sessionId': sessionId,
-        }),
-      ).timeout(const Duration(seconds: 20));
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
+            headers: headers,
+            body: jsonEncode({
+              'binId': binId,
+              'priority': priority,
+              'basePoints': basePoints,
+              'sessionId': sessionId,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         debugPrint(
@@ -537,10 +542,14 @@ class RouteProvider extends ChangeNotifier {
     int? userId,
   }) async {
     final suffix = userId != null ? '?collectorId=$userId' : '';
-    final response = await http.patch(
-      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/skip$suffix'),
-      headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(seconds: 20));
+    final response = await http
+        .patch(
+          Uri.parse(
+            '$_baseUrl/route-sessions/$sessionId/bins/$binId/skip$suffix',
+          ),
+          headers: {'Content-Type': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 20));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
@@ -555,10 +564,14 @@ class RouteProvider extends ChangeNotifier {
     int? userId,
   }) async {
     final suffix = userId != null ? '?collectorId=$userId' : '';
-    final response = await http.patch(
-      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/pending$suffix'),
-      headers: {'Content-Type': 'application/json'},
-    ).timeout(const Duration(seconds: 20));
+    final response = await http
+        .patch(
+          Uri.parse(
+            '$_baseUrl/route-sessions/$sessionId/bins/$binId/pending$suffix',
+          ),
+          headers: {'Content-Type': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 20));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
@@ -650,10 +663,7 @@ class RouteProvider extends ChangeNotifier {
 
       if (!loadedFromPersisted) {
         try {
-          await _loadSessionSnapshot(
-            sessionId: sessionId,
-            userId: userId,
-          );
+          await _loadSessionSnapshot(sessionId: sessionId, userId: userId);
         } on TimeoutException {
           debugPrint(
             'Route session snapshot fetch timed out for session $sessionId; will retry in background.',
@@ -738,9 +748,7 @@ class RouteProvider extends ChangeNotifier {
           .get(Uri.parse('$_baseUrl/route-sessions/$sessionId/routes'))
           .timeout(const Duration(seconds: 15));
     } on TimeoutException {
-      debugPrint(
-        'Persisted route fetch timed out for session $sessionId.',
-      );
+      debugPrint('Persisted route fetch timed out for session $sessionId.');
       return false;
     }
 
@@ -779,14 +787,17 @@ class RouteProvider extends ChangeNotifier {
       final vehicleId = int.tryParse(vehicleKey) ?? index;
       final capacity = _toInt(route['capacity']);
       final totalBins = _toInt(route['totalBins']);
-      final estimatedDurationSeconds = _toDouble(route['estimatedDurationSeconds']);
+      final estimatedDurationSeconds = _toDouble(
+        route['estimatedDurationSeconds'],
+      );
 
       final rawStops = route['binStops'];
       final stopItems = rawStops is List
           ? rawStops.whereType<Map<String, dynamic>>().toList()
           : const <Map<String, dynamic>>[];
       stopItems.sort(
-        (left, right) => _toInt(left['stopOrder']).compareTo(_toInt(right['stopOrder'])),
+        (left, right) =>
+            _toInt(left['stopOrder']).compareTo(_toInt(right['stopOrder'])),
       );
 
       for (final stop in stopItems) {
@@ -810,7 +821,9 @@ class RouteProvider extends ChangeNotifier {
               binId: _toInt(stop['binId']),
               lat: _toDouble(stop['lat']),
               lng: _toDouble(stop['lng']),
-              durationFromPrevStopSeconds: _toDouble(stop['durationFromPrevSeconds']),
+              durationFromPrevStopSeconds: _toDouble(
+                stop['durationFromPrevSeconds'],
+              ),
             ),
           )
           .toList(growable: false);
@@ -833,7 +846,8 @@ class RouteProvider extends ChangeNotifier {
         userId: userId,
         totalVehiclesUsed: routesMap.length,
         routes: routesMap,
-        updatedAt: _sessionUpdatedAtById[sessionId] ??
+        updatedAt:
+            _sessionUpdatedAtById[sessionId] ??
             DateTime.now().millisecondsSinceEpoch,
       ),
     );

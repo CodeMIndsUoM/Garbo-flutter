@@ -49,7 +49,9 @@ class FieldStaffApi {
     required Map<String, dynamic> reportData,
     String? photoPath,
   }) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/report');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/report',
+    );
     try {
       final token = await tokenProvider();
 
@@ -66,7 +68,9 @@ class FieldStaffApi {
       if (photoPath != null && photoPath.trim().isNotEmpty) {
         final file = File(photoPath);
         if (await file.exists()) {
-          request.files.add(await http.MultipartFile.fromPath('photo', photoPath));
+          request.files.add(
+            await http.MultipartFile.fromPath('photo', photoPath),
+          );
         } else {
           throw Exception('Selected image file was not found.');
         }
@@ -87,7 +91,9 @@ class FieldStaffApi {
   }
 
   Future<bool> undoBinReport(String binId) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/undo');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.bins}/$binId/undo',
+    );
 
     try {
       final headers = await authHeadersProvider();

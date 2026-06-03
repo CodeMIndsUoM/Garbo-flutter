@@ -8,7 +8,7 @@ import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 /// WebSocketProvider manages WebSocket connection state and provides access to message streams
 class WebSocketProvider extends ChangeNotifier {
   final AuthProvider authProvider;
-  
+
   late WebSocketService _webSocketService;
   StreamSubscription<ConnectionStatus>? _statusSubscription;
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
@@ -18,7 +18,8 @@ class WebSocketProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isConnected => _connectionStatus == ConnectionStatus.connected;
   bool get isAuthenticated => _webSocketService.isAuthenticated;
-  Stream<WebSocketMessage<Map<String, dynamic>>> get messageStream => _webSocketService.messageStream;
+  Stream<WebSocketMessage<Map<String, dynamic>>> get messageStream =>
+      _webSocketService.messageStream;
 
   WebSocketProvider(this.authProvider) {
     _webSocketService = authProvider.webSocketService;
@@ -105,4 +106,3 @@ class WebSocketProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

@@ -29,10 +29,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         return;
       }
       _initializedForUserId = currentUserId;
-      leaderboardProvider.trackUser(
-        currentUserId,
-        role: 'COLLECTOR',
-      );
+      leaderboardProvider.trackUser(currentUserId, role: 'COLLECTOR');
     });
   }
 
@@ -68,10 +65,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       SizedBox(height: 8),
                       Text(
                         'Current rankings by score',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       SizedBox(height: 24),
 
@@ -87,12 +81,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                 : [Colors.grey[50]!, Colors.grey[100]!],
                           ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: userEntry != null
-                                ? AppColors.blue200
-                                : Colors.grey[300]!,
-                            width: 1.27,
-                          ),
+                          border: Border.all(color: Colors.transparent),
                         ),
                         child: Row(
                           children: [
@@ -234,11 +223,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                     ? AppColors.blue50
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isCurrentUser
-                                      ? AppColors.blue200
-                                      : Colors.grey[200]!,
-                                ),
+                                border: Border.all(color: Colors.transparent),
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -310,8 +295,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
-                                            color: Color(leaderboardProvider
-                                                .getRankChangeColor(item)),
+                                            color: Color(
+                                              leaderboardProvider
+                                                  .getRankChangeColor(item),
+                                            ),
                                           ),
                                         ),
                                     ],

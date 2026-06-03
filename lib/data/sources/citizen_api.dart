@@ -52,7 +52,9 @@ class CitizenApi {
         .toList();
   }
 
-  Future<CollectionRequestModel> getCollectionRequestDetail(int requestId) async {
+  Future<CollectionRequestModel> getCollectionRequestDetail(
+    int requestId,
+  ) async {
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.collectionRequests}/$requestId',
     );
@@ -166,7 +168,9 @@ class CitizenApi {
   }
 
   Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action',
+    );
     final headers = await authHeadersProvider();
     final response = await client.post(url, headers: headers);
     final body = json.decode(response.body) as Map<String, dynamic>;

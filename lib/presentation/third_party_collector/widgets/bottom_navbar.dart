@@ -36,57 +36,75 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
       _NavItem(Icons.person_outline_rounded, 'Profile'),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: AppColors.grey200, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.grey200, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                offset: const Offset(0, 8),
+                blurRadius: 24,
+                spreadRadius: -8,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final isSelected = i == currentIndex;
-              return Expanded(
-                child: InkWell(
-                  onTap: () => _onTap(context, i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        items[i].icon,
+          child: SizedBox(
+            height: 72,
+            child: Row(
+              children: List.generate(items.length, (i) {
+                final isSelected = i == currentIndex;
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => _onTap(context, i),
+                    borderRadius: BorderRadius.circular(24),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOut,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.green700
-                            : AppColors.grey400,
-                        size: 22,
+                            ? AppColors.emerald50
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        items[i].label,
-                        style: AppTypography.captionSm.copyWith(
-                          color: isSelected
-                              ? AppColors.green700
-                              : AppColors.grey400,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            items[i].icon,
+                            color: isSelected
+                                ? AppColors.green700
+                                : AppColors.grey400,
+                            size: 22,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            items[i].label,
+                            style: AppTypography.captionSm.copyWith(
+                              color: isSelected
+                                  ? AppColors.green700
+                                  : AppColors.grey400,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
       ),

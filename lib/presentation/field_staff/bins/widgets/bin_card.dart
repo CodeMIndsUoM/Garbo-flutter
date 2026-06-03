@@ -34,7 +34,7 @@ class BinCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: _cardBgColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(width: 1, color: _borderColor),
+          border: Border.all(color: Colors.transparent),
           boxShadow: const [
             BoxShadow(
               color: AppColors.shadowSm,
@@ -118,7 +118,7 @@ class BinCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200),
+            border: Border.all(color: Colors.transparent),
           ),
           child: Text(
             bin.status.label,
@@ -176,7 +176,7 @@ class BinCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
+          border: Border.all(color: Colors.transparent),
           boxShadow: const [
             BoxShadow(
               color: AppColors.shadowXs,
