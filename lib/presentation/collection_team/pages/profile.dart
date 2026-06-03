@@ -9,6 +9,7 @@ import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/performance_stats_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
+import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
@@ -247,6 +248,11 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                   buildPerformanceStats(),
                   const SizedBox(height: 24),
                   buildAchievements(),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: buildLogoutButton(),
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -1185,6 +1191,168 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       'Dec',
     ];
     return '${monthNames[value.month - 1]} ${value.day}';
+  }
+
+  Widget buildLogoutButton() {
+    return Container(
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.red100, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _confirmLogout(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.logout_rounded,
+                  color: AppColors.red500,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Log Out',
+                  style: TextStyle(
+                    color: AppColors.red500,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.red50,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.red500,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Log out of your account?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.grey900,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                "You'll need to sign in again to access your dashboard.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.grey600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(ctx).pop(false),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: const Text(
+                            'Cancel',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.grey700,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Material(
+                      color: AppColors.red500,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(ctx).pop(true),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: const Text(
+                            'Log Out',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Login()),
+        (route) => false,
+      );
+    }
   }
 
 }

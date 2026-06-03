@@ -286,10 +286,6 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       0,
       (sum, session) => sum + routeProvider.getCollectedCount(session.sessionId),
     );
-    final missedBins = sessionsToday.fold<int>(
-      0,
-      (sum, session) => sum + routeProvider.getSkippedCount(session.sessionId),
-    );
 
     final efficiency = assignedBins == 0
         ? 0.0
@@ -309,30 +305,19 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       (sum, task) => sum + task.pointsEarned,
     );
 
-    final lastTaskDelta = completedToday.isEmpty
-        ? 0.0
-        : completedToday
-            .map((task) => task.pointsEarned)
-            .reduce((a, b) => math.max(a, b));
-
     final todayLabel = _formatDateShort(now);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Today's Performance • $todayLabel",
-              style: const TextStyle(
-                color: AppColors.grey900,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                height: 1.0,
-              ),
-            )
-          ],
+        Text(
+          "Today's Performance • $todayLabel",
+          style: const TextStyle(
+            color: AppColors.grey900,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            height: 1.0,
+          ),
         ),
         const SizedBox(height: 12),
         if (sessionsToday.isEmpty)
@@ -347,76 +332,34 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               ),
             ),
           ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: buildPerformanceItem(
-                      icon: Icons.delete_outline_rounded,
-                      value: '$collectedBins',
-                      label: 'Bins Collected',
-                      subtext: '$assignedBins assigned today',
-                      iconBg: AppColors.emeraldLight,
-                      iconColor: AppColors.emerald600,
-                      subtextColor: AppColors.emerald600,
-                    ),
-                  ),
-                  Expanded(
-                    child: buildPerformanceItem(
-                      icon: Icons.route_rounded,
-                      value: '$routesDone',
-                      label: 'Routes Done',
-                      subtext: '${sessionsToday.length} total routes today',
-                      iconBg: AppColors.blue100,
-                      iconColor: AppColors.blue600,
-                      subtextColor: AppColors.blue600,
-                    ),
-                  ),
-                ],
+              buildPerformanceItem(
+                icon: Icons.delete_sweep_outlined,
+                value: '$collectedBins',
+                label: 'Bins Collected',
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: buildPerformanceItem(
-                      icon: Icons.trending_up_rounded,
-                      value: '${efficiency.toStringAsFixed(0)}%',
-                      label: 'Efficiency',
-                      subtext: '$missedBins missed included',
-                      iconBg: AppColors.purple50,
-                      iconColor: AppColors.purple600,
-                      subtextColor: AppColors.purple600,
-                    ),
-                  ),
-                  Expanded(
-                    child: buildPerformanceItem(
-                      icon: Icons.bolt_rounded,
-                      value: livePoints.toStringAsFixed(0),
-                      label: 'Live Points',
-                      subtext: completedToday.isEmpty
-                          ? '0 task points today'
-                          : '+${lastTaskDelta.toStringAsFixed(0)} last task done',
-                      iconBg: AppColors.orange50,
-                      iconColor: AppColors.orange500,
-                      subtextColor: AppColors.orange500,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              buildPerformanceItem(
+                icon: Icons.assignment_outlined,
+                value: '$routesDone',
+                label: 'Routes Done',
+              ),
+              const SizedBox(width: 12),
+              buildPerformanceItem(
+                icon: Icons.speed_outlined,
+                value: '${efficiency.toStringAsFixed(0)}%',
+                label: 'Efficiency',
+              ),
+              const SizedBox(width: 12),
+              buildPerformanceItem(
+                icon: Icons.emoji_events_outlined,
+                value: livePoints.toStringAsFixed(0),
+                label: 'Live Points',
               ),
             ],
           ),
@@ -429,63 +372,49 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required IconData icon,
     required String value,
     required String label,
-    required String subtext,
-    required Color iconBg,
-    required Color iconColor,
-    required Color subtextColor,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: iconColor, size: 16),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.grey900,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.grey600,
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 4,
+            offset: Offset(0, 1),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtext,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: subtextColor,
-            fontSize: 11,
-            fontWeight: FontWeight.w400,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.green700, size: 22),
+          const SizedBox(height: 14),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.grey900,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.grey600,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
