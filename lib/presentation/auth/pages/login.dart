@@ -104,8 +104,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         final body = json.decode(response.body);
         final prefs = await SharedPreferences.getInstance();
 
-        // Debug: print the full response to console
-        debugPrint('Login response: $body');
+
 
         final empId = body['empId'];
         final empName = body['empName'];

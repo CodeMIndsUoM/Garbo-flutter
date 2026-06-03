@@ -90,9 +90,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
-          child: _buildSectionTitle('Completed Collections', big: true),
-        ),
+        Expanded(child: _buildSectionTitle('Completed Collections', big: true)),
         if (hasMore)
           TextButton(
             onPressed: _openAllCompleted,
@@ -222,7 +220,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           Text(
             'Welcome Back!',
             style: AppTypography.h1.copyWith(color: Colors.white),
-            
           ),
           const SizedBox(height: 4),
           Text(
@@ -400,9 +397,9 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'See nearby requests to offer on',
           primary: true,
           onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyBrowsePage()),
-            );
+            Navigator.of(
+              context,
+            ).pushReplacement(SmoothPageRoute(page: ThirdPartyBrowsePage()));
           },
         ),
         const SizedBox(height: 10),
@@ -412,9 +409,9 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'Track pending and accepted offers',
           primary: false,
           onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyMyJobsPage()),
-            );
+            Navigator.of(
+              context,
+            ).pushReplacement(SmoothPageRoute(page: ThirdPartyMyJobsPage()));
           },
         ),
       ],
@@ -531,7 +528,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           _buildMetricRow(
             icon: Icons.star_border_rounded,
             label: 'Average Rating',
-            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+            value:
+                '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
           ),
         ],
       ),
@@ -759,7 +757,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return '${mins}m';
   }
 }
-
 
 class _Collection {
   final String? imageUrl;
