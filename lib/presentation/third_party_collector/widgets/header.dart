@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/widgets/notifications_page.dart';
 
 class ThirdPartyHeader extends StatelessWidget {
   final String title;
@@ -40,24 +41,22 @@ class ThirdPartyHeader extends StatelessWidget {
                   title,
                   style: AppTypography.h1.copyWith(color: AppColors.grey900),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: AppTypography.bodySm.copyWith(
-                    color: AppColors.grey600,
-                  ),
-                ),
               ],
             ),
           ),
           GestureDetector(
-            onTap: onNotificationTap,
+            onTap: onNotificationTap ?? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
+                ),
+              );
+            },
             child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(20),
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
               ),
               child: Stack(
                 clipBehavior: Clip.none,

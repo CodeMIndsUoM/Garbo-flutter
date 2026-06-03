@@ -28,13 +28,8 @@ class JobsFilterBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: AnimatedBuilder(
                 animation: controller,
                 builder: (_, __) {
@@ -43,14 +38,46 @@ class JobsFilterBar extends StatelessWidget {
                       final (status, label) = offerTabs[i];
                       final count = offersByStatus(status).length;
                       final selected = controller.index == i;
-                      return Expanded(
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
                         child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
                           onTap: () => controller.animateTo(i),
-                          child: _buildStatusPill(
-                            label: label,
-                            count: count,
-                            selected: selected,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            curve: Curves.easeOut,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: selected ? AppColors.green700 : AppColors.grey100,
+                              borderRadius: BorderRadius.circular(99),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  label,
+                                  style: AppTypography.labelMd.copyWith(
+                                    color: selected ? Colors.white : AppColors.grey600,
+                                    fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: selected ? Colors.white.withValues(alpha: 0.2) : AppColors.grey200,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: AppTypography.captionSm.copyWith(
+                                      color: selected ? Colors.white : AppColors.grey600,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -63,65 +90,6 @@ class JobsFilterBar extends StatelessWidget {
           const SizedBox(width: 8),
           _buildFilterIconButton(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStatusPill({
-    required String label,
-    required int count,
-    required bool selected,
-  }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: selected ? Colors.white : Colors.transparent,
-        borderRadius: BorderRadius.circular(9),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  offset: const Offset(0, 1),
-                  blurRadius: 3,
-                ),
-              ]
-            : null,
-      ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 180),
-              style: AppTypography.titleSm.copyWith(
-                color: selected ? AppColors.green800 : AppColors.grey600,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                fontSize: 13,
-              ),
-              child: Text(label),
-            ),
-            const SizedBox(width: 5),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.emerald50 : AppColors.grey200,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                '$count',
-                style: AppTypography.captionSm.copyWith(
-                  color: selected ? AppColors.green800 : AppColors.grey600,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  height: 1.1,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

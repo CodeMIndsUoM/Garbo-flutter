@@ -223,50 +223,49 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     final results = _filteredRequests;
     return Scaffold(
       backgroundColor: AppColors.grey50,
+      extendBody: true,
       body: Column(
         children: [
           const ThirdPartyHeader(
             title: 'Browse Requests',
             subtitle: 'See nearby waste pick up requests',
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 14),
+                _buildFilterChips(),
+                const SizedBox(height: 18),
+                Text(
+                  '${results.length} request${results.length == 1 ? '' : 's'} available',
+                  style: AppTypography.bodySm,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _usingLiveLocation
+                      ? 'Using live GPS for nearby requests'
+                      : 'Location unavailable: showing general open requests',
+                  style: AppTypography.captionSm,
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadFeed,
               child: CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSearchBar(),
-                          const SizedBox(height: 14),
-                          _buildFilterChips(),
-                          const SizedBox(height: 18),
-                          Text(
-                            '${results.length} request${results.length == 1 ? '' : 's'} available',
-                            style: AppTypography.bodySm,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _usingLiveLocation
-                                ? 'Using live GPS for nearby requests'
-                                : 'Location unavailable: showing general open requests',
-                            style: AppTypography.captionSm,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                      ),
-                    ),
-                  ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: _loading
                         ? const SliverToBoxAdapter(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 64),
-                              child: Center(child: CircularProgressIndicator()),
+                              child: Center(child: CircularProgressIndicator(color: AppColors.green700)),
                             ),
                           )
                         : results.isEmpty
@@ -279,7 +278,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                                 _buildRequestCard(results[i]),
                           ),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             ),
@@ -320,36 +319,34 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   }
 
   Widget _buildFilterChips() {
-    return SizedBox(
-      height: 34,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final label = _filters[i];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _filters.map((label) {
           final selected = label == _selectedFilter;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedFilter = label),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.green700 : AppColors.grey100,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Text(
-                label,
-                style: AppTypography.labelSm.copyWith(
-                  color: selected ? Colors.white : AppColors.grey600,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedFilter = label),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.green700 : AppColors.grey100,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  label,
+                  style: AppTypography.labelMd.copyWith(
+                    color: selected ? Colors.white : AppColors.grey600,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }

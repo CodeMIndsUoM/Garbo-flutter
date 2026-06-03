@@ -406,7 +406,7 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _buildLogoutButton(),
             ),
-            const SizedBox(height: 80), // Padding for bottom nav
+            const SizedBox(height: 140), // Padding for bottom nav
           ],
         ),
       ),

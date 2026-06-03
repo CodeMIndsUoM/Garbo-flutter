@@ -215,7 +215,7 @@ class _DashboardState extends State<Dashboard> {
           const SizedBox(height: 24),
           BinListSection(bins: _bins, onReport: _handleReport),
           const AchievementListSection(),
-          const SizedBox(height: 80),
+          const SizedBox(height: 140),
         ],
       ),
     );

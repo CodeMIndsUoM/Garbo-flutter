@@ -34,51 +34,11 @@ class BinFilterChips extends StatelessWidget {
           Color chipTextColor = AppColors.grey600;
 
           if (isSelected) {
-            switch (filter.label) {
-              case 'All':
-                chipBgColor = AppColors.green700;
-                chipTextColor = Colors.white;
-                break;
-              case 'Not Checked':
-                chipBgColor = AppColors.grey500;
-                chipTextColor = Colors.white;
-                break;
-              case 'Full':
-                chipBgColor = AppColors.red500;
-                chipTextColor = Colors.white;
-                break;
-              case 'Half':
-                chipBgColor = AppColors.yellow400;
-                chipTextColor = AppColors.grey900;
-                break;
-              case 'Empty':
-                chipBgColor = AppColors.green700;
-                chipTextColor = Colors.white;
-                break;
-              default:
-                chipBgColor = AppColors.green700;
-                chipTextColor = Colors.white;
-            }
+            chipBgColor = AppColors.green700;
+            chipTextColor = Colors.white;
           } else {
-            switch (filter.label) {
-              case 'All':
-                chipTextColor = AppColors.green700;
-                break;
-              case 'Not Checked':
-                chipTextColor = AppColors.grey500;
-                break;
-              case 'Full':
-                chipTextColor = AppColors.red500;
-                break;
-              case 'Half':
-                chipTextColor = AppColors.yellowDark;
-                break;
-              case 'Empty':
-                chipTextColor = AppColors.green700;
-                break;
-              default:
-                chipTextColor = AppColors.grey600;
-            }
+            chipBgColor = AppColors.grey100;
+            chipTextColor = AppColors.grey600;
           }
 
           return Padding(

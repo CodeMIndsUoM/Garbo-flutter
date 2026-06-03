@@ -86,7 +86,7 @@ class _ThirdPartyEditProfilePageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           _buildHeader(context),
@@ -98,14 +98,14 @@ class _ThirdPartyEditProfilePageState
                     ),
                   )
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildAvatarCard(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildPersonalInfoCard(),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         _buildSaveButton(),
                       ],
                     ),
@@ -123,15 +123,20 @@ class _ThirdPartyEditProfilePageState
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
         16,
-        MediaQuery.of(context).padding.top + 14,
+        MediaQuery.of(context).padding.top + 10,
         20,
-        18,
+        12,
       ),
-      decoration: const BoxDecoration(color: AppColors.green700),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: AppColors.grey100, width: 1),
+        ),
+      ),
       child: Row(
         children: [
           Material(
-            color: AppColors.white20,
+            color: AppColors.grey100,
             shape: const CircleBorder(),
             child: InkWell(
               customBorder: const CircleBorder(),
@@ -140,28 +145,21 @@ class _ThirdPartyEditProfilePageState
                 width: 40,
                 height: 40,
                 child: Icon(
-                  Icons.chevron_left_rounded,
-                  color: Colors.white,
-                  size: 26,
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.grey900,
+                  size: 18,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Edit Profile',
-                  style: AppTypography.h2.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Update your personal details',
-                  style: AppTypography.bodySm.copyWith(
-                    color: AppColors.white80,
-                  ),
+                  style: AppTypography.h2.copyWith(color: AppColors.grey900),
                 ),
               ],
             ),
@@ -174,84 +172,73 @@ class _ThirdPartyEditProfilePageState
   // ── Avatar Card ──────────────────────────────────────────────────────
 
   Widget _buildAvatarCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Avatar circle
-              Container(
-                width: 96,
-                height: 96,
-                decoration: const BoxDecoration(
-                  color: AppColors.green700,
-                  shape: BoxShape.circle,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: _buildAvatarImage(),
-              ),
-              // Camera badge
-              Positioned(
-                right: -2,
-                bottom: -2,
-                child: Material(
-                  color: AppColors.green700,
-                  shape: const CircleBorder(
-                    side: BorderSide(color: Colors.white, width: 3),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Avatar circle
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: const BoxDecoration(
+                    color: AppColors.grey100,
+                    shape: BoxShape.circle,
                   ),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: _uploadingPhoto ? null : _onChangeAvatar,
-                    child: SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: _uploadingPhoto
-                          ? const Padding(
-                              padding: EdgeInsets.all(8),
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                  clipBehavior: Clip.antiAlias,
+                  child: _buildAvatarImage(),
+                ),
+                // Camera badge
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Material(
+                    color: AppColors.green700,
+                    shape: const CircleBorder(
+                      side: BorderSide(color: Colors.white, width: 3),
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _uploadingPhoto ? null : _onChangeAvatar,
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: _uploadingPhoto
+                            ? const Padding(
+                                padding: EdgeInsets.all(8),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.photo_camera_rounded,
                                 color: Colors.white,
+                                size: 16,
                               ),
-                            )
-                          : const Icon(
-                              Icons.photo_camera_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            _nameController.text.isNotEmpty
-                ? _nameController.text
-                : 'Your Name',
-            style: AppTypography.h3,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Tap the camera icon to change photo',
-            style: AppTypography.bodySm,
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 14),
+            Text(
+              _nameController.text.isNotEmpty
+                  ? _nameController.text
+                  : 'Your Name',
+              style: AppTypography.titleLg.copyWith(color: AppColors.grey900, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap the camera icon to change photo',
+              style: AppTypography.bodySm.copyWith(color: AppColors.grey500),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -275,7 +262,7 @@ class _ThirdPartyEditProfilePageState
         height: 96,
         errorBuilder: (_, __, ___) => const Icon(
           Icons.person_rounded,
-          color: Colors.white,
+          color: AppColors.grey600,
           size: 48,
         ),
       );
@@ -283,7 +270,7 @@ class _ThirdPartyEditProfilePageState
     // Default placeholder
     return const Icon(
       Icons.person_rounded,
-      color: Colors.white,
+      color: AppColors.grey600,
       size: 48,
     );
   }
@@ -312,19 +299,10 @@ class _ThirdPartyEditProfilePageState
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 4),
             child: Row(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.emerald50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.person_outline_rounded,
-                    color: AppColors.green700,
-                    size: 18,
-                  ),
+                const Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.green700,
+                  size: 24,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -527,56 +505,46 @@ class _ThirdPartyEditProfilePageState
   // ── Save Button ──────────────────────────────────────────────────────
 
   Widget _buildSaveButton() {
-    return Material(
-      color: AppColors.green700,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: _saving ? null : _onSave,
-        borderRadius: BorderRadius.circular(14),
-        splashColor: AppColors.green800,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.green700.withValues(alpha: 0.25),
-                offset: const Offset(0, 4),
-                blurRadius: 12,
-                spreadRadius: -2,
-              ),
-            ],
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.green700,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_saving)
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                else
-                  const Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                const SizedBox(width: 8),
-                Text(
-                  _saving ? 'Saving...' : 'Save Details',
-                  style: AppTypography.buttonLg.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
+          elevation: 0,
+        ),
+        onPressed: _saving ? null : _onSave,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_saving)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
                 ),
-              ],
+              )
+            else
+              const Icon(
+                Icons.check_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            const SizedBox(width: 8),
+            Text(
+              _saving ? 'Saving...' : 'Save Details',
+              style: AppTypography.buttonLg.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
