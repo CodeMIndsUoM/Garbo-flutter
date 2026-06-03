@@ -84,46 +84,41 @@ class ProfilePerformanceGrid extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    value: '${stats.binsReported}',
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.grey200, width: 1.2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: AppColors.shadowSm,
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildListRow(
                     label: 'Bins Reported',
-                    valueColor: AppColors.green700,
+                    value: '${stats.binsReported}',
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    value: '${stats.reportsToday}',
+                  _buildListRow(
                     label: 'Reports Today',
-                    valueColor: AppColors.green700,
+                    value: '${stats.reportsToday}',
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
+                  _buildListRow(
+                    label: 'Avg Response',
                     value: stats.avgResponseMinutes == null
                         ? '--'
                         : '${stats.avgResponseMinutes!} mins',
-                    label: 'Avg Response',
-                    valueColor: AppColors.green700,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    value: '--',
+                  _buildListRow(
                     label: 'Team Rank',
-                    valueColor: AppColors.green700,
+                    value: '--',
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         );
@@ -131,43 +126,28 @@ class ProfilePerformanceGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({
-    required String value,
+  Widget _buildListRow({
     required String label,
-    required Color valueColor,
+    required String value,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 1.27, color: AppColors.grey100),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        shadows: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 2,
-            offset: Offset(0, 1),
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(value, style: AppTypography.h1.copyWith(color: valueColor)),
-          const SizedBox(height: 4),
           Text(
             label,
-            style: AppTypography.caption.copyWith(color: AppColors.grey600),
-            textAlign: TextAlign.center,
+            style: AppTypography.titleMd.copyWith(
+              color: AppColors.grey900,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            value,
+            style: AppTypography.titleMd.copyWith(
+              color: AppColors.green700,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),

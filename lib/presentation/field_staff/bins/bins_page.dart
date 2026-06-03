@@ -249,7 +249,7 @@ class _BinsPageState extends State<BinsPage> {
     }
 
     return Container(
-      color: Colors.white,
+      color: AppColors.grey50,
       child: Column(
         children: [
           Expanded(
@@ -287,7 +287,7 @@ class _BinsPageState extends State<BinsPage> {
                           child: _buildEmptyState(),
                         )
                       : SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate((
                               context,

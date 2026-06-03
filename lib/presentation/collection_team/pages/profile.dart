@@ -233,7 +233,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           HeaderReduced(),

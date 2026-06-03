@@ -31,10 +31,11 @@ class BinCard extends StatelessWidget {
         );
       },
       child: Container(
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: _cardBgColor,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.transparent),
+          border: Border.all(color: AppColors.grey200, width: 1.2),
           boxShadow: const [
             BoxShadow(
               color: AppColors.shadowSm,
@@ -43,35 +44,45 @@ class BinCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTopRow(),
-              const SizedBox(height: 8),
-              Text(bin.displayCode, style: AppTypography.titleLg),
-              Text(
-                bin.address,
-                style: AppTypography.caption.copyWith(color: AppColors.grey600),
-              ),
-              const SizedBox(height: 4),
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 4,
+              width: double.infinity,
+              color: _statusLineColor,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.access_time, size: 14, color: AppColors.grey500),
-                  const SizedBox(width: 4),
-                  Text(bin.timeAgo, style: AppTypography.caption),
+                  _buildTopRow(),
+                  const SizedBox(height: 8),
+                  Text(bin.displayCode, style: AppTypography.titleLg),
+                  Text(
+                    bin.address,
+                    style: AppTypography.caption.copyWith(color: AppColors.grey600),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time, size: 14, color: AppColors.grey500),
+                      const SizedBox(width: 4),
+                      Text(bin.timeAgo, style: AppTypography.caption),
+                    ],
+                  ),
+                  if (bin.status == BinStatus.notChecked) ...[
+                    const SizedBox(height: 12),
+                    _buildReportButton(),
+                  ] else ...[
+                    const SizedBox(height: 12),
+                    _buildUndoButton(),
+                  ],
                 ],
               ),
-              if (bin.status == BinStatus.notChecked) ...[
-                const SizedBox(height: 12),
-                _buildReportButton(),
-              ] else ...[
-                const SizedBox(height: 12),
-                _buildUndoButton(),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -116,9 +127,16 @@ class BinCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: bin.status == BinStatus.notChecked
+                ? Colors.transparent
+                : _statusTextColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.transparent),
+            border: Border.all(
+              color: bin.status == BinStatus.notChecked
+                  ? Colors.transparent
+                  : _statusTextColor.withValues(alpha: 0.2),
+              width: 1.2,
+            ),
           ),
           child: Text(
             bin.status.label,
@@ -176,7 +194,7 @@ class BinCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.transparent),
+          border: Border.all(color: AppColors.grey200, width: 1.2),
           boxShadow: const [
             BoxShadow(
               color: AppColors.shadowXs,
@@ -205,29 +223,16 @@ class BinCard extends StatelessWidget {
 
   // ── Status-based colors ──
 
-  Color get _cardBgColor {
+  Color get _statusLineColor {
     switch (bin.status) {
       case BinStatus.notChecked:
-        return Colors.white;
+        return AppColors.grey300;
       case BinStatus.full:
-        return AppColors.red50;
+        return AppColors.red500;
       case BinStatus.half:
-        return AppColors.amberSurface;
+        return AppColors.yellow400;
       case BinStatus.empty:
-        return AppColors.emerald50;
-    }
-  }
-
-  Color get _borderColor {
-    switch (bin.status) {
-      case BinStatus.notChecked:
-        return AppColors.grey200;
-      case BinStatus.full:
-        return AppColors.redBorder;
-      case BinStatus.half:
-        return AppColors.amberBorder;
-      case BinStatus.empty:
-        return AppColors.emerald200;
+        return AppColors.green700;
     }
   }
 
@@ -238,7 +243,7 @@ class BinCard extends StatelessWidget {
       case BinStatus.full:
         return AppColors.red500;
       case BinStatus.half:
-        return AppColors.orange500;
+        return AppColors.yellowDark;
       case BinStatus.empty:
         return AppColors.green700;
     }

@@ -15,7 +15,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Events'),

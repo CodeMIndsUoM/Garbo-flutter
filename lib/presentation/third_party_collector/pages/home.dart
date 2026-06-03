@@ -137,7 +137,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           const ThirdPartyHeader(

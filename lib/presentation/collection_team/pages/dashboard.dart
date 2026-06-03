@@ -86,7 +86,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     final levelProgress = _resolveLevelProgress(points);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           const HeaderReduced(),
@@ -347,60 +347,85 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               ),
             ),
           ),
-        GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.62,
-          shrinkWrap: true,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            buildPerformanceCard(
-              icon: Icons.delete_outline_rounded,
-              value: '$collectedBins',
-              label: 'Bins Collected',
-              subtext: '$assignedBins assigned today',
-              iconBg: AppColors.emeraldLight,
-              iconColor: AppColors.emerald600,
-              subtextColor: AppColors.emerald600,
-            ),
-            buildPerformanceCard(
-              icon: Icons.route_rounded,
-              value: '$routesDone',
-              label: 'Routes Done',
-              subtext: '${sessionsToday.length} total routes today',
-              iconBg: AppColors.blue100,
-              iconColor: AppColors.blue600,
-              subtextColor: AppColors.blue600,
-            ),
-            buildPerformanceCard(
-              icon: Icons.trending_up_rounded,
-              value: '${efficiency.toStringAsFixed(0)}%',
-              label: 'Efficiency',
-              subtext: '$missedBins missed included',
-              iconBg: AppColors.purple50,
-              iconColor: AppColors.purple600,
-              subtextColor: AppColors.purple600,
-            ),
-            buildPerformanceCard(
-              icon: Icons.bolt_rounded,
-              value: livePoints.toStringAsFixed(0),
-              label: 'Live Points',
-              subtext: completedToday.isEmpty
-                  ? '0 task points today'
-                  : '+${lastTaskDelta.toStringAsFixed(0)} last task done',
-              iconBg: AppColors.orange50,
-              iconColor: AppColors.orange500,
-              subtextColor: AppColors.orange500,
-            ),
-          ],
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowSm,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: buildPerformanceItem(
+                      icon: Icons.delete_outline_rounded,
+                      value: '$collectedBins',
+                      label: 'Bins Collected',
+                      subtext: '$assignedBins assigned today',
+                      iconBg: AppColors.emeraldLight,
+                      iconColor: AppColors.emerald600,
+                      subtextColor: AppColors.emerald600,
+                    ),
+                  ),
+                  Expanded(
+                    child: buildPerformanceItem(
+                      icon: Icons.route_rounded,
+                      value: '$routesDone',
+                      label: 'Routes Done',
+                      subtext: '${sessionsToday.length} total routes today',
+                      iconBg: AppColors.blue100,
+                      iconColor: AppColors.blue600,
+                      subtextColor: AppColors.blue600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: buildPerformanceItem(
+                      icon: Icons.trending_up_rounded,
+                      value: '${efficiency.toStringAsFixed(0)}%',
+                      label: 'Efficiency',
+                      subtext: '$missedBins missed included',
+                      iconBg: AppColors.purple50,
+                      iconColor: AppColors.purple600,
+                      subtextColor: AppColors.purple600,
+                    ),
+                  ),
+                  Expanded(
+                    child: buildPerformanceItem(
+                      icon: Icons.bolt_rounded,
+                      value: livePoints.toStringAsFixed(0),
+                      label: 'Live Points',
+                      subtext: completedToday.isEmpty
+                          ? '0 task points today'
+                          : '+${lastTaskDelta.toStringAsFixed(0)} last task done',
+                      iconBg: AppColors.orange50,
+                      iconColor: AppColors.orange500,
+                      subtextColor: AppColors.orange500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget buildPerformanceCard({
+  Widget buildPerformanceItem({
     required IconData icon,
     required String value,
     required String label,
@@ -409,77 +434,58 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required Color iconColor,
     required Color subtextColor,
   }) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey100, width: 1.27),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 1),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Column(
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 16),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.grey600,
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(10),
               ),
+              child: Icon(icon, color: iconColor, size: 16),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(width: 8),
             Text(
-              subtext,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: subtextColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
+              value,
+              style: const TextStyle(
+                color: AppColors.grey900,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.grey600,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtext,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: subtextColor,
+            fontSize: 11,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 

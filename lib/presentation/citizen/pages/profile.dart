@@ -14,7 +14,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Profile'),
