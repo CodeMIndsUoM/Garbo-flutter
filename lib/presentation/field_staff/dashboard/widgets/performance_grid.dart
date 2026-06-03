@@ -21,62 +21,41 @@ class PerformanceGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Today's Performance", style: AppTypography.titleLg),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text("Today's Performance", style: AppTypography.titleLg),
+        ),
         const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 6,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-          child: Column(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildItem(
-                      title: '$completedBins',
-                      subtitle: 'Bins Checked',
-                      icon: Icons.check_circle_outline,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildItem(
-                      title: '$totalBins',
-                      subtitle: 'Assigned Bins',
-                      icon: Icons.map_outlined,
-                    ),
-                  ),
-                ],
+              _buildCardItem(
+                title: '$completedBins',
+                subtitle: 'Bins Checked',
+                icon: Icons.delete_sweep_outlined,
               ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildItem(
-                      title: avgResponseMinutes == null
-                          ? '--'
-                          : '${avgResponseMinutes!} mins',
-                      subtitle: 'Avg Response',
-                      icon: Icons.timer_outlined,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildItem(
-                      title: '--',
-                      subtitle: 'Points Today',
-                      icon: Icons.bolt,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 12),
+              _buildCardItem(
+                title: '$totalBins',
+                subtitle: 'Assigned Bins',
+                icon: Icons.assignment_outlined,
+              ),
+              const SizedBox(width: 12),
+              _buildCardItem(
+                title: avgResponseMinutes == null
+                    ? '--'
+                    : '${avgResponseMinutes!} mins',
+                subtitle: 'Avg Response',
+                icon: Icons.speed_outlined,
+              ),
+              const SizedBox(width: 12),
+              _buildCardItem(
+                title: '--',
+                subtitle: 'Points Today',
+                icon: Icons.emoji_events_outlined,
               ),
             ],
           ),
@@ -85,34 +64,48 @@ class PerformanceGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildItem({
+  Widget _buildCardItem({
     required String title,
     required String subtitle,
     required IconData icon,
   }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: AppColors.green700, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: AppTypography.h3.copyWith(
-                color: AppColors.grey900,
-                fontWeight: FontWeight.w700,
-              ),
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.green700, size: 22),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: AppTypography.h2.copyWith(
+              color: AppColors.grey900,
+              fontWeight: FontWeight.w700,
             ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
-        ),
-      ],
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
