@@ -57,6 +57,7 @@ class RequestForm extends StatefulWidget {
 }
 
 class _RequestFormState extends State<RequestForm> {
+  // DEVELOPER NOTE: Active step tracker (controls which page panel compiles in the UI).
   int currentStep = 1;
 
   @override
@@ -101,7 +102,7 @@ class _RequestFormState extends State<RequestForm> {
               value: currentStep / 3,
               backgroundColor: AppColors.grey200,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.emerald600,
+                AppColors.amber600,
               ),
               minHeight: 6,
             ),
@@ -115,7 +116,8 @@ class _RequestFormState extends State<RequestForm> {
               label: 'Next',
               icon: Icons.arrow_forward,
               onPressed: () {
-                if (widget.selectedWasteType == null || widget.selectedQuantity == null) {
+                if (widget.selectedWasteType == null ||
+                    widget.selectedQuantity == null) {
                   widget.showSnackBar(
                     'Please complete the waste type and quantity fields first.',
                     isError: true,
@@ -171,7 +173,9 @@ class _RequestFormState extends State<RequestForm> {
                               if (widget.selectedPickupDate == null ||
                                   widget.selectedTimeSlot == null ||
                                   widget.pickupLocation == null ||
-                                  widget.addressController.text.trim().isEmpty) {
+                                  widget.addressController.text
+                                      .trim()
+                                      .isEmpty) {
                                 widget.showSnackBar(
                                   'Please complete the pickup details first.',
                                   isError: true,
@@ -243,7 +247,7 @@ class _RequestFormState extends State<RequestForm> {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.emerald600,
+          backgroundColor: AppColors.amberBorder,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -266,6 +270,8 @@ class _RequestFormState extends State<RequestForm> {
     );
   }
 
+  // DEVELOPER NOTE: Step 1 Content Panel (Waste Category and Quantity selection).
+  // Layout padding, dropdown options, and style settings are configured below.
   List<Widget> _buildStep1Content() {
     return [
       _buildDropdownField(
@@ -338,6 +344,8 @@ class _RequestFormState extends State<RequestForm> {
     ];
   }
 
+  // DEVELOPER NOTE: Step 2 Content Panel (Pickup Date selection, Time Slot, and Map Location picker).
+  // Sizing parameters, border styles, input decoration paddings, and button sizes are adjusted in this block.
   List<Widget> _buildStep2Content() {
     return [
       const Text(
@@ -540,6 +548,8 @@ class _RequestFormState extends State<RequestForm> {
     );
   }
 
+  // DEVELOPER NOTE: Step 3 Content Panel (Contact Phone input, and Request Photo attachment).
+  // Field borders, text styles, element heights, and alignment configurations are detailed below.
   List<Widget> _buildStep3Content() {
     return [
       const Text(

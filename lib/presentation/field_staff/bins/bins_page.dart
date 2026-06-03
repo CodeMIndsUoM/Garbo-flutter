@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_card.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_filter_chips.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Bins page shown when the "Bins" tab is selected.
@@ -28,6 +33,9 @@ class _BinsPageState extends State<BinsPage> {
   bool _isLoading = true;
   String? _error;
   String _empId = '';
+  bool _didAttachRealtimeListener = false;
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
+  _binStatusSocketSubscription;
 
   // Use empty list initially
   List<BinModel> _bins = [];
@@ -36,6 +44,79 @@ class _BinsPageState extends State<BinsPage> {
   void initState() {
     super.initState();
     _loadEmpIdAndFetch();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didAttachRealtimeListener) {
+      return;
+    }
+    _didAttachRealtimeListener = true;
+    _attachRealtimeBinUpdates(context.read<WebSocketProvider>());
+  }
+
+  void _attachRealtimeBinUpdates(WebSocketProvider webSocketProvider) {
+    _binStatusSocketSubscription?.cancel();
+    _binStatusSocketSubscription = webSocketProvider.messageStream.listen((
+      message,
+    ) {
+      if (message.type != 'BIN_STATUS_UPDATED') {
+        return;
+      }
+
+      final payload = message.payload;
+      if (payload == null) {
+        return;
+      }
+
+      final assignedToEmpId = _parseInt(payload['assignedToEmpId']);
+      final currentEmpId = int.tryParse(_empId);
+      if (assignedToEmpId != null &&
+          currentEmpId != null &&
+          assignedToEmpId != currentEmpId) {
+        return;
+      }
+
+      _applyRealtimeBinStatus(payload);
+    });
+  }
+
+  void _applyRealtimeBinStatus(Map<String, dynamic> payload) {
+    if (!mounted) {
+      return;
+    }
+
+    final binId = payload['binId']?.toString();
+    if (binId == null || binId.isEmpty) {
+      return;
+    }
+
+    final status = _parseBinStatus(payload['status']);
+    final fillLevel = _parseInt(payload['fillLevel']);
+    final lastChecked = _parseDateTime(payload['lastChecked']);
+    final isUndo =
+        payload['changeType']?.toString().toUpperCase() == 'STATUS_UNDONE' ||
+        status == BinStatus.notChecked;
+
+    final index = _bins.indexWhere((bin) => _isSameBin(bin, binId));
+    if (index < 0) {
+      // If the backend sends a newly assigned/unknown bin, reload once so the
+      // local list catches up without requiring a manual refresh.
+      _fetchBins();
+      return;
+    }
+
+    setState(() {
+      final current = _bins[index];
+      _bins[index] = current.copyWith(
+        status: status,
+        fillLevel: fillLevel,
+        clearFillLevel: isUndo && fillLevel == null,
+        lastChecked: lastChecked,
+        clearLastChecked: isUndo,
+      );
+    });
   }
 
   Future<void> _loadEmpIdAndFetch() async {
@@ -49,6 +130,12 @@ class _BinsPageState extends State<BinsPage> {
       return;
     }
     await _fetchBins();
+  }
+
+  @override
+  void dispose() {
+    _binStatusSocketSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchBins() async {
@@ -138,6 +225,8 @@ class _BinsPageState extends State<BinsPage> {
     ),
   ];
 
+  // DEVELOPER NOTE: Main build for the Bins list page.
+  // Coordinates the search bar, filter chips, list structure, and pull-to-refresh mechanism.
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -225,6 +314,8 @@ class _BinsPageState extends State<BinsPage> {
     );
   }
 
+  // DEVELOPER NOTE: Search bar input layout.
+  // Configure styling elements such as height, color theme, border, padding, and hint text styling below.
   Widget _buildSearchBar() {
     return Container(
       height: 48,
@@ -266,7 +357,13 @@ class _BinsPageState extends State<BinsPage> {
         children: [
           Icon(Icons.check_circle_outline, size: 64, color: AppColors.grey300),
           const SizedBox(height: 16),
-          Text('No bins found', style: AppTypography.bodyLg.copyWith(fontWeight: FontWeight.w500, color: AppColors.grey500)),
+          Text(
+            'No bins found',
+            style: AppTypography.bodyLg.copyWith(
+              fontWeight: FontWeight.w500,
+              color: AppColors.grey500,
+            ),
+          ),
         ],
       ),
     );
@@ -284,6 +381,8 @@ class _BinsPageState extends State<BinsPage> {
     }
   }
 
+  // DEVELOPER NOTE: Trigger confirm dialog to undo a bin report.
+  // View or edit alert dialog layouts, action buttons, shape, color styling, and text styles in this block.
   Future<void> _handleUndo(BinModel bin) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -310,7 +409,10 @@ class _BinsPageState extends State<BinsPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text('Undo', style: AppTypography.buttonMd.copyWith(color: Colors.white)),
+            child: Text(
+              'Undo',
+              style: AppTypography.buttonMd.copyWith(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -350,5 +452,45 @@ class _BinsPageState extends State<BinsPage> {
         _fetchBins();
       }
     }
+  }
+
+  bool _isSameBin(BinModel bin, String pushedBinId) {
+    final normalizedPushId = _normalizeBinId(pushedBinId);
+    return _normalizeBinId(bin.id) == normalizedPushId ||
+        _normalizeBinId(bin.displayCode) == normalizedPushId;
+  }
+
+  String _normalizeBinId(String value) {
+    final trimmed = value.trim().toLowerCase();
+    final displayCodeMatch = RegExp(r'bin[-_\s]*(\d+)').firstMatch(trimmed);
+    if (displayCodeMatch != null) {
+      return displayCodeMatch.group(1) ?? trimmed;
+    }
+    final digitsOnly = RegExp(
+      r'\d+',
+    ).allMatches(trimmed).map((m) => m.group(0)).join();
+    return digitsOnly.isNotEmpty ? digitsOnly : trimmed;
+  }
+
+  BinStatus _parseBinStatus(dynamic value) {
+    final status = value?.toString();
+    if (status == null) return BinStatus.notChecked;
+    return BinStatus.values.firstWhere(
+      (item) => item.name.toLowerCase() == status.toLowerCase(),
+      orElse: () => BinStatus.notChecked,
+    );
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
+  DateTime? _parseDateTime(dynamic value) {
+    final text = value?.toString();
+    if (text == null || text.isEmpty) return null;
+    return DateTime.tryParse(text);
   }
 }

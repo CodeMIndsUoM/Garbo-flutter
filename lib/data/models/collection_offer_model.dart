@@ -4,8 +4,9 @@ class CollectionOfferModel {
   final int collectorId;
   final String collectorName;
   final String? collectorCompany;
-  final double pricePerUnit;
-  final String priceUnit;
+  final double? pricePerUnit;
+  final String? priceUnit;
+  final String? exchangeItem;
   final DateTime proposedPickupAt;
   final String? messageToCitizen;
   final String status;
@@ -23,6 +24,7 @@ class CollectionOfferModel {
     required this.collectorCompany,
     required this.pricePerUnit,
     required this.priceUnit,
+    required this.exchangeItem,
     required this.proposedPickupAt,
     required this.messageToCitizen,
     required this.status,
@@ -40,8 +42,9 @@ class CollectionOfferModel {
       collectorId: (json['collectorId'] as num).toInt(),
       collectorName: (json['collectorName'] ?? 'Collector').toString(),
       collectorCompany: json['collectorCompany']?.toString(),
-      pricePerUnit: (json['pricePerUnit'] as num?)?.toDouble() ?? 0,
-      priceUnit: (json['priceUnit'] ?? 'FIXED').toString(),
+      pricePerUnit: (json['pricePerUnit'] as num?)?.toDouble(),
+      priceUnit: json['priceUnit']?.toString(),
+      exchangeItem: json['exchangeItem']?.toString(),
       proposedPickupAt: DateTime.parse(json['proposedPickupAt'] as String),
       messageToCitizen: json['messageToCitizen']?.toString(),
       status: (json['status'] ?? '').toString(),

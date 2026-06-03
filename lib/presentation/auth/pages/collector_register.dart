@@ -29,7 +29,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _companyController = TextEditingController();
   final TextEditingController _contractIdController = TextEditingController();
-  final TextEditingController _contractStartController = TextEditingController();
+  final TextEditingController _contractStartController =
+      TextEditingController();
   final TextEditingController _contractEndController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
@@ -98,7 +99,9 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           _uploadingFrontPhoto = true;
         });
 
-        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoFrontFile!);
+        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(
+          _idPhotoFrontFile!,
+        );
 
         if (mounted) {
           setState(() {
@@ -128,7 +131,9 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           _uploadingBackPhoto = true;
         });
 
-        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(_idPhotoBackFile!);
+        final photoUrl = await _apiService.uploadThirdPartyNicPhoto(
+          _idPhotoBackFile!,
+        );
 
         if (mounted) {
           setState(() {
@@ -202,7 +207,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
         empName: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
-        NIC: _nicController.text.trim(),
+        nic: _nicController.text.trim(),
         dateOfBirth: _dobController.text.trim(),
         company: _companyController.text.trim().isEmpty
             ? null
@@ -359,8 +364,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                       color: index == 0
                           ? Colors.transparent
                           : (step <= _currentStep
-                              ? AppColors.green700
-                              : AppColors.grey300),
+                                ? AppColors.green700
+                                : AppColors.grey300),
                     ),
                   ),
                   // Circle
@@ -402,8 +407,8 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                       color: index == _totalSteps - 1
                           ? Colors.transparent
                           : (step < _currentStep
-                              ? AppColors.green700
-                              : AppColors.grey300),
+                                ? AppColors.green700
+                                : AppColors.grey300),
                     ),
                   ),
                 ],
@@ -414,8 +419,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                 style: AppTypography.bodySm.copyWith(
                   fontSize: 11,
                   color: isCurrent ? AppColors.green700 : AppColors.grey400,
-                  fontWeight:
-                      isCurrent ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: isCurrent ? FontWeight.w500 : FontWeight.normal,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -582,10 +586,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
               ),
               child: const Text(
                 'Previous',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -691,32 +692,48 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.emerald50 : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected ? AppColors.green700 : AppColors.grey300,
+                          color: isSelected
+                              ? AppColors.green700
+                              : AppColors.grey300,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            isSelected ? Icons.check_circle : Icons.circle_outlined,
-                            color: isSelected ? AppColors.green700 : AppColors.grey400,
+                            isSelected
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                            color: isSelected
+                                ? AppColors.green700
+                                : AppColors.grey400,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
-                          const Icon(Icons.location_city_outlined,
-                              color: AppColors.grey400, size: 18),
+                          const Icon(
+                            Icons.location_city_outlined,
+                            color: AppColors.grey400,
+                            size: 18,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               council,
                               style: AppTypography.bodySm.copyWith(
-                                color: isSelected ? AppColors.green700 : AppColors.grey700,
-                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                                color: isSelected
+                                    ? AppColors.green700
+                                    : AppColors.grey700,
+                                fontWeight: isSelected
+                                    ? FontWeight.w500
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -791,67 +808,67 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           child: uploading
               ? const Center(child: CircularProgressIndicator())
               : file != null
-                  ? Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Image.file(
-                            file,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          ),
+              ? Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
                         ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 36,
+                        color: AppColors.grey400,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        title,
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.grey600,
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (isOptional) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '(Optional)',
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.grey400,
+                            fontSize: 11,
                           ),
                         ),
                       ],
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.add_photo_alternate_outlined,
-                            size: 36,
-                            color: AppColors.grey400,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            title,
-                            style: AppTypography.bodySm.copyWith(
-                              color: AppColors.grey600,
-                              fontSize: 12,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          if (isOptional) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              '(Optional)',
-                              style: AppTypography.bodySm.copyWith(
-                                color: AppColors.grey400,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
@@ -882,9 +899,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTypography.bodySm.copyWith(
-              color: AppColors.grey400,
-            ),
+            hintStyle: AppTypography.bodySm.copyWith(color: AppColors.grey400),
             prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
             filled: true,
             fillColor: Colors.white,
@@ -933,9 +948,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
           onTap: () => _selectDate(controller),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTypography.bodySm.copyWith(
-              color: AppColors.grey400,
-            ),
+            hintStyle: AppTypography.bodySm.copyWith(color: AppColors.grey400),
             prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
             suffixIcon: const Icon(
               Icons.calendar_today_outlined,
