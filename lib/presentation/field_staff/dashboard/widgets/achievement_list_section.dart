@@ -69,7 +69,7 @@ class AchievementListSection extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.emerald50,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(

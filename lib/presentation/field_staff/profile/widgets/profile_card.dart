@@ -8,6 +8,8 @@ class ProfileCard extends StatelessWidget {
   final String employeeId;
   final String email;
   final String joinedDate;
+  final String? avatarUrl;
+  final VoidCallback? onEditTap;
 
   const ProfileCard({
     super.key,
@@ -16,6 +18,8 @@ class ProfileCard extends StatelessWidget {
     required this.employeeId,
     required this.email,
     required this.joinedDate,
+    this.avatarUrl,
+    this.onEditTap,
   });
 
   String get _initials {
@@ -31,49 +35,106 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 10,
-            offset: Offset(0, 8),
-            spreadRadius: -6,
-          ),
-        ],
-      ),
+      color: Colors.transparent,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                alignment: Alignment.center,
-                child: Text(_initials, style: AppTypography.displayLg.copyWith(color: AppColors.grey900)),
+              // Round Profile Icon with camera badge
+              Stack(
+                children: [
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: const BoxDecoration(
+                      color: AppColors.grey100,
+                      shape: BoxShape.circle,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    alignment: Alignment.center,
+                    child: (avatarUrl != null && avatarUrl!.isNotEmpty)
+                        ? Image.network(
+                            avatarUrl!,
+                            fit: BoxFit.cover,
+                            width: 76,
+                            height: 76,
+                            errorBuilder: (_, __, ___) => Text(
+                              _initials,
+                              style: AppTypography.displayLg.copyWith(
+                                color: AppColors.grey900,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            _initials,
+                            style: AppTypography.displayLg.copyWith(
+                              color: AppColors.grey900,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      onTap: onEditTap,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: AppColors.green700,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadowSm,
+                              blurRadius: 2,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: AppTypography.h2.copyWith(color: AppColors.grey900)),
-                    const SizedBox(height: 2),
+                    Text(
+                      name,
+                      style: AppTypography.h2.copyWith(
+                        color: AppColors.grey900,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(role, style: AppTypography.bodySm.copyWith(color: AppColors.grey600)),
                     const SizedBox(height: 2),
                     Text('ID: $employeeId', style: AppTypography.captionSm.copyWith(color: AppColors.grey500)),
                   ],
                 ),
               ),
+              // Edit Icon at the right top corner of this section
+              if (onEditTap != null)
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.grey500,
+                    size: 22,
+                  ),
+                  onPressed: onEditTap,
+                  tooltip: 'Edit Profile',
+                ),
             ],
           ),
           const SizedBox(height: 24),
@@ -104,20 +165,37 @@ class ProfileCard extends StatelessWidget {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.grey100, width: 1),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTypography.overline.copyWith(fontWeight: FontWeight.w400, letterSpacing: 0, color: AppColors.grey600)),
+          Text(
+            label,
+            style: AppTypography.overline.copyWith(
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0,
+              color: AppColors.grey500,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: AppTypography.captionSm.copyWith(fontWeight: FontWeight.w700, color: AppColors.grey900),
+            style: AppTypography.captionSm.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.grey900,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ],

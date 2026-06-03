@@ -137,12 +137,12 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.27),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 4),
-            blurRadius: 10,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -355,8 +355,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             boxShadow: const [
               BoxShadow(
                 color: AppColors.shadowSm,
-                blurRadius: 6,
-                offset: Offset(0, 2),
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -592,8 +592,15 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.grey200,
-          width: 1.27,
+          width: 1.2,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -701,8 +708,15 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.grey200),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.grey200, width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.shadowSm,
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
             child: const Text(
               'No completed achievements yet. Progress updates will appear here in realtime.',
@@ -748,13 +762,13 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.grey100, width: 1.27),
-            boxShadow: [
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                offset: const Offset(0, 1),
+                color: AppColors.shadowSm,
                 blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),

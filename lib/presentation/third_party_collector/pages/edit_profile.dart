@@ -86,7 +86,7 @@ class _ThirdPartyEditProfilePageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           _buildHeader(context),
@@ -180,12 +180,12 @@ class _ThirdPartyEditProfilePageState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -296,12 +296,12 @@ class _ThirdPartyEditProfilePageState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),

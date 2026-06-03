@@ -47,7 +47,14 @@ class RouteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignTokens.grey200, width: 1.275),
+        border: Border.all(color: DesignTokens.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: DesignTokens.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

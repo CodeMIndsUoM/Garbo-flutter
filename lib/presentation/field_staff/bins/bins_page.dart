@@ -252,35 +252,34 @@ class _BinsPageState extends State<BinsPage> {
       color: AppColors.grey50,
       child: Column(
         children: [
+          // Static header containing Search Bar & Filter Chips
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Search bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                child: _buildSearchBar(),
+              ),
+              // Filter chips
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: BinFilterChips(
+                  filters: _filterItems,
+                  selectedFilter: _selectedFilter,
+                  onFilterChanged: (filter) {
+                    setState(() => _selectedFilter = filter);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _fetchBins,
               child: CustomScrollView(
                 slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Search bar
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
-                          child: _buildSearchBar(),
-                        ),
-                        // Filter chips
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: BinFilterChips(
-                            filters: _filterItems,
-                            selectedFilter: _selectedFilter,
-                            onFilterChanged: (filter) {
-                              setState(() => _selectedFilter = filter);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
                   _filteredBins.isEmpty
                       ? SliverFillRemaining(
                           hasScrollBody: false,
@@ -320,7 +319,7 @@ class _BinsPageState extends State<BinsPage> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
       ),

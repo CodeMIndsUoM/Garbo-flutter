@@ -97,7 +97,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: AppColors.grey50,
+        backgroundColor: Colors.white,
         body: const Center(
           child: CircularProgressIndicator(color: AppColors.green700),
         ),
@@ -106,7 +106,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildProfileHeader(context)),
@@ -149,7 +149,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
         22,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.grey50,
+        color: Colors.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,13 +263,13 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 2),
-            blurRadius: 4,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -315,9 +315,8 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -406,14 +405,13 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -461,7 +459,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.emerald50,
+              color: Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
@@ -492,16 +490,16 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
   Widget _buildSettingsCard(BuildContext context) {
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -551,7 +549,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.emerald50,
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 alignment: Alignment.center,
@@ -581,35 +579,44 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   // ── Logout Button ────────────────────────────────────────────────────
 
   Widget _buildLogoutButton(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: () => _confirmLogout(context),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.red100, width: 1),
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.red100, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.logout_rounded,
-                color: AppColors.red500,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Log Out',
-                style: AppTypography.buttonMd.copyWith(
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _confirmLogout(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.logout_rounded,
                   color: AppColors.red500,
-                  fontWeight: FontWeight.w700,
+                  size: 18,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  'Log Out',
+                  style: AppTypography.buttonMd.copyWith(
+                    color: AppColors.red500,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

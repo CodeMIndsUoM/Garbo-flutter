@@ -125,13 +125,13 @@ class RequestsList extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.grey200, width: 1.2),
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      offset: const Offset(0, 1),
-                      blurRadius: 6,
-                      spreadRadius: -1,
+                      color: AppColors.shadowSm,
+                      blurRadius: 3,
+                      offset: Offset(0, 1),
                     ),
                   ],
                 ),
@@ -256,8 +256,15 @@ class RequestsList extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.emerald500.withValues(alpha: 0.3), width: 1.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

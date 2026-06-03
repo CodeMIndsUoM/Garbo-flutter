@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
-import 'package:garbo_swms/presentation/citizen/pages/settings.dart';
+import 'package:garbo_swms/presentation/widgets/notifications_page.dart';
 
 class CitizenHeader extends StatelessWidget {
   final String name;
@@ -15,11 +15,13 @@ class CitizenHeader extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
         20,
-        MediaQuery.of(context).padding.top + 16,
+        MediaQuery.of(context).padding.top + 10,
         20,
-        18,
+        10,
       ),
-      decoration: const BoxDecoration(color: AppColors.grey50),
+      decoration: BoxDecoration(
+        color: name == 'Profile' ? Colors.white : AppColors.grey50,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -31,18 +33,17 @@ class CitizenHeader extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const CitizenSettingsPage(),
+                  builder: (context) => const NotificationsPage(),
                 ),
               );
             },
             child: Container(
               width: 44,
               height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(14),
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
               ),
-              child: const Icon(Icons.menu, color: AppColors.grey900),
+              child: const Icon(Icons.notifications_outlined, color: AppColors.grey900),
             ),
           ),
         ],

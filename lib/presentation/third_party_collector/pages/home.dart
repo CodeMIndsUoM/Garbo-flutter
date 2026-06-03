@@ -204,14 +204,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -291,14 +290,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -443,14 +441,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         child: Ink(
           decoration: BoxDecoration(
             color: bgColor,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 6,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -501,14 +498,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -572,14 +568,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -726,8 +721,15 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.grey200, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         children: [

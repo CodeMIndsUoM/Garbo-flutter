@@ -54,9 +54,8 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSm,
-            offset: Offset(0, 4),
-            blurRadius: 16,
-            spreadRadius: -4,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -94,32 +93,14 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Flexible(
-                            child: Text(
-                              'Hello, Micheal',
-                              style: TextStyle(
-                                color: AppColors.citizenGrey900,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Text('👋', style: TextStyle(fontSize: 18)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
+                    children: const [
                       Text(
                         "Let's make our city cleaner",
                         style: TextStyle(
-                          color: AppColors.citizenGrey600,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+                          color: AppColors.citizenGrey900,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
                         ),
                       ),
                     ],
@@ -257,12 +238,11 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                offset: const Offset(0, 2),
-                blurRadius: 8,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -355,13 +335,13 @@ class CitizenHomePageState extends State<CitizenHomePage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 1),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -423,13 +403,12 @@ class CitizenHomePageState extends State<CitizenHomePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.emerald500.withValues(alpha: 0.3), width: 1.2),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),

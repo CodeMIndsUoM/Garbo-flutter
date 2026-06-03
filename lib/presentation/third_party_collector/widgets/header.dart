@@ -22,9 +22,9 @@ class ThirdPartyHeader extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
         20,
-        MediaQuery.of(context).padding.top + 14,
+        MediaQuery.of(context).padding.top + 10,
         20,
-        18,
+        10,
       ),
       decoration: const BoxDecoration(
         color: AppColors.grey50,
