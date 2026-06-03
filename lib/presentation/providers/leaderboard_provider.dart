@@ -3,15 +3,14 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 /// LeaderboardProvider manages real-time leaderboard data from WebSocket updates
 class LeaderboardProvider extends ChangeNotifier {
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   final WebSocketProvider webSocketProvider;
 
@@ -19,6 +18,12 @@ class LeaderboardProvider extends ChangeNotifier {
   String? _errorMessage;
   int _lastUpdateTime = 0;
   LeaderboardChangedUserPayload? _lastChangedUser;
+  LeaderboardEntryDto? _userRankEntry;
+  int? _trackedUserId;
+  String? _trackedRole;
+  bool _isLoadingSnapshot = false;
+  bool _isLoadingUserRank = false;
+  bool _pendingSnapshotReload = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
       _messageSubscription;
 
@@ -26,37 +31,153 @@ class LeaderboardProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   int get lastUpdateTime => _lastUpdateTime;
   LeaderboardChangedUserPayload? get lastChangedUser => _lastChangedUser;
+  LeaderboardEntryDto? get userRankEntry => _userRankEntry;
   bool get hasData => _leaderboardEntries.isNotEmpty;
+  bool get isLoadingSnapshot => _isLoadingSnapshot;
 
   LeaderboardProvider(this.webSocketProvider) {
     _listenToLeaderboardUpdates();
+  }
+
+  void trackUser(int? userId, {String? role}) {
+    final normalizedRole = _normalizeRole(role);
+    if (_trackedUserId == userId && _trackedRole == normalizedRole) {
+      return;
+    }
+    _trackedUserId = userId;
+    _trackedRole = normalizedRole;
+    if (userId == null) {
+      _userRankEntry = null;
+      notifyListeners();
+      return;
+    }
     loadSnapshot();
   }
 
   Future<void> loadSnapshot({int limit = 10}) async {
+    if (_isLoadingSnapshot) {
+      _pendingSnapshotReload = true;
+      return;
+    }
+
+    _isLoadingSnapshot = true;
+    _errorMessage = null;
+    notifyListeners();
     try {
+      final headers = await _buildAuthHeaders();
+      final roleQuery =
+          _trackedRole != null && _trackedRole!.isNotEmpty
+              ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
+              : '';
+      final userQuery = _trackedUserId != null ? '&userId=$_trackedUserId' : '';
       final response = await http
-          .get(Uri.parse('$_baseUrl/api/leaderboard/top?limit=$limit'))
-          .timeout(const Duration(seconds: 10));
+          .get(
+            Uri.parse('$_baseUrl/leaderboard/top?limit=$limit$roleQuery$userQuery'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 20));
 
       if (response.statusCode != 200) {
+        _errorMessage =
+            'Failed to load leaderboard (${response.statusCode})';
+        notifyListeners();
         return;
       }
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       if (body['success'] != true || body['data'] is! Map<String, dynamic>) {
+        _errorMessage =
+            body['message']?.toString() ?? 'Failed to load leaderboard';
+        notifyListeners();
         return;
       }
 
       final payload = body['data'] as Map<String, dynamic>;
       final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
-      _leaderboardEntries = leaderboardData.entries;
+      _leaderboardEntries = _filterEntriesByTrackedRole(leaderboardData.entries);
       _lastUpdateTime = leaderboardData.updatedAt;
       _lastChangedUser = leaderboardData.changedUser;
+      if (_trackedUserId == null) {
+        _userRankEntry = null;
+      }
+      if (_trackedUserId != null) {
+        await fetchUserRank(_trackedUserId!, role: _trackedRole);
+      }
       _errorMessage = null;
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to load leaderboard snapshot: $e');
+      _errorMessage = 'Failed to load leaderboard: $e';
+      notifyListeners();
+    } finally {
+      _isLoadingSnapshot = false;
+      notifyListeners();
+      if (_pendingSnapshotReload) {
+        _pendingSnapshotReload = false;
+        unawaited(loadSnapshot(limit: limit));
+      }
+    }
+  }
+
+  /// Fetch the current logged-in user's rank from the server
+  Future<void> fetchUserRank(int userId, {String? role}) async {
+    final normalizedRole = _normalizeRole(role);
+    if (_trackedUserId == userId && _leaderboardEntries.isNotEmpty) {
+      final topEntry = _leaderboardEntries.cast<LeaderboardEntryDto?>().firstWhere(
+        (entry) => entry?.userId == userId,
+        orElse: () => _userRankEntry,
+      );
+      if (topEntry != null) {
+        _userRankEntry = topEntry;
+        notifyListeners();
+        return;
+      }
+    }
+
+    if (_isLoadingUserRank) {
+      return;
+    }
+
+    _isLoadingUserRank = true;
+    try {
+      final headers = await _buildAuthHeaders();
+      final roleQuery =
+          normalizedRole != null && normalizedRole.isNotEmpty
+              ? '?role=${Uri.encodeQueryComponent(normalizedRole)}'
+              : '';
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/leaderboard/user/$userId$roleQuery'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 20));
+
+      if (response.statusCode != 200) {
+        _userRankEntry = null;
+        notifyListeners();
+        return;
+      }
+
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (body['success'] != true) {
+        _userRankEntry = null;
+        notifyListeners();
+        return;
+      }
+
+      final data = body['data'];
+      if (data != null && data is Map<String, dynamic>) {
+        _userRankEntry = LeaderboardEntryDto.fromJson(data);
+      } else {
+        _userRankEntry = null;
+      }
+      _errorMessage = null;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to fetch user rank: $e');
+      _userRankEntry = null;
+    } finally {
+      _isLoadingUserRank = false;
     }
   }
 
@@ -72,15 +193,23 @@ class LeaderboardProvider extends ChangeNotifier {
             final leaderboardData = LeaderboardUpdatePayload.fromJson(
               payload,
             );
-            _leaderboardEntries = leaderboardData.entries;
+            _leaderboardEntries = _filterEntriesByTrackedRole(
+              leaderboardData.entries,
+            );
             _lastUpdateTime = leaderboardData.updatedAt;
-            _lastChangedUser = leaderboardData.changedUser;
+            _lastChangedUser = _shouldKeepChangedUser(leaderboardData.changedUser)
+                ? leaderboardData.changedUser
+                : null;
             _errorMessage = null;
 
             debugPrint(
               'Leaderboard update received: ${_leaderboardEntries.length} entries, changedUser=${_lastChangedUser?.userId}, rankDelta=${_lastChangedUser?.rankDelta}, scoreDelta=${_lastChangedUser?.scoreDelta}',
             );
-            notifyListeners();
+            if (_trackedUserId != null) {
+              unawaited(loadSnapshot());
+            } else {
+              notifyListeners();
+            }
           }
         } catch (e) {
           debugPrint('Error parsing leaderboard update: $e');
@@ -97,6 +226,15 @@ class LeaderboardProvider extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    return <String, String>{
+      'Content-Type': 'application/json',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
   /// Get top N entries
   List<LeaderboardEntryDto> getTopEntries(int limit) {
     return _leaderboardEntries.take(limit).toList();
@@ -104,6 +242,9 @@ class LeaderboardProvider extends ChangeNotifier {
 
   /// Get user's rank (returns null if not in top 10)
   LeaderboardEntryDto? getUserRank(int userId) {
+    if (_userRankEntry?.userId == userId) {
+      return _userRankEntry;
+    }
     try {
       return _leaderboardEntries.firstWhere(
         (entry) => entry.userId == userId,
@@ -154,5 +295,52 @@ class LeaderboardProvider extends ChangeNotifier {
     }
     return changed.userId == entry.userId &&
         changed.role.toUpperCase() == entry.role.toUpperCase();
+  }
+
+  List<LeaderboardEntryDto> _filterEntriesByTrackedRole(
+    List<LeaderboardEntryDto> entries,
+  ) {
+    final trackedRole = _normalizeRole(_trackedRole);
+    if (trackedRole == null || trackedRole.isEmpty) {
+      return entries;
+    }
+
+    return entries
+        .where((entry) => _normalizeRole(entry.role) == trackedRole)
+        .toList();
+  }
+
+  bool _shouldKeepChangedUser(LeaderboardChangedUserPayload? changedUser) {
+    if (changedUser == null) {
+      return false;
+    }
+
+    final trackedRole = _normalizeRole(_trackedRole);
+    if (trackedRole == null || trackedRole.isEmpty) {
+      return true;
+    }
+
+    return _normalizeRole(changedUser.role) == trackedRole;
+  }
+
+  String? _normalizeRole(String? role) {
+    final value = role?.trim();
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+
+    final normalized = value
+        .replaceAll('-', '_')
+        .replaceAll(' ', '_')
+        .toUpperCase();
+
+    if (normalized == 'BIN_COLLECTOR' || normalized == 'COLLECTION_TEAM') {
+      return 'COLLECTOR';
+    }
+    if (normalized == 'FIELD_STAFF') {
+      return 'FIELD_MENTOR';
+    }
+
+    return normalized;
   }
 }

@@ -2,30 +2,25 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as status;
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 
-/// Low-level WebSocket client for GARBO real-time updates.
-/// Handles connection, handshaking, and message streaming.
+/// STOMP client for GARBO real-time updates.
+/// Keeps the Flutter app aligned with the dashboard's socket contract.
 class WebSocketService {
-  WebSocketChannel? _channel;
+  StompClient? _client;
   late StreamController<WebSocketMessage<Map<String, dynamic>>>
       _messageController;
   late StreamController<ConnectionStatus> _statusController;
   
-  String? _serverUrl;
   int? _userId;
   bool _isConnected = false;
   bool _isAuthenticated = false;
   bool _manualDisconnect = false;
   bool _isDisposed = false;
   ConnectionStatus _currentStatus = ConnectionStatus.disconnected;
-  Timer? _reconnectTimer;
-  StreamSubscription? _channelSubscription;
-  int _reconnectAttempt = 0;
-  static const int maxReconnectAttempts = 5;
-  static const Duration initialReconnectDelay = Duration(seconds: 1);
+  final List<VoidCallback> _unsubscribeCallbacks = [];
+  Completer<void>? _connectCompleter;
 
   /// Stream of incoming WebSocket messages
   Stream<WebSocketMessage<Map<String, dynamic>>> get messageStream =>
@@ -55,245 +50,254 @@ class WebSocketService {
   /// Connect to WebSocket server
   Future<void> connect(String serverUrl, int userId) async {
     try {
+      await disconnect();
       _manualDisconnect = false;
-      _serverUrl = serverUrl;
       _userId = userId;
       _isConnected = false;
       _isAuthenticated = false;
       
       _setStatus(ConnectionStatus.connecting);
       
-      final wsUrl = _toWebSocketUrl(serverUrl);
-      debugPrint('Connecting to WebSocket: $wsUrl');
-      
-      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-      _isConnected = true;
-      
-      // Listen to incoming messages
-      _channelSubscription?.cancel();
-      _channelSubscription = _channel!.stream.listen(
-        _onMessageReceived,
-        onError: _onError,
-        onDone: _onDone,
-      );
-      
-      _reconnectAttempt = 0;
+      final wsUrl = _toSockJsUrl(serverUrl);
+      debugPrint('Connecting to STOMP socket: $wsUrl');
 
-      // Send AUTH handshake
-      await sendAuthHandshake(userId);
+      _connectCompleter = Completer<void>();
+
+      _client = StompClient(
+        config: StompConfig.sockJS(
+          url: wsUrl,
+          reconnectDelay: const Duration(seconds: 3),
+          onConnect: _onStompConnect,
+          onWebSocketError: _onWebSocketError,
+          onWebSocketDone: _onWebSocketDone,
+          onStompError: _onStompError,
+        ),
+      );
+
+      _client!.activate();
+
+      try {
+        await _connectCompleter!.future.timeout(const Duration(seconds: 20));
+      } on TimeoutException {
+        debugPrint(
+          'STOMP initial connect timed out; keeping client active for background reconnect.',
+        );
+        if (!_manualDisconnect) {
+          _setStatus(ConnectionStatus.reconnecting);
+        }
+        return;
+      }
       
     } catch (e) {
-      debugPrint('WebSocket connection error: $e');
+      debugPrint('STOMP connection error: $e');
       _isConnected = false;
-      _setStatus(ConnectionStatus.error);
-      _scheduleReconnect();
-    }
-  }
-
-  String _toWebSocketUrl(String baseUrl) {
-    final uri = Uri.parse(baseUrl);
-    final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
-    String basePath = uri.path;
-    
-    // Strip trailing slash
-    if (basePath.endsWith('/')) {
-      basePath = basePath.substring(0, basePath.length - 1);
-    }
-    
-    // Strip '/api' if it exists at the end of the path
-    if (basePath.endsWith('/api')) {
-      basePath = basePath.substring(0, basePath.length - 4);
-    }
-    
-    final wsPath = '$basePath/ws'.replaceAll('//', '/');
-    return uri.replace(scheme: wsScheme, path: wsPath).toString();
-  }
-
-  /// Send AUTH handshake to server
-  Future<void> sendAuthHandshake(int userId) async {
-    try {
-      final authPayload = AuthPayload(userId: userId);
-      final message = WebSocketMessage<AuthPayload>(
-        type: 'AUTH',
-        userId: userId,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        payload: authPayload,
-      );
-      
-      final jsonStr = jsonEncode({
-        'type': message.type,
-        'userId': message.userId,
-        'timestamp': message.timestamp,
-        'payload': message.payload?.toJson(),
-      });
-      
-      _channel?.sink.add(jsonStr);
-      debugPrint('AUTH handshake sent');
-      
-      // Wait for CONFIRMED response with timeout.
-      await _waitForConfirmedMessage();
-      
-    } catch (e) {
-      debugPrint('Auth handshake error: $e');
-      _isAuthenticated = false;
-      disconnect();
+      if (!_manualDisconnect) {
+        _setStatus(ConnectionStatus.error);
+      }
       rethrow;
     }
   }
 
-  /// Wait for CONFIRMED message from server
-  Future<void> _waitForConfirmedMessage() {
-    final completer = Completer<void>();
-    StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? subscription;
-    Timer? timeoutTimer;
-
-    void finishError(Object error) {
-      timeoutTimer?.cancel();
-      subscription?.cancel();
-      if (!completer.isCompleted) {
-        completer.completeError(error);
-      }
-    }
-
-    timeoutTimer = Timer(const Duration(seconds: 5), () {
-      finishError(Exception('AUTH confirmation timeout'));
-    });
-    
-    subscription = messageStream.listen((message) {
-      if (message.type == 'CONFIRMED') {
-        _isAuthenticated = true;
-        _setStatus(ConnectionStatus.connected);
-        timeoutTimer?.cancel();
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-        subscription?.cancel();
-      }
-    }, onError: finishError);
-
-    completer.future.whenComplete(() {
-      timeoutTimer?.cancel();
-      subscription?.cancel();
-    });
-
-    return completer.future;
+  String _toSockJsUrl(String baseUrl) {
+    final uri = Uri.parse(baseUrl);
+    final basePath = uri.path.endsWith('/api')
+        ? uri.path.substring(0, uri.path.length - 4)
+        : uri.path;
+    final wsPath = '$basePath/ws'.replaceAll('//', '/');
+    return uri.replace(path: wsPath).toString();
   }
 
-  /// Handle incoming messages
-  void _onMessageReceived(dynamic data) {
+  void _onStompConnect(StompFrame frame) {
+    debugPrint('STOMP connected');
+    _isConnected = true;
+    _isAuthenticated = true;
+    _setStatus(ConnectionStatus.connected);
+
+    _clearSubscriptions();
+    final userId = _userId;
+    if (userId != null) {
+      _subscribe('/topic/users/$userId', _handleUserMessageFrame);
+      _subscribe('/topic/routes/users/$userId', _handleRouteSnapshotFrame);
+      _requestAssignedRoutes(userId);
+    }
+
+    if (_connectCompleter != null && !_connectCompleter!.isCompleted) {
+      _connectCompleter!.complete();
+    }
+  }
+
+  void _subscribe(String destination, void Function(StompFrame frame) handler) {
     try {
-      final jsonData = jsonDecode(data as String) as Map<String, dynamic>;
-      final message = WebSocketMessage<Map<String, dynamic>>.fromJson(jsonData);
-
-      debugPrint('Received message: ${message.type}');
-      if (!_isDisposed && !_messageController.isClosed) {
-        _messageController.add(message);
+      final unsubscribe = _client?.subscribe(
+        destination: destination,
+        callback: handler,
+      );
+      if (unsubscribe != null) {
+        _unsubscribeCallbacks.add(unsubscribe);
       }
-      
     } catch (e) {
-      debugPrint('Error parsing message: $e');
-      if (!_isDisposed && !_messageController.isClosed) {
-        _messageController.addError(e);
-      }
+      debugPrint('Failed to subscribe to $destination: $e');
     }
   }
 
-  /// Handle connection error
-  void _onError(dynamic error) {
-    debugPrint('WebSocket error: $error');
+  void _requestAssignedRoutes(int userId) {
+    try {
+      _client?.send(
+        destination: '/app/routes/refresh',
+        body: jsonEncode({'userId': userId}),
+      );
+    } catch (e) {
+      debugPrint('Failed to request assigned routes: $e');
+    }
+  }
+
+  void _handleUserMessageFrame(StompFrame frame) {
+    final body = frame.body;
+    if (body == null || body.isEmpty) {
+      return;
+    }
+
+    try {
+      final jsonData = jsonDecode(body);
+      if (jsonData is! Map<String, dynamic>) {
+        return;
+      }
+
+      final message = WebSocketMessage<Map<String, dynamic>>.fromJson(jsonData);
+      _emitMessage(message);
+    } catch (e) {
+      debugPrint('Error parsing STOMP user message: $e');
+    }
+  }
+
+  void _handleRouteSnapshotFrame(StompFrame frame) {
+    final body = frame.body;
+    if (body == null || body.isEmpty) {
+      return;
+    }
+
+    try {
+      final jsonData = jsonDecode(body);
+      if (jsonData is! Map<String, dynamic>) {
+        return;
+      }
+
+      final route = jsonData['route'];
+      if (route is! Map<String, dynamic>) {
+        return;
+      }
+
+      final payload = <String, dynamic>{
+        'sessionId': jsonData['sessionId']?.toString() ?? '',
+        'userId': jsonData['userId'],
+        'totalVehiclesUsed': route['totalVehiclesUsed'],
+        'routes': route['routes'],
+        'updatedAt': jsonData['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch,
+      };
+
+      final message = WebSocketMessage<Map<String, dynamic>>(
+        type: 'ROUTE_UPDATE',
+        userId: _userId,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        payload: payload,
+      );
+
+      _emitMessage(message);
+    } catch (e) {
+      debugPrint('Error parsing route snapshot: $e');
+    }
+  }
+
+  void _emitMessage(WebSocketMessage<Map<String, dynamic>> message) {
+    debugPrint('Received message: ${message.type}');
+    if (!_isDisposed && !_messageController.isClosed) {
+      _messageController.add(message);
+    }
+  }
+
+  void _onWebSocketError(dynamic error) {
+    debugPrint('STOMP websocket error: $error');
     _isConnected = false;
     _isAuthenticated = false;
     _setStatus(ConnectionStatus.error);
-    if (!_manualDisconnect) {
-      _scheduleReconnect();
+    if (_connectCompleter != null && !_connectCompleter!.isCompleted) {
+      _connectCompleter!.completeError(Exception(error.toString()));
     }
   }
 
-  /// Handle connection closed
-  void _onDone() {
-    debugPrint('WebSocket connection closed');
+  void _onWebSocketDone() {
+    debugPrint('STOMP websocket closed');
     _isConnected = false;
     _isAuthenticated = false;
-    _setStatus(ConnectionStatus.disconnected);
-    if (!_manualDisconnect) {
-      _scheduleReconnect();
+    if (_manualDisconnect) {
+      _setStatus(ConnectionStatus.disconnected);
+    } else {
+      _setStatus(ConnectionStatus.reconnecting);
     }
   }
 
-  /// Schedule automatic reconnection with exponential backoff
-  void _scheduleReconnect() {
-    if (_manualDisconnect || _isDisposed) {
-      return;
+  void _onStompError(StompFrame frame) {
+    debugPrint('STOMP broker error: ${frame.body ?? frame.headers}');
+    _isConnected = false;
+    _isAuthenticated = false;
+    _setStatus(ConnectionStatus.error);
+    if (_connectCompleter != null && !_connectCompleter!.isCompleted) {
+      _connectCompleter!.completeError(
+        Exception(frame.body ?? 'STOMP broker error'),
+      );
     }
+  }
 
-    if (_reconnectAttempt >= maxReconnectAttempts) {
-      debugPrint('Max reconnection attempts reached');
-      _setStatus(ConnectionStatus.reconnectionFailed);
-      return;
-    }
-    
-    _reconnectAttempt++;
-    final delaySeconds = (initialReconnectDelay.inSeconds) *
-        (1 << (_reconnectAttempt - 1)); // Exponential backoff
-    final capped = delaySeconds > 8 ? 8 : delaySeconds;
-
-    debugPrint('Reconnecting in ${capped}s (attempt $_reconnectAttempt)');
-    _setStatus(ConnectionStatus.reconnecting);
-    
-    _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(Duration(seconds: capped), () async {
-      if (_serverUrl != null && _userId != null) {
-        await connect(_serverUrl!, _userId!);
+  void _clearSubscriptions() {
+    for (final unsubscribe in _unsubscribeCallbacks) {
+      try {
+        unsubscribe();
+      } catch (_) {
+        // Ignore unsubscribe errors during reconnect/dispose.
       }
-    });
+    }
+    _unsubscribeCallbacks.clear();
   }
 
   /// Send a message to the server
   void send(WebSocketMessage<dynamic> message) {
-    if (!_isAuthenticated) {
-      debugPrint('Cannot send message: not authenticated');
+    final client = _client;
+    if (client == null) {
       return;
     }
-    
-    try {
-      final jsonStr = jsonEncode({
-        'type': message.type,
-        'userId': message.userId,
-        'timestamp': message.timestamp,
-        'payload': message.payload,
-      });
-      _channel?.sink.add(jsonStr);
-    } catch (e) {
-      debugPrint('Error sending message: $e');
+
+    if (message.type.toUpperCase() != 'ROUTE_REFRESH') {
+      debugPrint('STOMP send() is only enabled for ROUTE_REFRESH.');
+      return;
     }
+
+    client.send(
+      destination: '/app/routes/refresh',
+      body: jsonEncode(message.toJson()),
+    );
   }
 
   /// Disconnect WebSocket
   Future<void> disconnect() async {
     _manualDisconnect = true;
-    _reconnectTimer?.cancel();
     _isConnected = false;
     _isAuthenticated = false;
-    
+    _connectCompleter = null;
+    _clearSubscriptions();
     try {
-      await _channelSubscription?.cancel();
-      if (_channel != null) {
-        await _channel!.sink.close(status.goingAway);
-      }
-      _setStatus(ConnectionStatus.disconnected);
-      debugPrint('WebSocket disconnected');
+      _client?.deactivate();
     } catch (e) {
-      debugPrint('Error disconnecting: $e');
+      debugPrint('Error disconnecting STOMP client: $e');
     } finally {
-      _channel = null;
+      _client = null;
+      _setStatus(ConnectionStatus.disconnected);
     }
   }
 
   /// Dispose resources
   void dispose() {
     _isDisposed = true;
-    _reconnectTimer?.cancel();
-    _channelSubscription?.cancel();
+    _clearSubscriptions();
     disconnect();
     _messageController.close();
     _statusController.close();

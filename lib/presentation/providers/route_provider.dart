@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
@@ -9,10 +11,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 /// RouteProvider manages real-time route data from WebSocket updates
 class RouteProvider extends ChangeNotifier {
   final WebSocketProvider webSocketProvider;
-  static const String _baseUrl = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://localhost:8080',
-  );
+  static const String _baseUrl = ApiConstants.baseUrl;
 
   RouteUpdatePayload? _currentRouteUpdate;
   List<VehicleRoute> _routes = [];
@@ -25,10 +24,13 @@ class RouteProvider extends ChangeNotifier {
   final Map<String, Map<int, DateTime>> _binTimestampsBySession = {};
   final Map<String, DateTime> _routeStartedAtBySession = {};
   final Set<String> _reportedCompletedRoutes = <String>{};
+  final Set<String> _pendingRouteCompletionReports = <String>{};
+  final Set<int> _pendingAssignedRouteRetries = <int>{};
+  final Set<String> _assignedSessionIds = <String>{};
+  final Map<String, int> _sessionUpdatedAtById = <String, int>{};
+  int? _boundUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _messageSubscription;
-
-  static const Duration _binCollectionAckTimeout = Duration(seconds: 5);
 
   RouteUpdatePayload? get currentRouteUpdate => _currentRouteUpdate;
   List<VehicleRoute> get routes => _routes;
@@ -44,6 +46,15 @@ class RouteProvider extends ChangeNotifier {
     _listenToRouteUpdates();
   }
 
+  void bindToUser(int userId) {
+    if (_boundUserId == userId) {
+      return;
+    }
+    _boundUserId = userId;
+    _resetRouteState();
+    notifyListeners();
+  }
+
   /// Listen to ROUTE_UPDATE messages from WebSocket
   void _listenToRouteUpdates() {
     _messageSubscription?.cancel();
@@ -54,6 +65,9 @@ class RouteProvider extends ChangeNotifier {
           final payload = message.payload;
           if (payload != null) {
             final routeData = RouteUpdatePayload.fromJson(payload);
+            if (!_shouldAcceptRouteUpdate(routeData)) {
+              return;
+            }
             _currentRouteUpdate = routeData;
             _routes = routeData.routes.values.toList();
             _lastUpdateTime = routeData.updatedAt;
@@ -318,7 +332,8 @@ class RouteProvider extends ChangeNotifier {
     required int userId,
     required String sessionId,
   }) async {
-    if (_reportedCompletedRoutes.contains(sessionId)) {
+    if (_reportedCompletedRoutes.contains(sessionId) ||
+        _pendingRouteCompletionReports.contains(sessionId)) {
       return;
     }
 
@@ -346,28 +361,65 @@ class RouteProvider extends ChangeNotifier {
         ? now.difference(startedAt).inSeconds.clamp(0, 86400)
         : 0;
 
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/api/bincollectors/$userId/route-completion'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'sessionId': sessionId,
-            'assignedBins': assignedBins,
-            'collectedBins': collectedBins,
-            'missedBins': missedBins,
-            'durationSeconds': durationSeconds,
-            'completedAt': now.toIso8601String(),
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
+    _pendingRouteCompletionReports.add(sessionId);
+    try {
+      final headers = await _buildAuthHeaders();
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/bincollectors/$userId/route-completion'),
+            headers: headers,
+            body: jsonEncode({
+              'sessionId': sessionId,
+              'assignedBins': assignedBins,
+              'collectedBins': collectedBins,
+              'missedBins': missedBins,
+              'durationSeconds': durationSeconds,
+              'completedAt': now.toIso8601String(),
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
 
-    if (response.statusCode != 200) {
-      throw Exception(
-        'Failed to report route completion (status ${response.statusCode}).',
+      if (response.statusCode != 200) {
+        debugPrint(
+          'Route completion sync failed for session $sessionId: ${response.statusCode} ${response.body}',
+        );
+        _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+        return;
+      }
+
+      _reportedCompletedRoutes.add(sessionId);
+    } on TimeoutException catch (e) {
+      debugPrint(
+        'Route completion sync timed out for session $sessionId: $e',
       );
+      _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+    } catch (e) {
+      debugPrint(
+        'Route completion sync threw for session $sessionId: $e',
+      );
+      _scheduleRouteCompletionRetry(userId: userId, sessionId: sessionId);
+    } finally {
+      _pendingRouteCompletionReports.remove(sessionId);
     }
+  }
 
-    _reportedCompletedRoutes.add(sessionId);
+  void _scheduleRouteCompletionRetry({
+    required int userId,
+    required String sessionId,
+  }) {
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (_reportedCompletedRoutes.contains(sessionId)) {
+        return;
+      }
+      try {
+        await reportRouteCompletionIfEligible(
+          userId: userId,
+          sessionId: sessionId,
+        );
+      } catch (_) {
+        // Completion reporting is best-effort after route state is already persisted.
+      }
+    });
   }
 
   int getCollectedCount(String sessionId) {
@@ -399,16 +451,12 @@ class RouteProvider extends ChangeNotifier {
     List<int>? vehicleCapacities,
     String? sessionId,
   }) async {
-    if (!webSocketProvider.isAuthenticated) {
-      throw Exception('WebSocket is not connected/authenticated.');
-    }
-
     final requestSessionId = sessionId ?? _lastOptimizedSessionId;
 
-    webSocketProvider.sendMessage(
-      type: 'ROUTE_OPTIMIZE',
-      userId: userId,
-      payload: {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/routes/optimize'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
         if (requestSessionId != null && requestSessionId.isNotEmpty)
           'sessionId': requestSessionId,
         'userId': userId,
@@ -417,11 +465,22 @@ class RouteProvider extends ChangeNotifier {
         'depotLat': depotLat,
         'depotLng': depotLng,
         'selectedBinIds': selectedBinIds,
-      },
-    );
+      }),
+    ).timeout(const Duration(seconds: 20));
 
-    if (requestSessionId != null && requestSessionId.isNotEmpty) {
-      _lastOptimizedSessionId = requestSessionId;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Failed to optimize route: ${response.body}');
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      final routeData = _routeUpdateFromSnapshot(decoded);
+      if (routeData != null) {
+        _applyRouteUpdatePayload(routeData);
+        _lastOptimizedSessionId = routeData.sessionId;
+      } else if (decoded['sessionId'] != null) {
+        _lastOptimizedSessionId = decoded['sessionId'].toString();
+      }
     }
   }
 
@@ -432,148 +491,494 @@ class RouteProvider extends ChangeNotifier {
     String priority = 'MEDIUM',
     double basePoints = 10.0,
   }) async {
-    if (webSocketProvider.isAuthenticated) {
-      for (int attempt = 0; attempt < 2; attempt++) {
-        final ackFuture = _waitForBinCollectionAckOrProgress(
-          userId: userId,
-          binId: binId,
-        );
+    final persistResponse = await http.patch(
+      Uri.parse(
+        '$_baseUrl/route-sessions/$sessionId/bins/$binId/collect?collectorId=$userId',
+      ),
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 20));
 
-        webSocketProvider.sendMessage(
-          type: 'BIN_COLLECTED',
-          userId: userId,
-          payload: {
-            'userId': userId,
-            'sessionId': sessionId,
-            'binId': binId,
-            'priority': priority,
-            'basePoints': basePoints,
-          },
-        );
-
-        final ackState = await ackFuture;
-        if (ackState == _BinCollectionAckState.acked) {
-          return;
-        }
-
-        if (ackState == _BinCollectionAckState.authRace && attempt == 0) {
-          await Future<void>.delayed(const Duration(milliseconds: 700));
-          continue;
-        }
-
-        break;
-      }
-
-      debugPrint(
-        'BIN_COLLECTION_ACK not received for bin $binId. Falling back to HTTP reporting.',
-      );
-    }
-
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/api/bincollectors/$userId/collect-bin'),
-          headers: {'Content-Type': 'application/json'},
-          body:
-              '{"binId":$binId,"priority":"$priority","basePoints":$basePoints}',
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200) {
-      final responseBody = response.body;
+    if (persistResponse.statusCode < 200 || persistResponse.statusCode >= 300) {
+      final responseBody = persistResponse.body;
       throw Exception(
-        'Failed to report collection (status ${response.statusCode}): $responseBody',
+        'Failed to persist collection (status ${persistResponse.statusCode}): $responseBody',
       );
     }
 
-    debugPrint(
-      'WebSocket unavailable. Collection reported over HTTP fallback for bin $binId.',
-    );
+    // Keep collector gamification sync as best-effort after DB state is persisted.
+    try {
+      final headers = await _buildAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$_baseUrl/bincollectors/$userId/collect-bin'),
+        headers: headers,
+        body: jsonEncode({
+          'binId': binId,
+          'priority': priority,
+          'basePoints': basePoints,
+          'sessionId': sessionId,
+        }),
+      ).timeout(const Duration(seconds: 20));
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        debugPrint(
+          'Collector realtime sync failed for session $sessionId, bin $binId: ${response.statusCode} ${response.body}',
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        'Collector realtime sync threw for session $sessionId, bin $binId: $e',
+      );
+    }
   }
 
-  Future<_BinCollectionAckState> _waitForBinCollectionAckOrProgress({
-    required int userId,
+  Future<void> reportBinSkipped({
+    required String sessionId,
     required int binId,
+    int? userId,
   }) async {
-    final completer = Completer<_BinCollectionAckState>();
-    StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? subscription;
-    Timer? timeout;
+    final suffix = userId != null ? '?collectorId=$userId' : '';
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/skip$suffix'),
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 20));
 
-    void finish(_BinCollectionAckState value) {
-      timeout?.cancel();
-      subscription?.cancel();
-      if (!completer.isCompleted) {
-        completer.complete(value);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to persist skipped bin (status ${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<void> reportBinPending({
+    required String sessionId,
+    required int binId,
+    int? userId,
+  }) async {
+    final suffix = userId != null ? '?collectorId=$userId' : '';
+    final response = await http.patch(
+      Uri.parse('$_baseUrl/route-sessions/$sessionId/bins/$binId/pending$suffix'),
+      headers: {'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to persist pending bin (status ${response.statusCode}): ${response.body}',
+      );
+    }
+  }
+
+  Future<String?> loadAssignedRouteForCollector(int userId) async {
+    bindToUser(userId);
+
+    http.Response assignmentResponse;
+    try {
+      assignmentResponse = await http
+          .get(Uri.parse('$_baseUrl/route-sessions/user/$userId/active'))
+          .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      final fallbackSessionId = _fallbackAssignedSessionIdForUser(userId);
+      if (fallbackSessionId != null) {
+        debugPrint(
+          'Active assignment fetch timed out; using existing realtime route session $fallbackSessionId.',
+        );
+        return fallbackSessionId;
+      }
+      debugPrint(
+        'Active assignment fetch timed out for user $userId; scheduling background retry.',
+      );
+      _scheduleAssignedRouteRetry(userId);
+      return null;
+    }
+
+    if (assignmentResponse.statusCode < 200 ||
+        assignmentResponse.statusCode >= 300) {
+      debugPrint(
+        'Failed to fetch active route assignment for user $userId (status ${assignmentResponse.statusCode}).',
+      );
+      _scheduleAssignedRouteRetry(userId);
+      return _fallbackAssignedSessionIdForUser(userId);
+    }
+
+    final decoded = jsonDecode(assignmentResponse.body);
+    List<dynamic> assignments;
+    if (decoded is Map<String, dynamic>) {
+      final data = decoded['data'];
+      assignments = data is List ? data : const [];
+    } else if (decoded is List) {
+      assignments = decoded;
+    } else {
+      assignments = const [];
+    }
+
+    final sessionIds = <String>{};
+    final nextSessionUpdatedAtById = <String, int>{};
+    for (final item in assignments) {
+      if (item is! Map<String, dynamic>) {
+        continue;
+      }
+      final rawSessionId = item['sessionId']?.toString().trim();
+      if (rawSessionId != null && rawSessionId.isNotEmpty) {
+        sessionIds.add(rawSessionId);
+        final updatedAt = _toInt(item['updatedAt']);
+        if (updatedAt > 0) {
+          nextSessionUpdatedAtById[rawSessionId] = updatedAt;
+        }
       }
     }
 
-    timeout = Timer(_binCollectionAckTimeout, () => finish(_BinCollectionAckState.failed));
+    _assignedSessionIds
+      ..clear()
+      ..addAll(sessionIds);
+    _sessionUpdatedAtById
+      ..clear()
+      ..addAll(nextSessionUpdatedAtById);
 
-    subscription = webSocketProvider.messageStream.listen((message) {
-      if (message.type == 'BIN_COLLECTION_ACK') {
-        final payload = message.payload;
-        if (payload == null) {
-          return;
-        }
+    if (_assignedSessionIds.isEmpty) {
+      _resetRouteState(keepBoundUser: true);
+      _errorMessage = null;
+      notifyListeners();
+      return null;
+    }
 
-        int? toInt(dynamic value) {
-          if (value is int) {
-            return value;
+    final orderedSessionIds = _assignedSessionIds.toList()..sort();
+    final loadedSessionIds = <String>[];
+    for (final sessionId in orderedSessionIds) {
+      final loadedFromPersisted = await _loadPersistedSessionRoutes(
+        sessionId: sessionId,
+        userId: userId,
+      );
+
+      if (!loadedFromPersisted) {
+        try {
+          await _loadSessionSnapshot(
+            sessionId: sessionId,
+            userId: userId,
+          );
+        } on TimeoutException {
+          debugPrint(
+            'Route session snapshot fetch timed out for session $sessionId; will retry in background.',
+          );
+          _scheduleAssignedRouteRetry(userId);
+          continue;
+        } catch (error) {
+          // Stale active assignments can outlive the in-memory snapshot cache
+          // after a backend restart. Skip 404s and keep trying other sessions.
+          if (_isMissingSessionSnapshotError(error)) {
+            continue;
           }
-          if (value is num) {
-            return value.toInt();
-          }
-          return int.tryParse(value?.toString() ?? '');
-        }
-
-        final ackUserId = toInt(payload['userId']);
-        final ackBinId = toInt(payload['binId']);
-        if (ackUserId == userId && ackBinId == binId) {
-          finish(_BinCollectionAckState.acked);
+          rethrow;
         }
       }
 
-      if (message.type == 'TASK_PROGRESS_UPDATE') {
-        final payload = message.payload;
-        if (payload == null) {
-          return;
-        }
+      loadedSessionIds.add(sessionId);
+    }
 
-        int? toInt(dynamic value) {
-          if (value is int) {
-            return value;
-          }
-          if (value is num) {
-            return value.toInt();
-          }
-          return int.tryParse(value?.toString() ?? '');
-        }
+    if (loadedSessionIds.isEmpty) {
+      _resetRouteState(keepBoundUser: true);
+      _assignedSessionIds
+        ..clear()
+        ..addAll(sessionIds);
+      _errorMessage = null;
+      notifyListeners();
+      return null;
+    }
 
-        final updateUserId = toInt(payload['userId']);
-        final updateBinId = toInt(payload['binId']);
-        if (updateUserId == userId && updateBinId == binId) {
-          finish(_BinCollectionAckState.acked);
-        }
+    final sessionId = loadedSessionIds.last;
+    _lastOptimizedSessionId = sessionId;
+    return sessionId;
+  }
+
+  void _scheduleAssignedRouteRetry(int userId) {
+    if (!_pendingAssignedRouteRetries.add(userId)) {
+      return;
+    }
+
+    Future<void>.delayed(const Duration(seconds: 3), () async {
+      _pendingAssignedRouteRetries.remove(userId);
+      if (_boundUserId != null && _boundUserId != userId) {
+        return;
       }
-
-      if (message.type == 'ERROR') {
-        final payload = message.payload;
-        final errorText = (message.error ?? payload?['error']?.toString() ?? '')
-            .toLowerCase();
-        if (errorText.contains('not authenticated') ||
-            errorText.contains('unable to resolve authenticated user')) {
-          finish(_BinCollectionAckState.authRace);
-          return;
-        }
-        if (errorText.contains('bin collection') ||
-            errorText.contains('collector not found') ||
-            errorText.contains('bin_collected')) {
-          finish(_BinCollectionAckState.failed);
-        }
+      try {
+        await loadAssignedRouteForCollector(userId);
+      } catch (_) {
+        // Assigned-route bootstrap is retried opportunistically in background.
       }
     });
+  }
 
-    final result = await completer.future;
-    return result;
+  String? _fallbackAssignedSessionIdForUser(int userId) {
+    if (_boundUserId != null && _boundUserId != userId) {
+      return null;
+    }
+
+    if (_routeHistory.isNotEmpty) {
+      final latest = _routeHistory.last;
+      _assignedSessionIds.add(latest.sessionId);
+      _lastOptimizedSessionId = latest.sessionId;
+      return latest.sessionId;
+    }
+
+    final currentSessionId = _currentRouteUpdate?.sessionId;
+    if (currentSessionId != null && currentSessionId.isNotEmpty) {
+      _assignedSessionIds.add(currentSessionId);
+      _lastOptimizedSessionId = currentSessionId;
+      return currentSessionId;
+    }
+
+    return null;
+  }
+
+  Future<bool> _loadPersistedSessionRoutes({
+    required String sessionId,
+    required int userId,
+  }) async {
+    http.Response response;
+    try {
+      response = await http
+          .get(Uri.parse('$_baseUrl/route-sessions/$sessionId/routes'))
+          .timeout(const Duration(seconds: 15));
+    } on TimeoutException {
+      debugPrint(
+        'Persisted route fetch timed out for session $sessionId.',
+      );
+      return false;
+    }
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      return false;
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) {
+      return false;
+    }
+
+    final routeEntries = decoded.whereType<Map<String, dynamic>>().toList();
+    if (routeEntries.isEmpty) {
+      return false;
+    }
+
+    final routesMap = <int, VehicleRoute>{};
+    final persistedStatuses = <int, BinCollectionStatus>{};
+    final persistedTimestamps = <int, DateTime>{};
+
+    BinCollectionStatus parseStopStatus(dynamic value) {
+      final raw = value?.toString().toUpperCase().trim();
+      if (raw == 'COLLECTED') {
+        return BinCollectionStatus.collected;
+      }
+      if (raw == 'SKIPPED') {
+        return BinCollectionStatus.skipped;
+      }
+      return BinCollectionStatus.pending;
+    }
+
+    for (var index = 0; index < routeEntries.length; index++) {
+      final route = routeEntries[index];
+      final vehicleKey = route['vehicleKey']?.toString() ?? '$index';
+      final vehicleId = int.tryParse(vehicleKey) ?? index;
+      final capacity = _toInt(route['capacity']);
+      final totalBins = _toInt(route['totalBins']);
+      final estimatedDurationSeconds = _toDouble(route['estimatedDurationSeconds']);
+
+      final rawStops = route['binStops'];
+      final stopItems = rawStops is List
+          ? rawStops.whereType<Map<String, dynamic>>().toList()
+          : const <Map<String, dynamic>>[];
+      stopItems.sort(
+        (left, right) => _toInt(left['stopOrder']).compareTo(_toInt(right['stopOrder'])),
+      );
+
+      for (final stop in stopItems) {
+        final binId = _toInt(stop['binId']);
+        final stopStatus = parseStopStatus(stop['status']);
+        persistedStatuses[binId] = stopStatus;
+
+        final collectedAtRaw = stop['collectedAt']?.toString();
+        if (collectedAtRaw != null && collectedAtRaw.isNotEmpty) {
+          final parsed = DateTime.tryParse(collectedAtRaw);
+          if (parsed != null) {
+            persistedTimestamps[binId] = parsed;
+          }
+        }
+      }
+
+      final stops = stopItems
+          .map(
+            (stop) => BinStop(
+              stopOrder: _toInt(stop['stopOrder']),
+              binId: _toInt(stop['binId']),
+              lat: _toDouble(stop['lat']),
+              lng: _toDouble(stop['lng']),
+              durationFromPrevStopSeconds: _toDouble(stop['durationFromPrevSeconds']),
+            ),
+          )
+          .toList(growable: false);
+
+      routesMap[vehicleId] = VehicleRoute(
+        vehicleId: vehicleId,
+        capacity: capacity,
+        totalBins: totalBins,
+        estimatedDurationSeconds: estimatedDurationSeconds,
+        binSequence: stops,
+      );
+    }
+
+    _binStatusesBySession[sessionId] = persistedStatuses;
+    _binTimestampsBySession[sessionId] = persistedTimestamps;
+
+    _applyRouteUpdatePayload(
+      RouteUpdatePayload(
+        sessionId: sessionId,
+        userId: userId,
+        totalVehiclesUsed: routesMap.length,
+        routes: routesMap,
+        updatedAt: _sessionUpdatedAtById[sessionId] ??
+            DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+    return true;
+  }
+
+  Future<void> _loadSessionSnapshot({
+    required String sessionId,
+    required int userId,
+  }) async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/route-sessions/$sessionId'))
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'Failed to fetch route session snapshot (status ${response.statusCode}).',
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Invalid route session snapshot format.');
+    }
+
+    final routeData = _routeUpdateFromSnapshot({
+      ...decoded,
+      'sessionId': decoded['sessionId']?.toString() ?? sessionId,
+      'userId': decoded['userId'] ?? userId,
+    });
+
+    if (routeData == null) {
+      throw Exception('Snapshot does not contain route data.');
+    }
+
+    _applyRouteUpdatePayload(routeData);
+  }
+
+  bool _isMissingSessionSnapshotError(Object error) {
+    final message = error.toString();
+    return message.contains('Failed to fetch route session snapshot') &&
+        message.contains('status 404');
+  }
+
+  int _toInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  double _toDouble(dynamic value) {
+    if (value is double) {
+      return value;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
+  }
+
+  RouteUpdatePayload? _routeUpdateFromSnapshot(Map<String, dynamic> snapshot) {
+    final route = snapshot['route'];
+    if (route is! Map<String, dynamic>) {
+      return null;
+    }
+
+    final routes = route['routes'];
+    if (routes is! Map<String, dynamic>) {
+      return null;
+    }
+
+    return RouteUpdatePayload.fromJson({
+      'sessionId': snapshot['sessionId']?.toString() ?? '',
+      'userId': snapshot['userId'] is num
+          ? (snapshot['userId'] as num).toInt()
+          : snapshot['userId'],
+      'updatedAt': snapshot['updatedAt'] is num
+          ? (snapshot['updatedAt'] as num).toInt()
+          : DateTime.now().millisecondsSinceEpoch,
+      'totalVehiclesUsed': route['totalVehiclesUsed'] is num
+          ? (route['totalVehiclesUsed'] as num).toInt()
+          : 0,
+      'routes': routes,
+    });
+  }
+
+  void _applyRouteUpdatePayload(RouteUpdatePayload routeData) {
+    if (!_shouldAcceptRouteUpdate(routeData)) {
+      return;
+    }
+    _currentRouteUpdate = routeData;
+    _routes = routeData.routes.values.toList();
+    _lastUpdateTime = routeData.updatedAt;
+    _errorMessage = null;
+    _upsertRouteHistory(routeData);
+    notifyListeners();
+  }
+
+  bool _shouldAcceptRouteUpdate(RouteUpdatePayload routeData) {
+    final expectedUser = _boundUserId;
+    if (expectedUser != null) {
+      final payloadUserId = routeData.userId;
+      if (payloadUserId != null && payloadUserId != expectedUser) {
+        return false;
+      }
+    }
+
+    if (_assignedSessionIds.isNotEmpty &&
+        !_assignedSessionIds.contains(routeData.sessionId)) {
+      _assignedSessionIds.add(routeData.sessionId);
+    }
+
+    return true;
+  }
+
+  void _resetRouteState({bool keepBoundUser = false}) {
+    _currentRouteUpdate = null;
+    _routes = [];
+    _routeHistory.clear();
+    _lastOptimizedSessionId = null;
+    _activeNavigationSessionId = null;
+    _errorMessage = null;
+    _lastUpdateTime = 0;
+    _binStatusesBySession.clear();
+    _binTimestampsBySession.clear();
+    _routeStartedAtBySession.clear();
+    _reportedCompletedRoutes.clear();
+    _assignedSessionIds.clear();
+    _sessionUpdatedAtById.clear();
+    if (!keepBoundUser) {
+      _boundUserId = null;
+    }
+  }
+
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    return <String, String>{
+      'Content-Type': 'application/json',
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 
   @override
@@ -582,8 +987,6 @@ class RouteProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-
-enum _BinCollectionAckState { acked, authRace, failed }
 
 /// Route statistics model
 class RouteStatistics {
