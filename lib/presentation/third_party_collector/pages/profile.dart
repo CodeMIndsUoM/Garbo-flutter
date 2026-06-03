@@ -97,7 +97,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.grey50,
         body: const Center(
           child: CircularProgressIndicator(color: AppColors.green700),
         ),
@@ -106,7 +106,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.grey50,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildProfileHeader(context)),
@@ -149,7 +149,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
         22,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.grey50,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

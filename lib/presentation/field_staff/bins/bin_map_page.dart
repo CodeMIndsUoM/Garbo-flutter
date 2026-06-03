@@ -86,7 +86,7 @@ class BinMapPage extends StatelessWidget {
         markerIcon = Icons.sentiment_very_dissatisfied;
         break;
       case BinStatus.half:
-        markerColor = AppColors.amberDark;
+        markerColor = AppColors.yellow400;
         markerIcon = Icons.sentiment_neutral;
         break;
       case BinStatus.empty:

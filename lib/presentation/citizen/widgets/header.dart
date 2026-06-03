@@ -19,7 +19,7 @@ class CitizenHeader extends StatelessWidget {
         20,
         18,
       ),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: AppColors.grey50),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

@@ -22,49 +22,64 @@ class PerformanceGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Today's Performance", style: AppTypography.titleLg),
-        const SizedBox(height: 16),
-        Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildItem(
-                    title: '$completedBins',
-                    subtitle: 'Bins Checked',
-                    icon: Icons.check_circle_outline,
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowSm,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildItem(
+                      title: '$completedBins',
+                      subtitle: 'Bins Checked',
+                      icon: Icons.check_circle_outline,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildItem(
-                    title: '$totalBins',
-                    subtitle: 'Assigned Bins',
-                    icon: Icons.map_outlined,
+                  Expanded(
+                    child: _buildItem(
+                      title: '$totalBins',
+                      subtitle: 'Assigned Bins',
+                      icon: Icons.map_outlined,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildItem(
-                    title: avgResponseMinutes == null
-                        ? '--'
-                        : '${avgResponseMinutes!} mins',
-                    subtitle: 'Avg Response',
-                    icon: Icons.timer_outlined,
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildItem(
+                      title: avgResponseMinutes == null
+                          ? '--'
+                          : '${avgResponseMinutes!} mins',
+                      subtitle: 'Avg Response',
+                      icon: Icons.timer_outlined,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildItem(
-                    title: '--',
-                    subtitle: 'Points Today',
-                    icon: Icons.bolt,
+                  Expanded(
+                    child: _buildItem(
+                      title: '--',
+                      subtitle: 'Points Today',
+                      icon: Icons.bolt,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );

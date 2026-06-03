@@ -27,7 +27,7 @@ class ThirdPartyHeader extends StatelessWidget {
         18,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.grey50,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,

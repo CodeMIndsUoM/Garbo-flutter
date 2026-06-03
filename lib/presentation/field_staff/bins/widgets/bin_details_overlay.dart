@@ -226,7 +226,7 @@ class BinDetailsOverlay extends StatelessWidget {
       case BinStatus.full:
         return AppColors.redSurface2; // Light Red
       case BinStatus.half:
-        return AppColors.amberSurface2; // Light Orange/Yellow
+        return AppColors.yellow; // Light Yellow
       case BinStatus.empty:
         return AppColors.greenSurface2; // Light Green
     }
@@ -239,7 +239,7 @@ class BinDetailsOverlay extends StatelessWidget {
       case BinStatus.full:
         return AppColors.redDark; // Dark Red
       case BinStatus.half:
-        return AppColors.amberDark; // Dark Orange
+        return AppColors.yellowDark; // Dark Yellow
       case BinStatus.empty:
         return AppColors.greenDark; // Dark Green
     }
@@ -252,7 +252,7 @@ class BinDetailsOverlay extends StatelessWidget {
       case BinStatus.full:
         return AppColors.redSurface2;
       case BinStatus.half:
-        return AppColors.amberSurface3;
+        return AppColors.yellow;
       case BinStatus.empty:
         return AppColors.greenSurface3;
     }
@@ -265,7 +265,7 @@ class BinDetailsOverlay extends StatelessWidget {
       case BinStatus.full:
         return AppColors.red100;
       case BinStatus.half:
-        return AppColors.amberBorder2;
+        return AppColors.yellow400.withValues(alpha: 0.3);
       case BinStatus.empty:
         return AppColors.greenBorder2;
     }
@@ -278,7 +278,7 @@ class BinDetailsOverlay extends StatelessWidget {
       case BinStatus.full:
         return AppColors.redDark2;
       case BinStatus.half:
-        return AppColors.amberDark2;
+        return AppColors.yellowDark;
       case BinStatus.empty:
         return AppColors.greenDark2;
     }

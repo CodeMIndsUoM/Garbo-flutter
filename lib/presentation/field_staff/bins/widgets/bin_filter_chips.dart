@@ -30,6 +30,57 @@ class BinFilterChips extends StatelessWidget {
       child: Row(
         children: filters.map((filter) {
           final isSelected = filter.label == selectedFilter;
+          Color chipBgColor = AppColors.grey50;
+          Color chipTextColor = AppColors.grey600;
+
+          if (isSelected) {
+            switch (filter.label) {
+              case 'All':
+                chipBgColor = AppColors.green700;
+                chipTextColor = Colors.white;
+                break;
+              case 'Not Checked':
+                chipBgColor = AppColors.grey500;
+                chipTextColor = Colors.white;
+                break;
+              case 'Full':
+                chipBgColor = AppColors.red500;
+                chipTextColor = Colors.white;
+                break;
+              case 'Half':
+                chipBgColor = AppColors.yellow400;
+                chipTextColor = AppColors.grey900;
+                break;
+              case 'Empty':
+                chipBgColor = AppColors.green700;
+                chipTextColor = Colors.white;
+                break;
+              default:
+                chipBgColor = AppColors.green700;
+                chipTextColor = Colors.white;
+            }
+          } else {
+            switch (filter.label) {
+              case 'All':
+                chipTextColor = AppColors.green700;
+                break;
+              case 'Not Checked':
+                chipTextColor = AppColors.grey500;
+                break;
+              case 'Full':
+                chipTextColor = AppColors.red500;
+                break;
+              case 'Half':
+                chipTextColor = AppColors.yellowDark;
+                break;
+              case 'Empty':
+                chipTextColor = AppColors.green700;
+                break;
+              default:
+                chipTextColor = AppColors.grey600;
+            }
+          }
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
@@ -37,14 +88,14 @@ class BinFilterChips extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.emerald500 : AppColors.grey50,
+                  color: chipBgColor,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   isSelected ? '${filter.label} (${filter.count})' : filter.label,
                   style: AppTypography.labelMd.copyWith(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.grey600,
+                    color: chipTextColor,
                   ),
                 ),
               ),
