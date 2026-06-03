@@ -245,6 +245,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
     }
   }
 
+  // DEVELOPER NOTE: Main form layout for reporting bin status.
+  // Coordinates the fill-level option buttons, issues text field, photo attach selector, and submission actions.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -416,6 +418,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
     return Text(title, style: AppTypography.titleLg);
   }
 
+  // DEVELOPER NOTE: Sizing, border, background color, and margin styling for individual fill level selection cards (Empty, Half, Full).
   Widget _buildStatusOption({
     required BinStatus status,
     required String label,
@@ -473,6 +476,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
     );
   }
 
+  // DEVELOPER NOTE: Styling configuration for the optional photo attachment container (width, height, background color, borders, and icons).
   Widget _buildPhotoPlaceholder() {
     return GestureDetector(
       onTap: _pickImage,

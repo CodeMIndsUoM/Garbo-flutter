@@ -139,11 +139,8 @@ class ApiService {
     String collectorId, {
     double? lat,
     double? lng,
-  }) => _thirdPartyCollectorApi.getCollectorFeed(
-    collectorId,
-    lat: lat,
-    lng: lng,
-  );
+  }) =>
+      _thirdPartyCollectorApi.getCollectorFeed(collectorId, lat: lat, lng: lng);
 
   Future<CollectionOfferModel> sendCollectorOffer({
     required int requestId,
@@ -158,13 +155,15 @@ class ApiService {
     String? status,
   }) => _thirdPartyCollectorApi.getCollectorOffers(collectorId, status: status);
 
-  Future<List<CollectionOfferModel>> getCollectorActiveJobs(String collectorId) =>
-      _thirdPartyCollectorApi.getCollectorActiveJobs(collectorId);
+  Future<List<CollectionOfferModel>> getCollectorActiveJobs(
+    String collectorId,
+  ) => _thirdPartyCollectorApi.getCollectorActiveJobs(collectorId);
 
   Future<CollectionOfferModel> withdrawOffer(int offerId) =>
       _thirdPartyCollectorApi.withdrawOffer(offerId);
 
-  Future<void> hideOffer(int offerId) => _thirdPartyCollectorApi.hideOffer(offerId);
+  Future<void> hideOffer(int offerId) =>
+      _thirdPartyCollectorApi.hideOffer(offerId);
 
   Future<int> hideCollectorOffers({
     required String collectorId,
@@ -218,7 +217,7 @@ class ApiService {
     required String empName,
     required String email,
     required String phone,
-    required String NIC,
+    required String nic,
     required String dateOfBirth,
     String? company,
     String? contractId,
@@ -232,7 +231,7 @@ class ApiService {
     empName: empName,
     email: email,
     phone: phone,
-    NIC: NIC,
+    nic: nic,
     dateOfBirth: dateOfBirth,
     company: company,
     contractId: contractId,

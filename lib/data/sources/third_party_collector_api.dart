@@ -115,7 +115,9 @@ class ThirdPartyCollectorApi {
         .toList();
   }
 
-  Future<List<CollectionOfferModel>> getCollectorActiveJobs(String collectorId) async {
+  Future<List<CollectionOfferModel>> getCollectorActiveJobs(
+    String collectorId,
+  ) async {
     if (collectorId.isEmpty) {
       throw Exception('Collector ID is empty. Please log in again.');
     }
@@ -145,7 +147,9 @@ class ThirdPartyCollectorApi {
   }
 
   Future<void> hideOffer(int offerId) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/hide');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/hide',
+    );
 
     final headers = await authHeadersProvider();
     final response = await client.post(
@@ -202,7 +206,9 @@ class ThirdPartyCollectorApi {
     required String reason,
     String? note,
   }) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/cancel');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/cancel',
+    );
 
     final headers = await authHeadersProvider();
     final response = await client.post(
@@ -227,12 +233,16 @@ class ThirdPartyCollectorApi {
     double? weightKg,
     String? notes,
   }) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/complete',
+    );
 
     if (photoPath != null && photoPath.trim().isNotEmpty) {
       final file = File(photoPath);
       if (!await file.exists()) {
-        throw Exception('Completion photo file not found. Please capture again.');
+        throw Exception(
+          'Completion photo file not found. Please capture again.',
+        );
       }
     }
 
@@ -266,7 +276,9 @@ class ThirdPartyCollectorApi {
     return CollectionOfferModel.fromJson(body['data'] as Map<String, dynamic>);
   }
 
-  Future<CollectorDashboardModel> getCollectorDashboard(String collectorId) async {
+  Future<CollectorDashboardModel> getCollectorDashboard(
+    String collectorId,
+  ) async {
     if (collectorId.isEmpty) {
       throw Exception('Collector ID is empty. Please log in again.');
     }
@@ -295,7 +307,10 @@ class ThirdPartyCollectorApi {
       '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/councils',
     );
 
-    final response = await client.get(url, headers: {'Content-Type': 'application/json'});
+    final response = await client.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
     final body = json.decode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200 || body['success'] != true) {
@@ -312,19 +327,21 @@ class ThirdPartyCollectorApi {
     );
 
     final request = http.MultipartRequest('POST', url);
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    request.files.add(
+      await http.MultipartFile.fromPath('file', imageFile.path),
+    );
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
-    
+
     // Log response for debugging
     print('Upload response status: ${response.statusCode}');
     print('Upload response body: ${response.body}');
-    
+
     if (response.body.isEmpty) {
       throw Exception('Server returned empty response');
     }
-    
+
     final body = json.decode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200 || body['success'] != true) {
@@ -339,7 +356,7 @@ class ThirdPartyCollectorApi {
     required String empName,
     required String email,
     required String phone,
-    required String NIC,
+    required String nic,
     required String dateOfBirth,
     String? company,
     String? contractId,
@@ -358,7 +375,7 @@ class ThirdPartyCollectorApi {
       'empName': empName,
       'email': email,
       'phone': phone,
-      'NIC': NIC,
+      'NIC': nic,
       'dateOfBirth': dateOfBirth,
       'defaultAddress': defaultAddress,
       'nicPhotoUrl': idPhotoUrl,
@@ -385,12 +402,17 @@ class ThirdPartyCollectorApi {
     return body['data'] as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(int empId) async {
+  Future<Map<String, dynamic>> checkThirdPartyRegistrationStatus(
+    int empId,
+  ) async {
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/$empId/status',
     );
 
-    final response = await client.get(url, headers: {'Content-Type': 'application/json'});
+    final response = await client.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
     final body = json.decode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode != 200 || body['success'] != true) {
@@ -422,7 +444,9 @@ class ThirdPartyCollectorApi {
   }
 
   Future<CollectionOfferModel> _offerAction(int offerId, String action) async {
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.offers}/$offerId/$action',
+    );
     final headers = await authHeadersProvider();
     final response = await client.post(url, headers: headers);
     final body = json.decode(response.body) as Map<String, dynamic>;

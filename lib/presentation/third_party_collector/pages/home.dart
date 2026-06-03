@@ -90,9 +90,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
-          child: _buildSectionTitle('Completed Collections', big: true),
-        ),
+        Expanded(child: _buildSectionTitle('Completed Collections', big: true)),
         if (hasMore)
           TextButton(
             onPressed: _openAllCompleted,
@@ -145,7 +143,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           const ThirdPartyHeader(
             title: 'Home',
             subtitle: 'Lets gets things done smoothly',
-            notificationCount: 1,
           ),
           Expanded(
             child: RefreshIndicator(
@@ -200,6 +197,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Welcome banner container (styling for background color, border radius, and shadow offsets is defined below).
   Widget _buildWelcomeCard() {
     return Container(
       width: double.infinity,
@@ -258,6 +256,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Dashboard metrics stat pill (adjust width, height, colors, and layout structure of metrics cards here).
   Widget _buildStatPill(String value, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -283,6 +282,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     );
   }
 
+  // DEVELOPER NOTE: Today's Impact Card layout (control typography, background card margins/padding, colors, and icon alignments below).
   Widget _buildTodaysImpactCard() {
     return Container(
       width: double.infinity,
@@ -397,9 +397,9 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'See nearby requests to offer on',
           primary: true,
           onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyBrowsePage()),
-            );
+            Navigator.of(
+              context,
+            ).pushReplacement(SmoothPageRoute(page: ThirdPartyBrowsePage()));
           },
         ),
         const SizedBox(height: 10),
@@ -409,9 +409,9 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'Track pending and accepted offers',
           primary: false,
           onTap: () {
-            Navigator.of(context).pushReplacement(
-              SmoothPageRoute(page: ThirdPartyMyJobsPage()),
-            );
+            Navigator.of(
+              context,
+            ).pushReplacement(SmoothPageRoute(page: ThirdPartyMyJobsPage()));
           },
         ),
       ],
@@ -528,7 +528,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           _buildMetricRow(
             icon: Icons.star_border_rounded,
             label: 'Average Rating',
-            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+            value:
+                '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
           ),
         ],
       ),
@@ -756,7 +757,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return '${mins}m';
   }
 }
-
 
 class _Collection {
   final String? imageUrl;

@@ -11,6 +11,9 @@ class BinModel {
   final BinStatus status;
   final int? fillLevel;
   final DateTime? lastChecked;
+  final double? latitude;
+  final double? longitude;
+  final String? assignedToName;
 
   const BinModel({
     required this.id,
@@ -21,7 +24,40 @@ class BinModel {
     this.status = BinStatus.notChecked,
     this.fillLevel,
     this.lastChecked,
+    this.latitude,
+    this.longitude,
+    this.assignedToName,
   });
+
+  BinModel copyWith({
+    String? id,
+    String? location,
+    String? address,
+    String? category,
+    String? displayCode,
+    BinStatus? status,
+    int? fillLevel,
+    bool clearFillLevel = false,
+    DateTime? lastChecked,
+    bool clearLastChecked = false,
+    double? latitude,
+    double? longitude,
+    String? assignedToName,
+  }) {
+    return BinModel(
+      id: id ?? this.id,
+      location: location ?? this.location,
+      address: address ?? this.address,
+      category: category ?? this.category,
+      displayCode: displayCode ?? this.displayCode,
+      status: status ?? this.status,
+      fillLevel: clearFillLevel ? null : fillLevel ?? this.fillLevel,
+      lastChecked: clearLastChecked ? null : lastChecked ?? this.lastChecked,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      assignedToName: assignedToName ?? this.assignedToName,
+    );
+  }
 
   String get displayCategory =>
       category.trim().isEmpty ? 'Unknown' : category.trim();
@@ -40,10 +76,17 @@ class BinModel {
       displayCode:
           json['displayCode']?.toString() ?? json['id']?.toString() ?? '',
       status: _parseStatus(json['status'] as String?),
-      fillLevel: json['fillLevel'] as int?,
+      fillLevel: _parseInt(json['fillLevel']),
       lastChecked: json['lastChecked'] != null
           ? DateTime.parse(json['lastChecked'] as String)
           : null,
+      latitude:
+          (json['lat'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble(),
+      longitude:
+          (json['lng'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble(),
+      assignedToName: json['assignedToName'] as String?,
     );
   }
 
@@ -53,6 +96,13 @@ class BinModel {
       (e) => e.name.toLowerCase() == status.toLowerCase(),
       orElse: () => BinStatus.notChecked,
     );
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
   }
 
   /// Time-ago string for display.

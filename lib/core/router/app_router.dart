@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/auth/pages/change_password.dart';
+import 'package:garbo_swms/presentation/auth/pages/splash_screen.dart';
 import 'package:garbo_swms/presentation/citizen/pages/events.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 import 'package:garbo_swms/presentation/citizen/pages/profile.dart';
@@ -12,6 +13,7 @@ import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dar
 import 'package:garbo_swms/presentation/third_party_collector/pages/home.dart';
 
 class AppRouter {
+  static const String splash = '/';
   static const String login = '/login';
   static const String changePassword = '/change-password';
   static const String citizenHome = '/citizen-home';
@@ -62,6 +64,8 @@ class AppRouter {
 
   static Widget pageForRoute(String routeName) {
     switch (routeName) {
+      case splash:
+        return const SplashScreen();
       case login:
         return const Login();
       case changePassword:

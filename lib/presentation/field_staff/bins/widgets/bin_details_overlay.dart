@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_map_page.dart';
 
 class BinDetailsOverlay extends StatelessWidget {
   final BinModel bin;
@@ -141,40 +142,53 @@ class BinDetailsOverlay extends StatelessWidget {
               const Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Last Checked', bin.timeAgo),
               const Divider(color: AppColors.grey100, height: 32),
-              _buildDetailRow('Assigned To', 'John Smith'),
+              _buildDetailRow('Assigned To', bin.assignedToName ?? 'Unassigned'),
               const SizedBox(height: 32),
 
               // Bottom View Map Button
-              Container(
-                width: double.infinity,
-                height: 54,
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(
-                      width: 1.27,
-                      color: AppColors.grey200,
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.grey700,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'View on Map',
-                      style: AppTypography.titleSm.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.grey700,
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => BinMapPage(bin: bin),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    width: double.infinity,
+                    height: 54,
+                    decoration: ShapeDecoration(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(
+                          width: 1.27,
+                          color: AppColors.grey200,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.grey700,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'View on Map',
+                          style: AppTypography.titleSm.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.grey700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
