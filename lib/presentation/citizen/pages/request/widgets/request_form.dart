@@ -102,7 +102,7 @@ class _RequestFormState extends State<RequestForm> {
               value: currentStep / 3,
               backgroundColor: AppColors.grey200,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.emerald600,
+                AppColors.amber600,
               ),
               minHeight: 6,
             ),
@@ -116,7 +116,8 @@ class _RequestFormState extends State<RequestForm> {
               label: 'Next',
               icon: Icons.arrow_forward,
               onPressed: () {
-                if (widget.selectedWasteType == null || widget.selectedQuantity == null) {
+                if (widget.selectedWasteType == null ||
+                    widget.selectedQuantity == null) {
                   widget.showSnackBar(
                     'Please complete the waste type and quantity fields first.',
                     isError: true,
@@ -172,7 +173,9 @@ class _RequestFormState extends State<RequestForm> {
                               if (widget.selectedPickupDate == null ||
                                   widget.selectedTimeSlot == null ||
                                   widget.pickupLocation == null ||
-                                  widget.addressController.text.trim().isEmpty) {
+                                  widget.addressController.text
+                                      .trim()
+                                      .isEmpty) {
                                 widget.showSnackBar(
                                   'Please complete the pickup details first.',
                                   isError: true,
@@ -244,7 +247,7 @@ class _RequestFormState extends State<RequestForm> {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.emerald600,
+          backgroundColor: AppColors.amberBorder,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16),
