@@ -47,10 +47,14 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
             border: Border.all(color: AppColors.grey200, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                offset: const Offset(0, 8),
-                blurRadius: 24,
-                spreadRadius: -8,
+                color: Colors.black.withValues(alpha: 0.06),
+                offset: const Offset(0, -4),
+                blurRadius: 16,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                offset: const Offset(0, 4),
+                blurRadius: 12,
               ),
             ],
           ),
