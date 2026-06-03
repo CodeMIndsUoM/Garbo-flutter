@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
-import 'package:garbo_swms/presentation/third_party_collector/pages/app_settings.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
+import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 
 import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -20,6 +21,9 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   final ApiService _apiService = ApiService();
   CollectorDashboardModel? _dashboardModel;
   String _empName = 'Collector';
+  String _employeeId = '-';
+  String _email = '-';
+  String _joinedDate = '-';
   String? _avatarUrl;
   String? _company;
   bool _loading = true;
@@ -46,13 +50,18 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       final dashboard = results[0] as CollectorDashboardModel;
       final profile = results[1] as Map<String, dynamic>?;
       final name = (profile?['empName'] ?? '').toString();
+      final email = (profile?['email'] ?? '').toString().trim();
+      final createdAt = profile?['createdAt'] ?? profile?['created_at'];
 
       if (!mounted) return;
       setState(() {
         _dashboardModel = dashboard;
         _empName = name.isEmpty ? 'Collector' : name;
+        _employeeId = collectorId;
+        _email = email.isEmpty ? '-' : email;
         _avatarUrl = (profile?['avatarUrl'] as String?)?.trim();
         _company = (profile?['company'] as String?)?.trim();
+        _joinedDate = _formatJoinedDate(createdAt);
         _loading = false;
       });
     } catch (_) {
@@ -60,29 +69,31 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     }
   }
 
-  String _reviewCountLabel() {
-    final count = _dashboardModel?.totalReviews ?? 0;
-    return '$count review${count == 1 ? '' : 's'}';
-  }
+  String _formatJoinedDate(dynamic rawCreatedAt) {
+    if (rawCreatedAt == null) return '-';
+    final value = rawCreatedAt.toString().trim();
+    if (value.isEmpty) return '-';
 
-  String _memberSinceLabel() {
-    final date = _dashboardModel?.memberSince?.toLocal();
-    if (date == null) return 'Member since —';
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return 'Member since ${months[date.month - 1]} ${date.year}';
+    try {
+      final parsed = DateTime.parse(value);
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
+    } catch (_) {
+      return '-';
+    }
   }
 
   String _formatMinutes(int totalMinutes) {
@@ -107,199 +118,86 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildProfileHeader(context)),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildSectionTitle('Earnings Overview'),
-                const SizedBox(height: 12),
-                _buildTodaysImpactCard(),
-                const SizedBox(height: 24),
-                _buildSectionTitle('Collector Details'),
-                const SizedBox(height: 12),
-                _buildCollectorDetailsCard(),
-                const SizedBox(height: 24),
-                _buildSectionTitle('Settings'),
-                const SizedBox(height: 12),
-                _buildSettingsCard(context),
-                const SizedBox(height: 16),
-                _buildLogoutButton(context),
-                const SizedBox(height: 8),
-              ]),
+      body: Column(
+        children: [
+          const ThirdPartyHeader(
+            title: 'Profile',
+            subtitle: '',
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                    child: ProfileCard(
+                      name: _empName,
+                      role: _company ?? 'Third Party Collector',
+                      employeeId: _employeeId,
+                      email: _email,
+                      joinedDate: _joinedDate,
+                      avatarUrl: _avatarUrl,
+                      onEditTap: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ThirdPartyEditProfilePage(),
+                          ),
+                        );
+                        if (mounted) await _loadProfileData();
+                      },
+                    ),
+                  ),
+
+                  // Earnings Overview
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Icon(Icons.analytics_outlined, color: AppColors.grey900, size: 20),
+                        SizedBox(width: 8),
+                        Text('Earnings Overview', style: AppTypography.titleLg),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildTodaysImpactCard(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Collector Details
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      children: [
+                        Icon(Icons.stars_outlined, color: AppColors.grey900, size: 20),
+                        SizedBox(width: 8),
+                        Text('Collector Details', style: AppTypography.titleLg),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildCollectorDetailsCard(),
+                  ),
+                  const SizedBox(height: 24),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _buildLogoutButton(context),
+                  ),
+                  const SizedBox(height: 140), // Padding for bottom nav
+                ],
+              ),
             ),
           ),
         ],
       ),
       bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 3),
     );
-  }
-
-  // ── Profile Header ───────────────────────────────────────────────────
-
-  Widget _buildProfileHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        20,
-        MediaQuery.of(context).padding.top + 18,
-        20,
-        22,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  color: AppColors.grey200,
-                  shape: BoxShape.circle,
-                ),
-                clipBehavior: Clip.antiAlias,
-                alignment: Alignment.center,
-                child: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
-                    ? Image.network(
-                        _avatarUrl!,
-                        fit: BoxFit.cover,
-                        width: 80,
-                        height: 80,
-                        cacheWidth: 240,
-                        cacheHeight: 240,
-                        gaplessPlayback: true,
-                        filterQuality: FilterQuality.low,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.person_outline_rounded,
-                          color: AppColors.grey600,
-                          size: 40,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.person_outline_rounded,
-                        color: AppColors.grey600,
-                        size: 40,
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _empName,
-                      style: AppTypography.h2.copyWith(color: AppColors.grey900),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          color: AppColors.amber600,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0',
-                          style: AppTypography.titleSm.copyWith(
-                            color: AppColors.grey900,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '• ${_reviewCountLabel()}',
-                          style: AppTypography.bodySm.copyWith(
-                            color: AppColors.grey600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _memberSinceLabel(),
-                      style: AppTypography.bodySm.copyWith(
-                        color: AppColors.grey600,
-                      ),
-                    ),
-                    if (_company != null && _company!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        _company!,
-                        style: AppTypography.bodySm.copyWith(
-                          color: AppColors.grey600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.availableRequests ?? 0}', label: 'Available jobs')),
-              const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.completedJobs ?? 0}', label: 'Completed jobs')),
-              const SizedBox(width: 10),
-              Expanded(child: _buildHeaderStat(value: '${_dashboardModel?.activeJobs ?? 0}', label: 'Active jobs')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderStat({required String value, required String label}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: AppTypography.displaySm.copyWith(
-              color: AppColors.grey900,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              maxLines: 1,
-              style: AppTypography.labelSm.copyWith(color: AppColors.grey600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Section Title ────────────────────────────────────────────────────
-
-  Widget _buildSectionTitle(String title) {
-    return Text(title, style: AppTypography.h3);
   }
 
   // ── Today's Impact Card ──────────────────────────────────────────────
@@ -329,7 +227,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
               Expanded(
                 child: Text(
                   "Today's Impact",
-                  style: AppTypography.h3.copyWith(color: AppColors.grey900),
+                  style: AppTypography.titleMd.copyWith(color: AppColors.grey900, fontWeight: FontWeight.bold),
                 ),
               ),
               Container(
@@ -418,26 +316,36 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
       child: Column(
         children: [
           _buildDetailRow(
-            icon: Icons.star_border_rounded,
-            label: 'Average Rating',
-            value:
-                '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+            label: 'Available Jobs',
+            value: '${_dashboardModel?.availableRequests ?? 0}',
           ),
           const _RowDivider(),
           _buildDetailRow(
-            icon: Icons.rate_review_outlined,
+            label: 'Completed Jobs',
+            value: '${_dashboardModel?.completedJobs ?? 0}',
+          ),
+          const _RowDivider(),
+          _buildDetailRow(
+            label: 'Active Jobs',
+            value: '${_dashboardModel?.activeJobs ?? 0}',
+          ),
+          const _RowDivider(),
+          _buildDetailRow(
+            label: 'Average Rating',
+            value: '${_dashboardModel?.overallRating.toStringAsFixed(1) ?? '0.0'} / 5.0',
+          ),
+          const _RowDivider(),
+          _buildDetailRow(
             label: 'Reviews',
             value: '${_dashboardModel?.totalReviews ?? 0}',
           ),
           const _RowDivider(),
           _buildDetailRow(
-            icon: Icons.check_circle_outline_rounded,
             label: 'Response Rate',
             value: '${_dashboardModel?.responseRate.toStringAsFixed(0) ?? '0'}%',
           ),
           const _RowDivider(),
           _buildDetailRow(
-            icon: Icons.schedule_rounded,
             label: 'On-Time Rate',
             value: '${_dashboardModel?.onTimeRate.toStringAsFixed(0) ?? '0'}%',
           ),
@@ -447,38 +355,26 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
   }
 
   Widget _buildDetailRow({
-    required IconData icon,
     required String label,
     required String value,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
+          Text(
+            label,
+            style: AppTypography.titleMd.copyWith(
+              color: AppColors.grey900,
+              fontWeight: FontWeight.w600,
             ),
-            alignment: Alignment.center,
-            child: Icon(icon, color: AppColors.green700, size: 20),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTypography.bodySm),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: AppTypography.titleMd.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+          Text(
+            value,
+            style: AppTypography.titleMd.copyWith(
+              color: AppColors.green700,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -486,100 +382,12 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     );
   }
 
-  // ── Settings ─────────────────────────────────────────────────────────
-
-  Widget _buildSettingsCard(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildSettingsRow(
-            icon: Icons.edit_outlined,
-            label: 'Edit Profile',
-            onTap: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const ThirdPartyEditProfilePage(),
-                ),
-              );
-              if (mounted) await _loadProfileData();
-            },
-          ),
-          const _RowDivider(),
-          _buildSettingsRow(
-            icon: Icons.settings_outlined,
-            label: 'App Settings',
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const ThirdPartyAppSettingsPage(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsRow({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                alignment: Alignment.center,
-                child: Icon(icon, color: AppColors.green700, size: 20),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTypography.titleMd.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.grey400,
-                size: 22,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // ── Logout Button ────────────────────────────────────────────────────
 
   Widget _buildLogoutButton(BuildContext context) {
     return Container(
+      width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
@@ -737,7 +545,7 @@ class _RowDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 70),
+      padding: const EdgeInsets.only(left: 16),
       child: Container(height: 1, color: AppColors.grey100),
     );
   }

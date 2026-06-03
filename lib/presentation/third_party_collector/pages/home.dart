@@ -138,6 +138,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
+      extendBody: true,
       body: Column(
         children: [
           const ThirdPartyHeader(
@@ -148,7 +149,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
             child: RefreshIndicator(
               onRefresh: _loadCompletedCollections,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 140),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -217,16 +218,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Welcome Back!',
-            style: AppTypography.h1.copyWith(color: AppColors.grey900),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Ready to make a difference today?',
-            style: AppTypography.bodySm.copyWith(color: AppColors.grey500),
-          ),
-          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(
@@ -304,45 +295,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Today's Impact",
-                style: AppTypography.displaySm.copyWith(color: AppColors.grey900),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: AppColors.amber600,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.grey700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
             children: [
               Expanded(
                 child: _buildImpactTile(
@@ -350,10 +302,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                   'Working Hours',
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: _buildImpactTile(
-                  "${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg",
+                  '${_dashboardModel?.todaysWasteCollectedKg.toStringAsFixed(2) ?? '0.00'} Kg',
                   'Waste Collected',
                 ),
               ),
@@ -430,7 +382,6 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     final bgColor = Colors.white;
     final titleColor = AppColors.grey900;
     final subColor = AppColors.grey600;
-    final iconBg = AppColors.emerald50;
     final iconColor = AppColors.green700;
 
     return Material(
@@ -454,15 +405,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
+              Icon(icon, color: iconColor, size: 24),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

@@ -29,85 +29,70 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      _NavItem(Icons.home_rounded, 'Home'),
-      _NavItem(Icons.search_rounded, 'Browse'),
-      _NavItem(Icons.work_outline_rounded, 'My Jobs'),
-      _NavItem(Icons.person_outline_rounded, 'Profile'),
-    ];
-
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.grey200, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                offset: const Offset(0, -4),
-                blurRadius: 16,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 4),
-                blurRadius: 12,
-              ),
-            ],
-          ),
-          child: SizedBox(
-            height: 72,
-            child: Row(
-              children: List.generate(items.length, (i) {
-                final isSelected = i == currentIndex;
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => _onTap(context, i),
-                    borderRadius: BorderRadius.circular(24),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOut,
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.emerald50
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            items[i].icon,
-                            color: isSelected
-                                ? AppColors.green700
-                                : AppColors.grey400,
-                            size: 22,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            items[i].label,
-                            style: AppTypography.captionSm.copyWith(
-                              color: isSelected
-                                  ? AppColors.green700
-                                  : AppColors.grey400,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        canvasColor: Colors.transparent,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.grey200, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  offset: const Offset(0, -4),
+                  blurRadius: 16,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox(
+                height: 72,
+                child: BottomNavigationBar(
+                  currentIndex: currentIndex,
+                  onTap: (index) => _onTap(context, index),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  type: BottomNavigationBarType.fixed,
+                  selectedItemColor: AppColors.green700,
+                  unselectedItemColor: AppColors.grey500,
+                  selectedLabelStyle: AppTypography.labelSm,
+                  unselectedLabelStyle: AppTypography.caption,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home_outlined),
+                      activeIcon: Icon(Icons.home),
+                      label: 'Home',
                     ),
-                  ),
-                );
-              }),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.search_rounded),
+                      activeIcon: Icon(Icons.search_rounded),
+                      label: 'Browse',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.work_outline_rounded),
+                      activeIcon: Icon(Icons.work_rounded),
+                      label: 'My Jobs',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person_outline_rounded),
+                      activeIcon: Icon(Icons.person_rounded),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -136,9 +121,3 @@ class SmoothPageRoute<T> extends PageRouteBuilder<T> {
       );
 }
 
-class _NavItem {
-  final IconData icon;
-  final String label;
-
-  _NavItem(this.icon, this.label);
-}

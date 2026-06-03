@@ -293,27 +293,15 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.green700 : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected ? AppColors.green700 : AppColors.grey200,
-                    ),
+                    color: selected ? AppColors.green700 : AppColors.grey100,
+                    borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (selected) ...[
-                        const Icon(Icons.check, size: 16, color: Colors.white),
-                        const SizedBox(width: 6),
-                      ],
-                      Text(
-                        label,
-                        style: AppTypography.labelMd.copyWith(
-                          color: selected ? Colors.white : AppColors.grey700,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    label,
+                    style: AppTypography.labelMd.copyWith(
+                      color: selected ? Colors.white : AppColors.grey600,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                    ),
                   ),
                 ),
               );
@@ -333,27 +321,15 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.emerald50 : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: selected ? AppColors.green700 : AppColors.grey200,
-                    ),
+                    color: selected ? AppColors.green700 : AppColors.grey100,
+                    borderRadius: BorderRadius.circular(99),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (selected) ...[
-                        Icon(Icons.check, size: 16, color: AppColors.green700),
-                        const SizedBox(width: 6),
-                      ],
-                      Text(
-                        type.replaceAll('_', ' '),
-                        style: AppTypography.labelMd.copyWith(
-                          color: selected ? AppColors.green700 : AppColors.grey700,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    type.replaceAll('_', ' '),
+                    style: AppTypography.labelMd.copyWith(
+                      color: selected ? Colors.white : AppColors.grey600,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                    ),
                   ),
                 ),
               );
@@ -463,7 +439,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       const SizedBox(height: 12),
                       if (wasteTypes.isEmpty)
                         Text(
-                          'No waste types available yet',
+                           'No waste types available yet',
                           style: AppTypography.captionSm.copyWith(
                             color: AppColors.grey500,
                           ),
@@ -500,7 +476,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       // Apply button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
+                        height: 54,
+                        child: ElevatedButton(
                           onPressed: () => Navigator.of(ctx).pop(true),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.green700,
@@ -511,11 +488,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                             ),
                             elevation: 0,
                           ),
-                          icon: const Icon(Icons.check_rounded, size: 20),
-                          label: Text(
+                          child: Text(
                             'Apply Filters',
                             style: AppTypography.buttonLg.copyWith(
                               color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -701,148 +678,31 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   // ─── Build ──────────────────────────────────────────────────────────
 
-  // DEVELOPER NOTE: Main build coordinates the job view tabs (Offers vs Active collections),
-  // header spacing, scroll structures, search inputs, and filters rail.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey50,
+      extendBody: true,
       body: Column(
         children: [
           const ThirdPartyHeader(
             title: 'My Jobs',
             subtitle: 'Track your offers and collections',
           ),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadData,
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                      child: JobsTabs(
-                        showOffers: _tab == _TabType.offer,
-                        offersCount: _myOffersTotal,
-                        activeCount: _activeJobs.length,
-                        onOffersTap: () =>
-                            setState(() => _tab = _TabType.offer),
-                        onActiveTap: () =>
-                            setState(() => _tab = _TabType.active),
-                      ),
-                    ),
-                  ),
-                  if (_loading)
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 64),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                    )
-                  else if (_tab == _TabType.offer)
-                    SliverFillRemaining(
-                      hasScrollBody: true,
-                      child: DefaultTabController(
-                        length: _offerTabs.length,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                              child: JobsFilterBar(
-                                offerTabs: _offerTabs,
-                                offersByStatus: _offersByStatus,
-                                activeFilterCount: _activeFilterCount,
-                                onOpenFilters: _openAdvancedFilters,
-                              ),
-                            ),
-                            JobsActiveFiltersRail(
-                              searchQuery: _searchQuery,
-                              selectedWasteTypes: _selectedWasteTypes,
-                              createdWithinDays: _createdWithinDays,
-                              onClearSearch: () =>
-                                  setState(() => _searchQuery = ''),
-                              onRemoveWasteType: (type) => setState(
-                                () => _selectedWasteTypes.remove(type),
-                              ),
-                              onClearDays: () =>
-                                  setState(() => _createdWithinDays = null),
-                              onClearAll: _clearAllFilters,
-                            ),
-                            Expanded(
-                              child: TabBarView(
-                                children: _offerTabs
-                                    .map(
-                                      (tab) => _buildOfferStatusList(tab.$1),
-                                    )
-                                    .toList(growable: false),
-                              ),
-                            ),
-                            ClearRejectedBar(
-                              offersByStatus: _offersByStatus,
-                              clearing: _clearingRejected,
-                              onClear: _clearRejectedOffers,
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      sliver: _activeJobs.isEmpty
-                          ? const SliverToBoxAdapter(
-                              child: EmptyActiveJobs(),
-                            )
-                          : SliverList.separated(
-                              itemCount: _activeJobs.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (_, i) {
-                                final offer = _activeJobs[i];
-                                final request =
-                                    _requestById[offer.requestId];
-                                return ActiveJobCard(
-                                  offer: offer,
-                                  request: request,
-                                  onNavigate: () {
-                                    final lat = request?.latitude ?? 0;
-                                    final lng = request?.longitude ?? 0;
-                                    if (lat == 0 && lng == 0) {
-                                      _showSnackBar(
-                                        request?.addressLine ??
-                                            'Address unavailable',
-                                        isError: true,
-                                      );
-                                      return;
-                                    }
-
-                                    final wasteLabel = request == null
-                                        ? 'Request #${offer.requestId}'
-                                        : '${request.wasteType.replaceAll('_', ' ')} Waste';
-
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) =>
-                                            LeafletNavigationPage(
-                                          latitude: lat,
-                                          longitude: lng,
-                                          title: wasteLabel,
-                                          subtitle:
-                                              request?.addressLine ??
-                                                  'Target location',
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  onComplete: () =>
-                                      _handleComplete(offer),
-                                );
-                              },
-                            ),
-                    ),
-                ],
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: JobsTabs(
+              showOffers: _tab == _TabType.offer,
+              offersCount: _myOffersTotal,
+              activeCount: _activeJobs.length,
+              onOffersTap: () =>
+                  setState(() => _tab = _TabType.offer),
+              onActiveTap: () =>
+                  setState(() => _tab = _TabType.active),
             ),
+          ),
+          Expanded(
+            child: _buildBody(),
           ),
         ],
       ),
@@ -850,13 +710,122 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     );
   }
 
-  // DEVELOPER NOTE: Renders the lists of offers under various states (Pending, Accepted, Rejected).
-  // Customize spacing (e.g. SizedBox height), card paddings, and card components here.
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.green700),
+      );
+    }
+
+    if (_tab == _TabType.offer) {
+      return DefaultTabController(
+        length: _offerTabs.length,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: JobsFilterBar(
+                offerTabs: _offerTabs,
+                offersByStatus: _offersByStatus,
+                activeFilterCount: _activeFilterCount,
+                onOpenFilters: _openAdvancedFilters,
+              ),
+            ),
+            JobsActiveFiltersRail(
+              searchQuery: _searchQuery,
+              selectedWasteTypes: _selectedWasteTypes,
+              createdWithinDays: _createdWithinDays,
+              onClearSearch: () =>
+                  setState(() => _searchQuery = ''),
+              onRemoveWasteType: (type) => setState(
+                () => _selectedWasteTypes.remove(type),
+              ),
+              onClearDays: () =>
+                  setState(() => _createdWithinDays = null),
+              onClearAll: _clearAllFilters,
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _loadData,
+                child: TabBarView(
+                  children: _offerTabs
+                      .map(
+                        (tab) => _buildOfferStatusList(tab.$1),
+                      )
+                      .toList(growable: false),
+                ),
+              ),
+            ),
+            ClearRejectedBar(
+              offersByStatus: _offersByStatus,
+              clearing: _clearingRejected,
+              onClear: _clearRejectedOffers,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: _activeJobs.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              children: const [
+                EmptyActiveJobs(),
+              ],
+            )
+          : ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              itemCount: _activeJobs.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) {
+                final offer = _activeJobs[i];
+                final request = _requestById[offer.requestId];
+                return ActiveJobCard(
+                  offer: offer,
+                  request: request,
+                  onNavigate: () {
+                    final lat = request?.latitude ?? 0;
+                    final lng = request?.longitude ?? 0;
+                    if (lat == 0 && lng == 0) {
+                      _showSnackBar(
+                        request?.addressLine ?? 'Address unavailable',
+                        isError: true,
+                      );
+                      return;
+                    }
+
+                    final wasteLabel = request == null
+                        ? 'Request #${offer.requestId}'
+                        : '${request.wasteType.replaceAll('_', ' ')} Waste';
+
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => LeafletNavigationPage(
+                          latitude: lat,
+                          longitude: lng,
+                          title: wasteLabel,
+                          subtitle: request?.addressLine ?? 'Target location',
+                        ),
+                      ),
+                    );
+                  },
+                  onComplete: () => _handleComplete(offer),
+                );
+              },
+            ),
+    );
+  }
+
   Widget _buildOfferStatusList(OfferStatus status) {
     final offers = _offersByStatus(status);
     if (offers.isEmpty) {
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
         children: [
           EmptyOffers(
             hasActiveFilters: _activeFilterCount > 0,
@@ -867,7 +836,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
       itemCount: offers.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, i) {

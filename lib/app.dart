@@ -3,6 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 
+class NoScrollbarBehavior extends MaterialScrollBehavior {
+  const NoScrollbarBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
+
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -11,14 +32,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Garbo SWMS',
       debugShowCheckedModeBanner: false,
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        dragDevices: {
-          PointerDeviceKind.touch,
-          PointerDeviceKind.mouse,
-          PointerDeviceKind.trackpad,
-          PointerDeviceKind.stylus,
-        },
-      ),
+      scrollBehavior: const NoScrollbarBehavior(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
         fontFamily: 'Arimo',

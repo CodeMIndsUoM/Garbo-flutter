@@ -21,12 +21,8 @@ class JobsTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 12),
       child: Row(
         children: [
           Expanded(
@@ -37,6 +33,7 @@ class JobsTabs extends StatelessWidget {
               onTap: onOffersTap,
             ),
           ),
+          const SizedBox(width: 8),
           Expanded(
             child: _buildTabItem(
               label: 'Active',
@@ -62,17 +59,17 @@ class JobsTabs extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.green700 : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: selected ? AppColors.green700 : AppColors.grey100,
+          borderRadius: BorderRadius.circular(99),
         ),
         child: Text(
           '$label ($count)',
-          style: AppTypography.titleSm.copyWith(
+          style: AppTypography.labelMd.copyWith(
             color: selected ? Colors.white : AppColors.grey600,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w600,
           ),
         ),
       ),
