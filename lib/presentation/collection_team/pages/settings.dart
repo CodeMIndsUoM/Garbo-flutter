@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -95,6 +98,24 @@ class SettingsPage extends StatelessWidget {
               title: 'Help & Support',
               subtitle: 'Get help and contact support',
               onTap: () {
+              },
+            ),
+            const SizedBox(height: 12),
+            SettingsMenuItem(
+              icon: Icons.logout_rounded,
+              iconBgColor: const Color(0xFFFEF2F2),
+              iconColor: AppColors.red500,
+              title: 'Log Out',
+              subtitle: 'Sign out and return to login',
+              onTap: () async {
+                await context.read<AuthProvider>().logout();
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRouter.login,
+                    (route) => false,
+                  );
+                }
               },
             ),
           ],

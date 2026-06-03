@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:latlong2/latlong.dart';
@@ -67,6 +68,7 @@ class LeafletNavigationPage extends StatelessWidget {
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  tileProvider: SilentNetworkTileProvider(),
                   userAgentPackageName: 'com.garbo.swms',
                 ),
                 MarkerLayer(

@@ -124,11 +124,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         // Save login data
         await prefs.setString('empId', empId.toString());
         await prefs.setString('empName', empName?.toString() ?? '');
+        await prefs.setString('email', email);
         await prefs.setString('token', body['token'] ?? '');
         final role = body['role']?.toString() ?? '';
         await prefs.setString('role', role);
+        final mustChangePassword = body['mustChangePassword'] ?? false;
 
         debugPrint('Stored empId: ${prefs.getString('empId')}');
+        debugPrint('mustChangePassword: $mustChangePassword');
 
         // Save credentials if remember me is checked
         await _saveCredentials();
@@ -141,6 +144,18 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           } catch (e) {
             debugPrint('AuthProvider bridge skipped: $e');
           }
+        }
+
+        // If password change is required, redirect to change password
+        if (mustChangePassword) {
+          if (mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/change-password',
+              (route) => false,
+            );
+          }
+          return;
         }
 
         final nextRoute = AppRouter.routeForRole(role);

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/field_staff/shared/stat_header.dart';
@@ -16,7 +17,6 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});

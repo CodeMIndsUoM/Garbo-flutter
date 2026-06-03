@@ -82,11 +82,16 @@ class UserTaskProgress {
   final String taskCode;
   final String taskTitle;
   final String taskDescription;
+  final double availablePoints;
   final double currentProgress; // 0.0 to 100.0 for percentage, or actual count
   final double targetProgress; // Target value (e.g., 100 bins)
   final bool isCompleted;
+  final bool isNew;
   final String? completedAt;
   final double pointsEarned;
+  final String? startAt;
+  final String? endAt;
+  final String? activePeriodLabel;
 
   UserTaskProgress({
     required this.userId,
@@ -94,11 +99,16 @@ class UserTaskProgress {
     required this.taskCode,
     required this.taskTitle,
     required this.taskDescription,
+    required this.availablePoints,
     required this.currentProgress,
     required this.targetProgress,
     required this.isCompleted,
+    required this.isNew,
     this.completedAt,
     required this.pointsEarned,
+    this.startAt,
+    this.endAt,
+    this.activePeriodLabel,
   });
 
   factory UserTaskProgress.fromJson(Map<String, dynamic> json) {
@@ -112,11 +122,16 @@ class UserTaskProgress {
       taskCode: json['taskCode']?.toString() ?? '',
       taskTitle: json['taskTitle']?.toString() ?? '',
       taskDescription: json['taskDescription']?.toString() ?? '',
+      availablePoints: (json['availablePoints'] as num?)?.toDouble() ?? 0.0,
       currentProgress: (json['currentProgress'] as num?)?.toDouble() ?? 0.0,
       targetProgress: (json['targetProgress'] as num?)?.toDouble() ?? 100.0,
       isCompleted: completedValue as bool? ?? false,
+      isNew: json['isNew'] as bool? ?? false,
       completedAt: json['completedAt']?.toString(),
       pointsEarned: (json['pointsEarned'] as num?)?.toDouble() ?? 0.0,
+      startAt: json['startAt']?.toString(),
+      endAt: json['endAt']?.toString(),
+      activePeriodLabel: json['activePeriodLabel']?.toString(),
     );
   }
 
@@ -126,11 +141,16 @@ class UserTaskProgress {
     'taskCode': taskCode,
     'taskTitle': taskTitle,
     'taskDescription': taskDescription,
+    'availablePoints': availablePoints,
     'currentProgress': currentProgress,
     'targetProgress': targetProgress,
     'isCompleted': isCompleted,
+    'isNew': isNew,
     'completedAt': completedAt,
     'pointsEarned': pointsEarned,
+    'startAt': startAt,
+    'endAt': endAt,
+    'activePeriodLabel': activePeriodLabel,
   };
 
   double get progressPercentage =>

@@ -269,8 +269,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: Colors.white,
-        activeTrackColor: AppColors.green700,
+        activeColor: AppColors.green700,
         inactiveThumbColor: Colors.white,
         inactiveTrackColor: AppColors.grey300,
       ),
