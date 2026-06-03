@@ -67,11 +67,13 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       // 1. HTTP login request
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/users/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/api/users/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -82,7 +84,7 @@ class AuthProvider extends ChangeNotifier {
 
           // 2. Connect WebSocket
           await _connectWebSocket(user.empId);
-          
+
           _setLoading(false);
           notifyListeners();
         } else {
@@ -120,7 +122,8 @@ class AuthProvider extends ChangeNotifier {
       final email = responseBody['email']?.toString() ?? '';
       final role = responseBody['role']?.toString() ?? 'COLLECTOR';
       final onDuty = responseBody['onDuty'] as bool? ?? false;
-      final rewardPoints = (responseBody['rewardPoints'] as num?)?.toDouble() ?? 0.0;
+      final rewardPoints =
+          (responseBody['rewardPoints'] as num?)?.toDouble() ?? 0.0;
 
       if (empId == null) return;
 

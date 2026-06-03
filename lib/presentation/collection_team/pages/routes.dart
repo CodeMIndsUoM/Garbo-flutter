@@ -58,12 +58,12 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         if (!mounted) {
           return;
         }
-        _routeProvider
-            ?.loadAssignedRouteForCollector(currentUserId)
-            .catchError((error) {
-              debugPrint('Failed to load assigned route for collector: $error');
-              return null;
-            });
+        _routeProvider?.loadAssignedRouteForCollector(currentUserId).catchError(
+          (error) {
+            debugPrint('Failed to load assigned route for collector: $error');
+            return null;
+          },
+        );
       });
     }
   }
@@ -164,31 +164,39 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   Widget build(BuildContext context) {
     final routeProvider = context.watch<RouteProvider>();
     final today = DateTime.now();
-    final activeRoutes = routes.where((route) {
-      final bins = getBinsForRoute(route);
-      return !_isDisplayRouteCompleted(route, bins, routeProvider);
-    }).toList(growable: false);
-    final completedRoutes = routes.where((route) {
-      final bins = getBinsForRoute(route);
-      return _isDisplayRouteCompleted(route, bins, routeProvider);
-    }).toList(growable: false);
-    final pastSessions = routeProvider.routeHistory
-        .where((session) => !_isSameDay(session.generatedAt, today))
-        .toList(growable: false)
-      ..sort((left, right) => right.generatedAt.compareTo(left.generatedAt));
+    final activeRoutes = routes
+        .where((route) {
+          final bins = getBinsForRoute(route);
+          return !_isDisplayRouteCompleted(route, bins, routeProvider);
+        })
+        .toList(growable: false);
+    final completedRoutes = routes
+        .where((route) {
+          final bins = getBinsForRoute(route);
+          return _isDisplayRouteCompleted(route, bins, routeProvider);
+        })
+        .toList(growable: false);
+    final pastSessions =
+        routeProvider.routeHistory
+            .where((session) => !_isSameDay(session.generatedAt, today))
+            .toList(growable: false)
+          ..sort(
+            (left, right) => right.generatedAt.compareTo(left.generatedAt),
+          );
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          const HeaderReduced(),
+          const HeaderReduced(title: 'Routes'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 96),
                   // buildSectionTitle(),
                   // const SizedBox(height: 12),
                   if (routes.isEmpty)
@@ -216,7 +224,8 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                       ),
                       const SizedBox(height: 12),
                       ...pastSessions.map(
-                        (session) => _buildPastRouteCard(session, routeProvider),
+                        (session) =>
+                            _buildPastRouteCard(session, routeProvider),
                       ),
                     ],
                   ],
@@ -504,10 +513,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  Widget _buildPastRouteCard(
-    RouteSessionView session,
-    RouteProvider provider,
-  ) {
+  Widget _buildPastRouteCard(RouteSessionView session, RouteProvider provider) {
     final assignedDate = _formatAssignedDate(session.generatedAt);
     final assignedBins = session.totalStops;
     final collectedBins = provider.getCollectedCount(session.sessionId);
@@ -525,7 +531,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
+          border: Border.all(color: Colors.transparent),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -678,7 +684,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: Colors.transparent),
       ),
       child: const Text(
         'No routes assigned for today yet.',
@@ -784,11 +790,14 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     required RouteSessionView session,
     required RouteProvider provider,
   }) {
-    final timestamps = session.stops
-        .map((stop) => provider.getBinTimestamp(session.sessionId, stop.binId))
-        .whereType<DateTime>()
-        .toList(growable: false)
-      ..sort();
+    final timestamps =
+        session.stops
+            .map(
+              (stop) => provider.getBinTimestamp(session.sessionId, stop.binId),
+            )
+            .whereType<DateTime>()
+            .toList(growable: false)
+          ..sort();
 
     if (timestamps.length >= 2) {
       final duration = timestamps.last.difference(timestamps.first);

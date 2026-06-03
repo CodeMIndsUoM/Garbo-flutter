@@ -6,10 +6,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 class WebSocketStatusDot extends StatelessWidget {
   final double size;
 
-  const WebSocketStatusDot({
-    super.key,
-    this.size = 12,
-  });
+  const WebSocketStatusDot({super.key, this.size = 12});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,7 @@ class WebSocketStatusDot extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.6),
+              border: Border.all(color: Colors.transparent),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.5),
@@ -76,4 +73,3 @@ class WebSocketStatusDot extends StatelessWidget {
     }
   }
 }
-

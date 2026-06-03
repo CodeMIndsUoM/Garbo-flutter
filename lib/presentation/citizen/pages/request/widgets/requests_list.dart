@@ -255,9 +255,9 @@ class RequestsList extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.emerald50,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.emerald200, width: 1),
+            border: Border.all(color: AppColors.emerald500.withValues(alpha: 0.3), width: 1.2),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,12 +265,12 @@ class RequestsList extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppColors.emerald600,
+                  color: AppColors.emerald50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: Colors.white,
+                  color: AppColors.green700,
                   size: 16,
                 ),
               ),
@@ -284,7 +284,7 @@ class RequestsList extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.emerald900,
+                        color: AppColors.citizenGrey900,
                       ),
                     ),
                     SizedBox(height: 2),
@@ -292,7 +292,7 @@ class RequestsList extends StatelessWidget {
                       'You can review collector price proposals and accept the one that fits best.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.emerald700,
+                        color: AppColors.citizenGrey600,
                         height: 1.4,
                       ),
                     ),

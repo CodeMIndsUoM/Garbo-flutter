@@ -137,7 +137,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           const ThirdPartyHeader(
@@ -203,12 +203,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.green700,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.green800.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
           ),
@@ -219,12 +220,12 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         children: [
           Text(
             'Welcome Back!',
-            style: AppTypography.h1.copyWith(color: Colors.white),
+            style: AppTypography.h1.copyWith(color: AppColors.grey900),
           ),
           const SizedBox(height: 4),
           Text(
             'Ready to make a difference today?',
-            style: AppTypography.bodySm.copyWith(color: AppColors.white90),
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey500),
           ),
           const SizedBox(height: 18),
           Row(
@@ -261,21 +262,22 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.white20,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey100, width: 1),
       ),
       child: Column(
         children: [
           Text(
             value,
             textAlign: TextAlign.center,
-            style: AppTypography.displayMd.copyWith(color: Colors.white),
+            style: AppTypography.displayMd.copyWith(color: AppColors.grey900),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTypography.captionSm.copyWith(color: Colors.white),
+            style: AppTypography.captionSm.copyWith(color: AppColors.grey600),
           ),
         ],
       ),
@@ -288,12 +290,13 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.green700,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.green800.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
+            color: AppColors.shadowSm,
+            offset: Offset(0, 4),
             blurRadius: 10,
             spreadRadius: -3,
           ),
@@ -308,7 +311,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
             children: [
               Text(
                 "Today's Impact",
-                style: AppTypography.displaySm.copyWith(color: Colors.white),
+                style: AppTypography.displaySm.copyWith(color: AppColors.grey900),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -316,7 +319,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.white20,
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -324,14 +327,14 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                   children: [
                     const Icon(
                       Icons.star_rounded,
-                      color: Colors.white,
+                      color: AppColors.amber600,
                       size: 14,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       "${_dashboardModel?.todaysRating.toStringAsFixed(1) ?? '0.0'} Today's Rating",
                       style: AppTypography.caption.copyWith(
-                        color: Colors.white,
+                        color: AppColors.grey700,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -367,21 +370,22 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.white20,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey100, width: 1),
       ),
       child: Column(
         children: [
           Text(
             value,
             textAlign: TextAlign.center,
-            style: AppTypography.displaySm.copyWith(color: Colors.white),
+            style: AppTypography.displaySm.copyWith(color: AppColors.grey900),
           ),
           const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTypography.captionSm.copyWith(color: Colors.white),
+            style: AppTypography.captionSm.copyWith(color: AppColors.grey600),
           ),
         ],
       ),
@@ -425,11 +429,11 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     required bool primary,
     required VoidCallback onTap,
   }) {
-    final bgColor = primary ? AppColors.green700 : Colors.white;
-    final titleColor = primary ? Colors.white : AppColors.green700;
-    final subColor = primary ? AppColors.white80 : AppColors.green700;
-    final iconBg = primary ? AppColors.white20 : AppColors.emerald50;
-    final iconColor = primary ? Colors.white : AppColors.green700;
+    final bgColor = Colors.white;
+    final titleColor = AppColors.grey900;
+    final subColor = AppColors.grey600;
+    final iconBg = AppColors.emerald50;
+    final iconColor = AppColors.green700;
 
     return Material(
       color: Colors.transparent,
@@ -440,16 +444,12 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: primary
-                ? null
-                : Border.all(color: AppColors.emerald100, width: 1),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: primary
-                    ? AppColors.green800.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: 0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 offset: const Offset(0, 2),
-                blurRadius: primary ? 8 : 6,
+                blurRadius: 6,
                 spreadRadius: -1,
               ),
             ],
@@ -486,7 +486,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: primary ? Colors.white : AppColors.green700,
+                color: AppColors.grey900,
                 size: 22,
               ),
             ],
@@ -502,6 +502,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -572,6 +573,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),

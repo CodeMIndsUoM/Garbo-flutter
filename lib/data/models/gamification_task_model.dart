@@ -43,8 +43,10 @@ class GamificationTaskDto {
       taskType: json['taskType']?.toString() ?? '',
       scoringType: json['scoringType']?.toString() ?? 'FIXED',
       basePoints: (json['basePoints'] as num?)?.toDouble() ?? 0.0,
-      highPriorityMultiplier: (json['highPriorityMultiplier'] as num?)?.toDouble() ?? 1.5,
-      mediumPriorityMultiplier: (json['mediumPriorityMultiplier'] as num?)?.toDouble() ?? 1.2,
+      highPriorityMultiplier:
+          (json['highPriorityMultiplier'] as num?)?.toDouble() ?? 1.5,
+      mediumPriorityMultiplier:
+          (json['mediumPriorityMultiplier'] as num?)?.toDouble() ?? 1.2,
       status: json['status']?.toString() ?? 'DRAFT',
       startAt: json['startAt']?.toString(),
       endAt: json['endAt']?.toString(),
@@ -153,6 +155,7 @@ class UserTaskProgress {
     'activePeriodLabel': activePeriodLabel,
   };
 
-  double get progressPercentage =>
-      targetProgress > 0 ? (currentProgress / targetProgress * 100).clamp(0, 100) : 0;
+  double get progressPercentage => targetProgress > 0
+      ? (currentProgress / targetProgress * 100).clamp(0, 100)
+      : 0;
 }

@@ -32,7 +32,8 @@ class CollectorDashboardModel {
       activeJobs: (json['activeJobs'] as num?)?.toInt() ?? 0,
       completedJobs: (json['completedJobs'] as num?)?.toInt() ?? 0,
       todaysRating: (json['todaysRating'] as num?)?.toDouble() ?? 0.0,
-      todaysWorkingMinutes: (json['todaysWorkingMinutes'] as num?)?.toInt() ?? 0,
+      todaysWorkingMinutes:
+          (json['todaysWorkingMinutes'] as num?)?.toInt() ?? 0,
       todaysWasteCollectedKg:
           (json['todaysWasteCollectedKg'] as num?)?.toDouble() ?? 0.0,
       responseRate: (json['responseRate'] as num?)?.toDouble() ?? 0.0,

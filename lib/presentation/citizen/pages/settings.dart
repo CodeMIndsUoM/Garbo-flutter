@@ -201,11 +201,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
                 color: backgroundColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(

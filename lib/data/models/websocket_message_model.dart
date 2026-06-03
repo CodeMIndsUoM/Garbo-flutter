@@ -1,5 +1,5 @@
 class WebSocketMessage<T> {
-  final String type;  // AUTH, CONFIRMED, ROUTE_UPDATE, LEADERBOARD_UPDATE, ERROR
+  final String type; // AUTH, CONFIRMED, ROUTE_UPDATE, LEADERBOARD_UPDATE, ERROR
   final int? userId;
   final int timestamp;
   final T? payload;
@@ -50,10 +50,7 @@ class ConfirmedPayload {
   final String message;
   final String sessionId;
 
-  ConfirmedPayload({
-    required this.message,
-    required this.sessionId,
-  });
+  ConfirmedPayload({required this.message, required this.sessionId});
 
   factory ConfirmedPayload.fromJson(Map<String, dynamic> json) {
     return ConfirmedPayload(
@@ -62,10 +59,7 @@ class ConfirmedPayload {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'message': message,
-    'sessionId': sessionId,
-  };
+  Map<String, dynamic> toJson() => {'message': message, 'sessionId': sessionId};
 }
 
 class RouteOptimizeAckPayload {
@@ -88,15 +82,17 @@ class RouteOptimizeAckPayload {
       if (value is! List) {
         return const [];
       }
-      return value.map((item) {
-        if (item is int) {
-          return item;
-        }
-        if (item is num) {
-          return item.toInt();
-        }
-        return int.tryParse(item.toString()) ?? 0;
-      }).toList(growable: false);
+      return value
+          .map((item) {
+            if (item is int) {
+              return item;
+            }
+            if (item is num) {
+              return item.toInt();
+            }
+            return int.tryParse(item.toString()) ?? 0;
+          })
+          .toList(growable: false);
     }
 
     return RouteOptimizeAckPayload(
@@ -416,7 +412,9 @@ class RouteUpdatePayload {
   factory RouteUpdatePayload.fromJson(Map<String, dynamic> json) {
     final routesMap = <int, VehicleRoute>{};
     (json['routes'] as Map<String, dynamic>).forEach((key, value) {
-      routesMap[int.parse(key)] = VehicleRoute.fromJson(value as Map<String, dynamic>);
+      routesMap[int.parse(key)] = VehicleRoute.fromJson(
+        value as Map<String, dynamic>,
+      );
     });
 
     return RouteUpdatePayload(
@@ -457,7 +455,8 @@ class VehicleRoute {
       vehicleId: json['vehicleId'] as int,
       capacity: json['capacity'] as int,
       totalBins: json['totalBins'] as int,
-      estimatedDurationSeconds: (json['estimatedDurationSeconds'] as num).toDouble(),
+      estimatedDurationSeconds: (json['estimatedDurationSeconds'] as num)
+          .toDouble(),
       binSequence: (json['binSequence'] as List<dynamic>)
           .map((e) => BinStop.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -496,7 +495,8 @@ class BinStop {
       binId: json['binId'] as int,
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
-      durationFromPrevStopSeconds: (json['durationFromPrevStopSeconds'] as num).toDouble(),
+      durationFromPrevStopSeconds: (json['durationFromPrevStopSeconds'] as num)
+          .toDouble(),
       address: json['address'] as String?,
     );
   }

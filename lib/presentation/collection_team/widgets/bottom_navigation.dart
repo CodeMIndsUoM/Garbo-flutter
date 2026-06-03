@@ -35,12 +35,20 @@ class CollectionTeamBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProfessionalBottomNavigation(
-      currentIndex: currentIndex,
-      items: _items,
-      activeColor: AppColors.green700,
-      inactiveColor: AppColors.grey500,
-      onTap: (index) => _onTap(context, index),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: ProfessionalBottomNavigation(
+          currentIndex: currentIndex,
+          items: _items,
+          activeColor: AppColors.green700,
+          inactiveColor: AppColors.grey500,
+          onTap: (index) => _onTap(context, index),
+          backgroundColor: Colors.white,
+          borderColor: AppColors.grey200,
+        ),
+      ),
     );
   }
 }
@@ -159,19 +167,21 @@ class _ProfessionalBottomNavigationState
     return Container(
       decoration: BoxDecoration(
         color: widget.backgroundColor,
-        border: Border(top: BorderSide(color: widget.borderColor, width: 1)),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: widget.borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.08),
+            offset: const Offset(0, 8),
+            blurRadius: 24,
+            spreadRadius: -8,
           ),
         ],
       ),
-      child: SafeArea(
-        top: false,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: SizedBox(
-          height: 68,
+          height: 72,
           child: Row(
             children: List.generate(widget.items.length, (index) {
               return Expanded(
@@ -275,60 +285,71 @@ class _NavItemWidgetState extends State<_NavItemWidget>
 
           return Transform.scale(
             scale: widget.isSelected ? scale : 1.0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Opacity(
-                  opacity: widget.isSelected
-                      ? opacity
-                      : 0.6 + (1 - opacity) * 0.4,
-                  child: Icon(
-                    widget.item.icon,
-                    color: widget.isSelected
-                        ? widget.activeColor
-                        : widget.inactiveColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  curve: const Cubic(0.22, 1, 0.36, 1),
-                  opacity: widget.isSelected ? 1.0 : 0.0,
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 200),
-                    curve: const Cubic(0.22, 1, 0.36, 1),
-                    scale: widget.isSelected ? 1.0 : 0.0,
-                    child: Container(
-                      width: 4,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: widget.activeColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Opacity(
-                  opacity: widget.isSelected
-                      ? opacity
-                      : 0.6 + (1 - opacity) * 0.4,
-                  child: Text(
-                    widget.item.label,
-                    style: TextStyle(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              decoration: BoxDecoration(
+                color: widget.isSelected
+                    ? AppColors.emerald50
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Opacity(
+                    opacity: widget.isSelected
+                        ? opacity
+                        : 0.6 + (1 - opacity) * 0.4,
+                    child: Icon(
+                      widget.item.icon,
                       color: widget.isSelected
                           ? widget.activeColor
                           : widget.inactiveColor,
-                      fontSize: 11,
-                      fontWeight: widget.isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                      letterSpacing: 0.1,
+                      size: 24,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    curve: const Cubic(0.22, 1, 0.36, 1),
+                    opacity: widget.isSelected ? 1.0 : 0.0,
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 200),
+                      curve: const Cubic(0.22, 1, 0.36, 1),
+                      scale: widget.isSelected ? 1.0 : 0.0,
+                      child: Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: widget.activeColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Opacity(
+                    opacity: widget.isSelected
+                        ? opacity
+                        : 0.6 + (1 - opacity) * 0.4,
+                    child: Text(
+                      widget.item.label,
+                      style: TextStyle(
+                        color: widget.isSelected
+                            ? widget.activeColor
+                            : widget.inactiveColor,
+                        fontSize: 11,
+                        fontWeight: widget.isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -336,4 +357,3 @@ class _NavItemWidgetState extends State<_NavItemWidget>
     );
   }
 }
-

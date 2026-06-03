@@ -233,7 +233,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           HeaderReduced(),
@@ -276,17 +276,14 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF059669), Color(0xFF047857)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: AppColors.green700.withValues(alpha: 0.3),
+            color: AppColors.shadowSm,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -299,14 +296,14 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
                   child: Text(
                     initials,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.grey900,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -321,7 +318,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                     Text(
                       fullName,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.grey900,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -329,12 +326,12 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                     const SizedBox(height: 4),
                     Text(
                       roleLabel,
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      style: const TextStyle(color: AppColors.grey600, fontSize: 14),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       idLabel,
-                      style: const TextStyle(color: Colors.white60, fontSize: 12),
+                      style: const TextStyle(color: AppColors.grey500, fontSize: 12),
                     ),
                   ],
                 ),
@@ -477,29 +474,38 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   }
 
   Widget buildInfoItem(IconData icon, String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: Colors.white70, size: 14),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 11),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey100, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.green700, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(color: AppColors.grey600, fontSize: 11),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.grey900,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 

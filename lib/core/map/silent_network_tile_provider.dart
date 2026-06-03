@@ -10,10 +10,8 @@ import 'package:http/retry.dart';
 /// Suppresses harmless aborted tile fetches that can occur while the map is
 /// rebuilding, pruning old tiles, or when a page is disposed mid-request.
 class SilentNetworkTileProvider extends TileProvider {
-  SilentNetworkTileProvider({
-    super.headers,
-    BaseClient? httpClient,
-  }) : httpClient = httpClient ?? RetryClient(Client());
+  SilentNetworkTileProvider({super.headers, BaseClient? httpClient})
+    : httpClient = httpClient ?? RetryClient(Client());
 
   final BaseClient httpClient;
 

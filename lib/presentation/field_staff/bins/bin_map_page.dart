@@ -28,13 +28,17 @@ class BinMapPage extends StatelessWidget {
           children: [
             Text(
               bin.displayCode,
-              style: AppTypography.titleMd.copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.titleMd.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             if (bin.latitude != null)
               Text(
                 '${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}',
-                style: AppTypography.captionSm.copyWith(color: AppColors.grey600),
-              )
+                style: AppTypography.captionSm.copyWith(
+                  color: AppColors.grey600,
+                ),
+              ),
           ],
         ),
       ),
@@ -63,12 +67,7 @@ class BinMapPage extends StatelessWidget {
               ),
             ],
           ),
-          Positioned(
-            bottom: 32,
-            left: 24,
-            right: 24,
-            child: _buildInfoCard(),
-          ),
+          Positioned(bottom: 32, left: 24, right: 24, child: _buildInfoCard()),
         ],
       ),
     );
@@ -101,7 +100,7 @@ class BinMapPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: markerColor,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 3),
+        border: Border.all(color: Colors.transparent),
         boxShadow: [
           BoxShadow(
             color: markerColor.withValues(alpha: 0.4),
@@ -137,10 +136,15 @@ class BinMapPage extends StatelessWidget {
             children: [
               Text(
                 'Location Details',
-                style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w700),
+                style: AppTypography.titleSm.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(10),
@@ -163,7 +167,9 @@ class BinMapPage extends StatelessWidget {
               Expanded(
                 child: Text(
                   bin.address,
-                  style: AppTypography.bodySm.copyWith(color: AppColors.grey700),
+                  style: AppTypography.bodySm.copyWith(
+                    color: AppColors.grey700,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

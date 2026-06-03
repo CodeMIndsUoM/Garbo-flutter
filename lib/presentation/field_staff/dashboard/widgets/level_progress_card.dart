@@ -17,7 +17,7 @@ class LevelProgressCard extends StatelessWidget {
           colors: [AppColors.purple50, AppColors.blue50],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.27, color: AppColors.purple200),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +49,12 @@ class LevelProgressCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Level 8', style: AppTypography.h3),
-                      Text('Monitor Expert', style: AppTypography.caption.copyWith(color: AppColors.grey600)),
+                      Text(
+                        'Monitor Expert',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.grey600,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -57,7 +62,12 @@ class LevelProgressCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('1847 pts', style: AppTypography.titleLg.copyWith(color: AppColors.purple600)),
+                  Text(
+                    '1847 pts',
+                    style: AppTypography.titleLg.copyWith(
+                      color: AppColors.purple600,
+                    ),
+                  ),
                   Text('153 to Level 9', style: AppTypography.caption),
                 ],
               ),
@@ -71,7 +81,9 @@ class LevelProgressCard extends StatelessWidget {
               value: 0.8, // 1847 / 2000 approx
               backgroundColor: AppColors.white20, // Should be white/60
               color: null,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.purple600), // Gradient not directly supported in LPI, using solid color for now
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.purple600,
+              ), // Gradient not directly supported in LPI, using solid color for now
               minHeight: 12,
             ),
           ),

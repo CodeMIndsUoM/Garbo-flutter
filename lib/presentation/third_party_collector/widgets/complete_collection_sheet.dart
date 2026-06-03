@@ -359,7 +359,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       decoration: BoxDecoration(
         color: AppColors.emerald50,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.emerald100, width: 1),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,10 +455,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: focused ? AppColors.green700 : AppColors.grey200,
-              width: focused ? 1.4 : 1,
-            ),
+            border: Border.all(color: Colors.transparent),
             boxShadow: focused
                 ? [
                     BoxShadow(
@@ -507,7 +504,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       decoration: BoxDecoration(
         color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1),
+        border: Border.all(color: Colors.transparent),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -518,7 +515,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.grey200, width: 1),
+              border: Border.all(color: Colors.transparent),
             ),
             alignment: Alignment.center,
             child: const Icon(
@@ -610,7 +607,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.grey200, width: 1),
+          border: Border.all(color: Colors.transparent),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -677,14 +674,17 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
         pageBuilder: (context, animation, secondaryAnimation) => child,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           // Smooth slide — same feel for open and close
-          final slide = Tween<Offset>(
-            begin: const Offset(0, 1.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeOutCubic,
-          ));
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(0, 1.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                  reverseCurve: Curves.easeOutCubic,
+                ),
+              );
 
           // Scrim (background dim) fades in/out smoothly
           final scrimFade = CurvedAnimation(
@@ -699,10 +699,7 @@ class _CompleteCollectionRoute<T> extends PageRouteBuilder<T> {
                 opacity: scrimFade,
                 child: const SizedBox.expand(),
               ),
-              SlideTransition(
-                position: slide,
-                child: child,
-              ),
+              SlideTransition(position: slide, child: child),
             ],
           );
         },

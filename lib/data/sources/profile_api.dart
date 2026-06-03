@@ -24,7 +24,9 @@ class ProfileApi {
     if (empId.isEmpty) {
       return 'Field Staff';
     }
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.fieldMentors}/$empId',
+    );
     try {
       final headers = await authHeadersProvider();
       final response = await client.get(url, headers: headers);
@@ -53,7 +55,9 @@ class ProfileApi {
 
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     if (userId.isEmpty) return null;
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.users}/$userId');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.users}/$userId',
+    );
     final headers = await authHeadersProvider();
     final response = await client.get(url, headers: headers);
     if (response.statusCode == 200) {
@@ -63,9 +67,14 @@ class ProfileApi {
     return null;
   }
 
-  Future<bool> updateUserProfile(String userId, Map<String, dynamic> data) async {
+  Future<bool> updateUserProfile(
+    String userId,
+    Map<String, dynamic> data,
+  ) async {
     if (userId.isEmpty) return false;
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.users}/$userId');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.users}/$userId',
+    );
     final headers = await authHeadersProvider();
     final response = await client.put(
       url,
@@ -85,7 +94,9 @@ class ProfileApi {
     return false;
   }
 
-  Future<Map<String, dynamic>?> getThirdPartyCollectorProfile(String collectorId) async {
+  Future<Map<String, dynamic>?> getThirdPartyCollectorProfile(
+    String collectorId,
+  ) async {
     if (collectorId.isEmpty) return null;
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/profile',
@@ -128,12 +139,16 @@ class ProfileApi {
 
   Future<String?> uploadProfilePicture(String userId, File imageFile) async {
     if (userId.isEmpty) return null;
-    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.users}/$userId/avatar');
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.users}/$userId/avatar',
+    );
     final token = await tokenProvider();
 
     final request = http.MultipartRequest('POST', url);
     if (token.isNotEmpty) request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('photo', imageFile.path));
+    request.files.add(
+      await http.MultipartFile.fromPath('photo', imageFile.path),
+    );
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);

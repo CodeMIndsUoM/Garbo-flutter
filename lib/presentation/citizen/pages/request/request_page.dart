@@ -411,22 +411,24 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
 
   List<CollectionRequestModel> get _filteredRequests {
     final query = _requestSearchController.text.trim().toLowerCase();
-    return _requests.where((r) {
-      if (_statusFilter != 'ALL' && r.status != _statusFilter) return false;
-      if (_wasteTypeFilter != 'ALL' && r.wasteType != _wasteTypeFilter) {
-        return false;
-      }
-      if (query.isNotEmpty) {
-        final haystack = [
-          r.wasteType,
-          r.addressLine,
-          '#${r.id}',
-          r.quantityLabel,
-        ].join(' ').toLowerCase();
-        if (!haystack.contains(query)) return false;
-      }
-      return true;
-    }).toList(growable: false);
+    return _requests
+        .where((r) {
+          if (_statusFilter != 'ALL' && r.status != _statusFilter) return false;
+          if (_wasteTypeFilter != 'ALL' && r.wasteType != _wasteTypeFilter) {
+            return false;
+          }
+          if (query.isNotEmpty) {
+            final haystack = [
+              r.wasteType,
+              r.addressLine,
+              '#${r.id}',
+              r.quantityLabel,
+            ].join(' ').toLowerCase();
+            if (!haystack.contains(query)) return false;
+          }
+          return true;
+        })
+        .toList(growable: false);
   }
 
   // ─── Build ──────────────────────────────────────────────────────────
