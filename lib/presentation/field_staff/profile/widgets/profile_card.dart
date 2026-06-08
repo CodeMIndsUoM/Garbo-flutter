@@ -10,6 +10,7 @@ class ProfileCard extends StatelessWidget {
   final String joinedDate;
   final String? avatarUrl;
   final VoidCallback? onEditTap;
+  final bool showInfoChips;
 
   const ProfileCard({
     super.key,
@@ -20,6 +21,7 @@ class ProfileCard extends StatelessWidget {
     required this.joinedDate,
     this.avatarUrl,
     this.onEditTap,
+    this.showInfoChips = true,
   });
 
   String get _initials {
@@ -137,24 +139,26 @@ class ProfileCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _buildInfoChip(
-                  label: 'Email',
-                  value: email,
+          if (showInfoChips) ...[
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildInfoChip(
+                    label: 'Email',
+                    value: email,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildInfoChip(
-                  label: 'Joined',
-                  value: joinedDate,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildInfoChip(
+                    label: 'Joined',
+                    value: joinedDate,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );

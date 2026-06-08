@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
-import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_edit_sheet.dart';
-import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
-import 'package:garbo_swms/presentation/shared/profile/profile_stats_section.dart';
 
 class CitizenProfilePage extends StatefulWidget {
   const CitizenProfilePage({super.key});
@@ -115,31 +113,9 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                       joinedDate: _joinedDate,
                       avatarUrl: _avatarUrl,
                       onEditTap: _openEditSheet,
+                      showInfoChips: false,
                     ),
-                    sections: [
-                      const ProfileStatsSection(
-                        rows: [
-                          ProfileStatRow(label: 'Account Type', value: 'Citizen'),
-                          ProfileStatRow(label: 'Council', value: 'Your local council'),
-                        ],
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: ProfileAchievementList(),
-                      ),
-                      ProfileExpandableSection(
-                        title: 'Contact Details',
-                        icon: Icons.contact_page_outlined,
-                        subtitle: 'Name, phone, email & address',
-                        child: buildContactInfo(),
-                      ),
-                      ProfileExpandableSection(
-                        title: 'Settings',
-                        icon: Icons.settings_outlined,
-                        subtitle: 'Notifications, privacy & preferences',
-                        child: buildSettingsOptions(),
-                      ),
-                    ],
+                    sections: [buildProfileDetailsSection()],
                     footer: const ProfileLogoutButton(
                       dialogMessage:
                           "You'll need to sign in again to access your dashboard.",
@@ -152,80 +128,46 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     );
   }
 
-  Widget buildContactInfo() {
-    return Column(
-      children: [
-        buildContactCard(
-          icon: Icons.person_outline,
-          label: 'Full Name',
-          value: _name,
-        ),
-        const SizedBox(height: 12),
-        buildContactCard(
-          icon: Icons.phone_outlined,
-          label: 'Phone Number',
-          value: _phone,
-        ),
-        const SizedBox(height: 12),
-        buildContactCard(
-          icon: Icons.email_outlined,
-          label: 'Email',
-          value: _email,
-        ),
-        const SizedBox(height: 12),
-        buildContactCard(
-          icon: Icons.location_on_outlined,
-          label: 'Default Address',
-          value: _address,
-        ),
-      ],
-    );
-  }
-
-  Widget buildContactCard({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
+  Widget buildProfileDetailsSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.green700, size: 24),
-          const SizedBox(width: 14),
-          Expanded(
+          Row(
+            children: [
+              const Icon(Icons.person_outline, color: AppColors.grey900, size: 20),
+              const SizedBox(width: 8),
+              Text('Profile Details', style: AppTypography.titleLg),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.grey200, width: 1.2),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.shadowSm,
+                  blurRadius: 3,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey600,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: AppColors.grey900,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                _detailRow('Account Type', 'Citizen'),
+                const _DetailDivider(),
+                _detailRow('Council', 'Your local council'),
+                const _DetailDivider(),
+                _detailRow('Full Name', _name),
+                const _DetailDivider(),
+                _detailRow('Phone Number', _phone),
+                const _DetailDivider(),
+                _detailRow('Email', _email),
+                const _DetailDivider(),
+                _detailRow('Default Address', _address, alignTop: true),
               ],
             ),
           ),
@@ -234,87 +176,45 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     );
   }
 
-  Widget buildSettingsOptions() {
-    return Column(
-      children: [
-        buildSettingItem(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
-          subtitle: 'Manage your alerts',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notifications settings coming soon'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        buildSettingItem(
-          icon: Icons.security_outlined,
-          title: 'Privacy & Security',
-          subtitle: 'Password & data settings',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Privacy & Security settings coming soon'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget buildSettingItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.green700, size: 24),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: AppColors.grey900,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.grey600,
-                    ),
-                  ),
-                ],
+  Widget _detailRow(String label, String value, {bool alignTop = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        crossAxisAlignment:
+            alignTop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: AppTypography.titleMd.copyWith(
+                color: AppColors.grey900,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.grey400, size: 20),
-          ],
-        ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: AppTypography.titleMd.copyWith(
+                color: AppColors.green700,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class _DetailDivider extends StatelessWidget {
+  const _DetailDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Divider(height: 1, color: AppColors.grey100);
   }
 }

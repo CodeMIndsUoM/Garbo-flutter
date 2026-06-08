@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_segmented_tabs.dart';
 
 /// Toggle buttons for switching between "New Request" and "My Requests" views.
 class RequestActionButtons extends StatelessWidget {
@@ -15,17 +16,17 @@ class RequestActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<bool>(
+    return CitizenSegmentedTabs<bool>(
       segments: const [
         ButtonSegment(
           value: false,
           label: Text('New Request'),
-          icon: Icon(Icons.add, size: 18),
+          icon: Icon(Icons.add, size: CitizenSegmentedTabs.iconSize),
         ),
         ButtonSegment(
           value: true,
           label: Text('My Requests'),
-          icon: Icon(Icons.list_alt_rounded, size: 18),
+          icon: Icon(Icons.list_alt_rounded, size: CitizenSegmentedTabs.iconSize),
         ),
       ],
       selected: {showMyRequests},

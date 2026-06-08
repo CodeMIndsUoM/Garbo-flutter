@@ -2,6 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 
+/// Returns display labels for all selected waste types on a request.
+List<String> wasteTypeLabels(CollectionRequestModel request) {
+  final rawTypes =
+      request.wasteTypes.isNotEmpty ? request.wasteTypes : [request.wasteType];
+  return rawTypes
+      .where((type) => type.isNotEmpty)
+      .map((type) => type.replaceAll('_', ' '))
+      .toList();
+}
+
+String wasteTypesLabel(CollectionRequestModel request) {
+  final labels = wasteTypeLabels(request);
+  if (labels.isEmpty) return 'Waste';
+  return labels.join(', ');
+}
+
 /// Maps a user-facing waste-type label to its API enum value.
 String mapWasteType(String value) {
   switch (value) {
