@@ -81,7 +81,9 @@ class _ProfileAchievementListState extends State<ProfileAchievementList> {
                   child: _buildAchievementCard(
                     title: task.taskTitle,
                     description: task.taskDescription,
-                    earnedText: '${task.pointsEarned.toStringAsFixed(0)} pts earned',
+                    earnedText: task.isCompleted && task.pointsEarned > 0
+                        ? '${task.pointsEarned.toStringAsFixed(0)} pts earned'
+                        : 'Reward: ${task.availablePoints.toStringAsFixed(0)} pts',
                     icon: Icons.emoji_events_outlined,
                   ),
                 );
