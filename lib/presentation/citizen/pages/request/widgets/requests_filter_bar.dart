@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -35,6 +36,8 @@ class RequestsFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final activeCount = _activeFilterCount;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +54,7 @@ class RequestsFilterBar extends StatelessWidget {
                   style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
                   decoration: AppDecorations.searchInput(
                     hintText: 'Search requests, addresses, #id',
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.search_rounded,
                       color: AppColors.grey500,
                     ),
@@ -88,7 +91,7 @@ class RequestsFilterBar extends StatelessWidget {
   Widget _buildFilterIconButton(BuildContext context, int activeCount) {
     final hasFilters = activeCount > 0;
     return Material(
-      color: hasFilters ? AppColors.emerald600 : Colors.white,
+      color: hasFilters ? AppColors.emerald600 : AppColors.surface,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
@@ -269,7 +272,7 @@ class RequestsFilterBar extends StatelessWidget {
     final shouldApply = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
@@ -319,9 +322,9 @@ class RequestsFilterBar extends StatelessWidget {
                                     : AppColors.grey700,
                                 fontWeight: FontWeight.w600,
                               ),
-                              backgroundColor: Colors.white,
-                              side: BorderSide(
-                                color: localStatus == value
+              backgroundColor: AppColors.surface,
+              side: BorderSide(
+                color: localStatus == value
                                     ? AppColors.emerald600
                                     : AppColors.grey300,
                               ),
@@ -354,9 +357,9 @@ class RequestsFilterBar extends StatelessWidget {
                                     : AppColors.grey700,
                                 fontWeight: FontWeight.w600,
                               ),
-                              backgroundColor: Colors.white,
-                              side: BorderSide(
-                                color: localWasteType == 'ALL'
+              backgroundColor: AppColors.surface,
+              side: BorderSide(
+                color: localWasteType == 'ALL'
                                     ? AppColors.emerald600
                                     : AppColors.grey300,
                               ),
@@ -375,9 +378,9 @@ class RequestsFilterBar extends StatelessWidget {
                                       : AppColors.grey700,
                                   fontWeight: FontWeight.w600,
                                 ),
-                                backgroundColor: Colors.white,
-                                side: BorderSide(
-                                  color: localWasteType == type
+                backgroundColor: AppColors.surface,
+                side: BorderSide(
+                  color: localWasteType == type
                                       ? AppColors.emerald600
                                       : AppColors.grey300,
                                 ),

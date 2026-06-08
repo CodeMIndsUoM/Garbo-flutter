@@ -21,9 +21,8 @@ class BinMapPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.grey900),
+        iconTheme: IconThemeData(color: AppColors.grey900),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -102,7 +101,7 @@ class BinMapPage extends StatelessWidget {
         color: markerColor,
         shape: BoxShape.circle,
         border: Border.all(color: Colors.transparent),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: AppColors.shadowSm,
             blurRadius: 8,

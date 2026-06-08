@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -74,10 +75,11 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: AppColors.grey900,
         title: Text(widget.appBarTitle, style: AppTypography.titleLg),
@@ -87,7 +89,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: AppColors.surface,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -142,7 +144,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
                     ),
                   ],
                 ),
-                const Center(
+                Center(
                   child: IgnorePointer(
                     child: Icon(Icons.add, size: 28, color: AppColors.grey400),
                   ),
@@ -151,7 +153,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
                   top: 16,
                   right: 16,
                   child: Material(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
                     elevation: 2,
                     child: InkWell(
@@ -186,8 +188,8 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
                 border: Border(
                   top: BorderSide(color: AppColors.grey200, width: 1),
                 ),

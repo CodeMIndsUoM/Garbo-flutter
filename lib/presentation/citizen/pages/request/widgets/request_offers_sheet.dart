@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -31,11 +32,13 @@ class RequestOffersSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.82,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
@@ -216,7 +219,7 @@ class RequestOffersSheet extends StatelessWidget {
                                   onPressed: () => onReject(offer),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.grey700,
-                                    side: const BorderSide(
+                                    side: BorderSide(
                                       color: AppColors.grey300,
                                     ),
                                   ),

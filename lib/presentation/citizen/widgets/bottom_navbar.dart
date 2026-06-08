@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 import 'package:garbo_swms/presentation/citizen/pages/report.dart';
 import 'package:garbo_swms/presentation/citizen/pages/events.dart';
@@ -74,7 +75,8 @@ class SmoothPageRoute<T> extends PageRouteBuilder<T> {
 
   SmoothPageRoute({required this.page})
       : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              AppThemeSync(child: page),
           transitionDuration: const Duration(milliseconds: 350),
           reverseTransitionDuration: const Duration(milliseconds: 350),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {

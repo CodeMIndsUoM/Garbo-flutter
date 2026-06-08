@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -70,13 +71,14 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
+          icon: Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Registration Status', style: AppTypography.titleLg),
@@ -268,7 +270,7 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
     return TextButton.icon(
       onPressed: _refreshing ? null : _checkStatus,
       icon: _refreshing
-          ? const SizedBox(
+          ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
@@ -276,7 +278,7 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
                 valueColor: AlwaysStoppedAnimation(AppColors.grey400),
               ),
             )
-          : const Icon(Icons.refresh, color: AppColors.grey600),
+          : Icon(Icons.refresh, color: AppColors.grey600),
       label: Text(
         _refreshing ? 'Refreshing...' : 'Refresh Status',
         style: AppTypography.bodySm.copyWith(

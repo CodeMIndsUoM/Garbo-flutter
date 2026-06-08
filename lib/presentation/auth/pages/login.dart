@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
@@ -224,7 +226,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -366,7 +368,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Material(
-        color: Colors.white,
+        color: AppColors.surface,
         elevation: 2,
         shadowColor: AppColors.green700.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(28),
@@ -412,26 +414,20 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.border,
             width: 1.2,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowSm,
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
+          boxShadow: AppDecorations.cardShadow,
         ),
         child: Row(
           children: [
             SizedBox(
               width: 44,
               height: 44,
-              child: Icon(icon, size: 28, color: Colors.black),
+              child: Icon(icon, size: 28, color: AppColors.textPrimary),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -448,7 +444,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                   Text(
                     description,
                     style: AppTypography.bodySm.copyWith(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -456,7 +452,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.black.withValues(alpha: 0.35),
+              color: AppColors.grey400,
               size: 16,
             ),
           ],
@@ -469,27 +465,27 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     required String label,
     Widget? suffixIcon,
   }) {
-    const fieldBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(28)),
-      borderSide: BorderSide(color: Colors.black, width: 1),
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(28)),
+      borderSide: BorderSide(color: AppColors.textPrimary, width: 1),
     );
 
     return InputDecoration(
       labelText: label,
       labelStyle: AppTypography.bodyMd.copyWith(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: AppColors.textSecondary,
       ),
       floatingLabelStyle: AppTypography.labelMd.copyWith(
-        color: Colors.black,
+        color: AppColors.textPrimary,
       ),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.surface,
       border: fieldBorder,
       enabledBorder: fieldBorder,
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(28)),
-        borderSide: BorderSide(color: Colors.black, width: 1.2),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(28)),
+        borderSide: BorderSide(color: AppColors.textPrimary, width: 1.2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     );
@@ -504,7 +500,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             Text(
               label,
               style: AppTypography.titleSm.copyWith(
-                color: selected ? Colors.black : Colors.black.withValues(alpha: 0.45),
+                color: selected ? AppColors.textPrimary : AppColors.textSecondary,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
@@ -525,9 +521,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget _buildFormCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(28, 36, 28, 32),
@@ -538,6 +534,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final headerHeight = MediaQuery.of(context).size.height * 0.34;
 
     return Scaffold(
@@ -613,7 +611,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 controller: _usernameController,
                                 keyboardType: TextInputType.emailAddress,
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                                 decoration: _loginFieldDecoration(label: 'Email'),
                               ),
@@ -622,7 +620,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                                 decoration: _loginFieldDecoration(
                                   label: 'Password',
@@ -631,7 +629,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
-                                      color: Colors.black.withValues(alpha: 0.45),
+                                      color: AppColors.textSecondary,
                                     ),
                                     onPressed: () => setState(
                                       () => _obscurePassword = !_obscurePassword,
@@ -643,7 +641,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                               RichText(
                                 text: TextSpan(
                                   style: AppTypography.bodyMd.copyWith(
-                                    color: Colors.black,
+                                    color: AppColors.textPrimary,
                                   ),
                                   children: [
                                     const TextSpan(text: 'Forget password? '),
@@ -711,7 +709,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 children: [
                                   Expanded(
                                     child: Divider(
-                                      color: Colors.black.withValues(alpha: 0.12),
+                                      color: AppColors.divider,
                                     ),
                                   ),
                                   Padding(
@@ -721,15 +719,13 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                     child: Text(
                                       'or',
                                       style: AppTypography.bodyMd.copyWith(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.45,
-                                        ),
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Divider(
-                                      color: Colors.black.withValues(alpha: 0.12),
+                                      color: AppColors.divider,
                                     ),
                                   ),
                                 ],
@@ -758,7 +754,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                               Text(
                                 'Select your role to start registration',
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 24),

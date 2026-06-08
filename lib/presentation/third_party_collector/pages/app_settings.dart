@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -18,6 +20,8 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
@@ -145,7 +149,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         20,
         18,
       ),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: AppColors.background),
       child: Row(
         children: [
           Material(
@@ -154,7 +158,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: () => Navigator.of(context).maybePop(),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 40,
                 height: 40,
                 child: Icon(
@@ -211,18 +215,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
           ),
         ),
         Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          decoration: AppDecorations.card(),
           child: Column(children: children),
         ),
       ],
@@ -245,7 +238,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
           icon: icon,
           label: label,
           description: description,
-          trailing: const Icon(
+          trailing: Icon(
             Icons.chevron_right_rounded,
             color: AppColors.grey400,
             size: 22,
@@ -348,18 +341,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         ),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          decoration: AppDecorations.card(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -419,7 +401,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
 
   Widget _buildClearCacheButton() {
     return Material(
-      color: Colors.white,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: _onClearCache,

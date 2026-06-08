@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
-import 'package:garbo_swms/presentation/widgets/notifications_page.dart';
+import 'package:garbo_swms/presentation/widgets/notification_bell_button.dart';
 
 class StatHeader extends StatelessWidget {
   final String title;
@@ -21,8 +22,10 @@ class StatHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Container(
-      decoration: BoxDecoration(color: title == 'Profile' ? Colors.white : AppColors.grey50),
+      decoration: BoxDecoration(color: AppColors.background),
       padding: EdgeInsets.fromLTRB(
         24,
         MediaQuery.of(context).padding.top + 10,
@@ -45,26 +48,7 @@ class StatHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsPage(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.grey900,
-                  ),
-                ),
-              ),
+              const NotificationBellButton(),
             ],
           ),
         ],

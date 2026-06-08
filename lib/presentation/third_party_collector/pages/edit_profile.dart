@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -84,6 +86,8 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       body: Column(
@@ -124,8 +128,8 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
         20,
         12,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.background,
         border: Border(bottom: BorderSide(color: AppColors.grey100, width: 1)),
       ),
       child: Row(
@@ -136,7 +140,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: () => Navigator.of(context).maybePop(),
-              child: const SizedBox(
+              child: SizedBox(
                 width: 40,
                 height: 40,
                 child: Icon(
@@ -179,7 +183,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                 Container(
                   width: 96,
                   height: 96,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.grey100,
                     shape: BoxShape.circle,
                   ),
@@ -192,8 +196,8 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                   bottom: -2,
                   child: Material(
                     color: AppColors.green700,
-                    shape: const CircleBorder(
-                      side: BorderSide(color: Colors.white, width: 3),
+                    shape: CircleBorder(
+                      side: BorderSide(color: AppColors.surface, width: 3),
                     ),
                     child: InkWell(
                       customBorder: const CircleBorder(),
@@ -269,7 +273,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
         fit: BoxFit.cover,
         width: 96,
         height: 96,
-        errorBuilder: (_, __, ___) => const Icon(
+        errorBuilder: (_, __, ___) => Icon(
           Icons.person_rounded,
           color: AppColors.grey600,
           size: 48,
@@ -277,7 +281,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
       );
     }
     // Default placeholder
-    return const Icon(Icons.person_rounded, color: AppColors.grey600, size: 48);
+    return Icon(Icons.person_rounded, color: AppColors.grey600, size: 48);
   }
 
   // ── Personal Info Card ───────────────────────────────────────────────
@@ -285,18 +289,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
   Widget _buildPersonalInfoCard() {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -430,7 +423,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
               decoration: BoxDecoration(
                 color: readOnly
                     ? AppColors.grey100
-                    : (focused ? Colors.white : AppColors.grey50),
+                    : (focused ? AppColors.surface : AppColors.grey50),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: focused && !readOnly
@@ -488,7 +481,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
                     ),
                   ),
                   if (readOnly)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(right: 12),
                       child: Icon(
                         Icons.lock_outline_rounded,
@@ -631,7 +624,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
   Future<ImageSource?> _showImageSourceDialog() async {
     return showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

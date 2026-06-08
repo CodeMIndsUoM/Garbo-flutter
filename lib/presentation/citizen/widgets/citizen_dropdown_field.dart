@@ -44,7 +44,7 @@ class CitizenDropdownField extends StatelessWidget {
 
     return Theme(
       data: Theme.of(context).copyWith(
-        canvasColor: Colors.white,
+        canvasColor: AppColors.surface,
         hoverColor: AppColors.greenSurface2,
         focusColor: AppColors.greenSurface2.withValues(alpha: 0.7),
         highlightColor: AppColors.greenSurface2.withValues(alpha: 0.5),
@@ -52,7 +52,7 @@ class CitizenDropdownField extends StatelessWidget {
       ),
       child: DropdownButtonFormField<String>(
         value: value,
-        dropdownColor: Colors.white,
+        dropdownColor: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         elevation: 3,
         icon: const Icon(

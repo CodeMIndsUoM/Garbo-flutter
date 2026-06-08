@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -173,11 +174,13 @@ class CitizenReportPageState extends State<CitizenReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final theme = Theme.of(context);
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const CitizenHeader(name: 'Reports'),

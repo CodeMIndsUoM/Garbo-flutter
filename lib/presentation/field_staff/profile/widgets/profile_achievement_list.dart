@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -26,6 +28,8 @@ class _ProfileAchievementListState extends State<ProfileAchievementList> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Consumer<GamificationTasksProvider>(
       builder: (context, provider, _) {
         final completedTasks = provider.completedTasks;
@@ -40,7 +44,7 @@ class _ProfileAchievementListState extends State<ProfileAchievementList> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
+                    Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
                     const SizedBox(width: 8),
                     Text('Achievements', style: AppTypography.titleLg),
                   ],
@@ -102,32 +106,11 @@ class _ProfileAchievementListState extends State<ProfileAchievementList> {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.2, color: AppColors.grey200),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Center(
-              child: Icon(icon, color: AppColors.green700, size: 28),
-            ),
-          ),
+          Icon(icon, color: AppColors.green700, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

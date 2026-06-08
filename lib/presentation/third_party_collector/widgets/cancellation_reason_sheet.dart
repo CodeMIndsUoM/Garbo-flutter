@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -45,8 +46,8 @@ class CancellationReasonSheet extends StatelessWidget {
               onTap: () {}, // Prevent taps inside sheet from dismissing it
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
@@ -82,19 +83,10 @@ class CancellationReasonSheet extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: const BoxDecoration(
-                                color: AppColors.emerald50,
-                                shape: BoxShape.circle,
-                              ),
-                              alignment: Alignment.center,
-                              child: const Icon(
-                                Icons.info_outline_rounded,
-                                color: AppColors.green700,
-                                size: 18,
-                              ),
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              color: AppColors.green700,
+                              size: 18,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -129,7 +121,7 @@ class CancellationReasonSheet extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 alignment: Alignment.center,
-                                child: const Icon(
+                                child: Icon(
                                   Icons.close_rounded,
                                   color: AppColors.grey600,
                                   size: 18,
@@ -171,29 +163,14 @@ class CancellationReasonSheet extends StatelessWidget {
                                       color: AppColors.grey200,
                                       width: 1.2,
                                     ),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: AppColors.shadowSm,
-                                        blurRadius: 3,
-                                        offset: Offset(0, 1),
-                                      ),
-                                    ],
+                                    boxShadow: AppDecorations.cardShadow,
                                   ),
                                   child: Row(
                                     children: [
-                                      Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.emerald50,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Icon(
-                                          icon,
-                                          color: AppColors.green700,
-                                          size: 20,
-                                        ),
+                                      Icon(
+                                        icon,
+                                        color: AppColors.green700,
+                                        size: 20,
                                       ),
                                       const SizedBox(width: 16),
                                       Expanded(
@@ -206,7 +183,7 @@ class CancellationReasonSheet extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.chevron_right_rounded,
                                         color: AppColors.grey400,
                                         size: 20,

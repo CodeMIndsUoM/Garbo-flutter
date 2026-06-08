@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -246,6 +247,8 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final results = _filteredRequests;
     return Scaffold(
       backgroundColor: AppColors.grey50,
@@ -322,9 +325,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
       child: TextField(
         onChanged: (v) => setState(() => _searchQuery = v),
@@ -332,7 +335,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
         decoration: AppDecorations.searchInput(
           hintText: 'Search by location or waste type...',
           hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search_rounded,
             color: AppColors.grey400,
             size: 20,
@@ -391,18 +394,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.emerald50,
         child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          decoration: AppDecorations.card(),
           padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +412,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.person_outline_rounded,
                               color: AppColors.grey400,
                               size: 14,
@@ -457,7 +449,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.local_offer_outlined,
                     color: AppColors.grey400,
                     size: 13,
@@ -629,7 +621,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
               color: AppColors.grey100,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.search_off_rounded,
               color: AppColors.grey400,
               size: 30,

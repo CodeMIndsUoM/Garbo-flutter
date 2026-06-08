@@ -251,14 +251,13 @@ class _ReportBinPageState extends State<ReportBinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Report Bin Status', style: AppTypography.h3),
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.grey900),
+          icon: Icon(Icons.close, color: AppColors.grey900),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -340,11 +339,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       fillColor: AppColors.grey50,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.grey200),
+                        borderSide: BorderSide(color: AppColors.grey200),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.grey200),
+                        borderSide: BorderSide(color: AppColors.grey200),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -447,18 +446,10 @@ class _ReportBinPageState extends State<ReportBinPage> {
             : AppDecorations.card(),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isSelected ? color : color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: isSelected ? Colors.white : color,
-                size: 26,
-              ),
+            Icon(
+              icon,
+              color: isSelected ? color : color,
+              size: 26,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -502,7 +493,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
         width: double.infinity,
         height: 160,
         decoration: AppDecorations.card(
-          color: _selectedImage == null ? Colors.white : AppColors.grey100,
+          color: _selectedImage == null ? AppColors.surface : AppColors.grey100,
         ).copyWith(
           image: _selectedImage != null
               ? DecorationImage(
@@ -515,7 +506,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.camera_alt_outlined,
                     size: 36,
                     color: AppColors.grey500,
@@ -547,7 +538,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       },
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.grey700,
                           shape: BoxShape.circle,
                         ),

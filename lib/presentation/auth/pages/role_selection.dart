@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/pages/collector_register.dart';
@@ -11,13 +12,14 @@ class RoleSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
+          icon: Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Select Your Role', style: AppTypography.titleLg),
@@ -101,9 +103,9 @@ class RoleSelection extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
+          border: Border.all(color: AppColors.border, width: 1),
           boxShadow: [
             BoxShadow(
               color: AppColors.shadowSm,
@@ -114,15 +116,7 @@ class RoleSelection extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.emerald50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 32, color: AppColors.green700),
-            ),
+            Icon(icon, size: 32, color: AppColors.green700),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
