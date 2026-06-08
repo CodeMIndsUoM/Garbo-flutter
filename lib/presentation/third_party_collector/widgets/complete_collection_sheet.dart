@@ -119,13 +119,19 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded),
-              title: const Text('Take a photo'),
+              leading: const Icon(
+                Icons.camera_alt_rounded,
+                color: AppColors.green700,
+              ),
+              title: Text('Take a photo', style: AppTypography.titleMd),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_rounded),
-              title: const Text('Choose from gallery'),
+              leading: const Icon(
+                Icons.photo_library_rounded,
+                color: AppColors.green700,
+              ),
+              title: Text('Choose from gallery', style: AppTypography.titleMd),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -358,8 +364,15 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.emerald50,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.transparent),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +468,10 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.transparent),
+            border: Border.all(
+              color: focused ? AppColors.green700 : AppColors.grey200,
+              width: focused ? 1.4 : 1.2,
+            ),
             boxShadow: focused
                 ? [
                     BoxShadow(
@@ -504,7 +520,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       decoration: BoxDecoration(
         color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.transparent),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,7 +531,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.transparent),
+              border: Border.all(color: AppColors.grey200, width: 1.2),
             ),
             alignment: Alignment.center,
             child: const Icon(
@@ -607,7 +623,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.transparent),
+          border: Border.all(color: AppColors.grey200, width: 1.2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

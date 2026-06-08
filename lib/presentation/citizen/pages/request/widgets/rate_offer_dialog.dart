@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 /// Data class returned by [RateOfferDialog].
 class RatingResult {
@@ -29,7 +30,7 @@ class _RateOfferDialogState extends State<RateOfferDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Rate this collector'),
+      title: Text('Rate this collector', style: AppTypography.titleLg),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

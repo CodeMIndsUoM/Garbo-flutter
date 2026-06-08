@@ -13,8 +13,7 @@ class ThirdPartyEditProfilePage extends StatefulWidget {
       _ThirdPartyEditProfilePageState();
 }
 
-class _ThirdPartyEditProfilePageState
-    extends State<ThirdPartyEditProfilePage> {
+class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
   final ApiService _apiService = ApiService();
   final ImagePicker _picker = ImagePicker();
 
@@ -93,9 +92,7 @@ class _ThirdPartyEditProfilePageState
           Expanded(
             child: _loading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.green700,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.green700),
                   )
                 : SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -129,9 +126,7 @@ class _ThirdPartyEditProfilePageState
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.grey100, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.grey100, width: 1)),
       ),
       child: Row(
         children: [
@@ -230,7 +225,10 @@ class _ThirdPartyEditProfilePageState
               _nameController.text.isNotEmpty
                   ? _nameController.text
                   : 'Your Name',
-              style: AppTypography.titleLg.copyWith(color: AppColors.grey900, fontWeight: FontWeight.bold),
+              style: AppTypography.titleLg.copyWith(
+                color: AppColors.grey900,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -240,9 +238,12 @@ class _ThirdPartyEditProfilePageState
             if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty)
               TextButton(
                 onPressed: _uploadingPhoto ? null : _onRemoveAvatar,
-                child: const Text(
+                child: Text(
                   'Remove Photo',
-                  style: TextStyle(color: AppColors.red500),
+                  style: AppTypography.bodySm.copyWith(
+                    color: AppColors.red500,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
           ],
@@ -276,11 +277,7 @@ class _ThirdPartyEditProfilePageState
       );
     }
     // Default placeholder
-    return const Icon(
-      Icons.person_rounded,
-      color: AppColors.grey600,
-      size: 48,
-    );
+    return const Icon(Icons.person_rounded, color: AppColors.grey600, size: 48);
   }
 
   // ── Personal Info Card ───────────────────────────────────────────────
@@ -653,8 +650,7 @@ class _ThirdPartyEditProfilePageState
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
-              Text('Change Profile Photo',
-                  style: AppTypography.titleLg),
+              Text('Change Profile Photo', style: AppTypography.titleLg),
               const SizedBox(height: 16),
               _sourceOption(
                 ctx: ctx,
@@ -695,9 +691,12 @@ class _ThirdPartyEditProfilePageState
             children: [
               Icon(icon, color: AppColors.green700, size: 22),
               const SizedBox(width: 14),
-              Text(label,
-                  style: AppTypography.titleMd
-                      .copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: AppTypography.titleMd.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -714,13 +713,14 @@ class _ThirdPartyEditProfilePageState
     setState(() => _saving = true);
 
     try {
-      final success = await _apiService.updateThirdPartyCollectorProfile(_userId, {
-        'empName': _nameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'defaultAddress': _addressController.text.trim(),
-        'NIC': _nicController.text.trim(),
-        'company': _companyController.text.trim(),
-      });
+      final success = await _apiService
+          .updateThirdPartyCollectorProfile(_userId, {
+            'empName': _nameController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'defaultAddress': _addressController.text.trim(),
+            'NIC': _nicController.text.trim(),
+            'company': _companyController.text.trim(),
+          });
 
       if (!mounted) return;
 
@@ -733,8 +733,10 @@ class _ThirdPartyEditProfilePageState
       }
     } catch (_) {
       if (mounted) {
-        _showSnack('An error occurred. Please check your connection.',
-            success: false);
+        _showSnack(
+          'An error occurred. Please check your connection.',
+          success: false,
+        );
       }
     }
     if (mounted) setState(() => _saving = false);
@@ -755,8 +757,7 @@ class _ThirdPartyEditProfilePageState
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor:
-            success ? AppColors.green700 : AppColors.red500,
+        backgroundColor: success ? AppColors.green700 : AppColors.red500,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(12),

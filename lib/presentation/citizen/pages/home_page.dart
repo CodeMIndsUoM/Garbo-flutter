@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/citizen_activity_item.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/utils/citizen_recent_activity_loader.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 
 class CitizenHomePage extends StatefulWidget {
   const CitizenHomePage({super.key});
@@ -73,32 +75,10 @@ class CitizenHomePageState extends State<CitizenHomePage> {
   }
 
   Widget buildWelcomeCard() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-          "Let's make our city cleaner",
-          style: const TextStyle(
-            color: AppColors.grey900,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            height: 1.3,
-          ),
-        ),
+    return CitizenSurfaceCard(
+      child: Text(
+        "Let's make our city cleaner",
+        style: AppTypography.displaySm,
       ),
     );
   }
@@ -107,14 +87,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(
-            color: AppColors.grey900,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text('Quick Actions', style: AppTypography.h2),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -165,61 +138,37 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             Navigator.pushNamed(context, routeName);
           }
         },
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
+        child: CitizenSurfaceCard(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.greenSurface2,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: AppColors.green700, size: 22),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.titleSm.copyWith(fontSize: 12, height: 1.2),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.captionSm.copyWith(height: 1.2),
               ),
             ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.greenSurface2,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: AppColors.green700, size: 22),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w400,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
@@ -230,14 +179,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Recent Activity',
-          style: TextStyle(
-            color: AppColors.grey900,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text('Recent Activity', style: AppTypography.h2),
         const SizedBox(height: 14),
         if (_loadingActivities)
           const Padding(
@@ -245,17 +187,10 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             child: Center(child: CircularProgressIndicator()),
           )
         else if (_activities.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
-            ),
-            child: const Text(
+          CitizenSurfaceCard(
+            child: Text(
               'No recent activity yet',
-              style: TextStyle(color: AppColors.grey600, fontSize: 14),
+              style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
             ),
           )
         else
@@ -283,20 +218,8 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     required String subtitle,
     required String time,
   }) {
-    return Container(
+    return CitizenSurfaceCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Container(
@@ -313,34 +236,17 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
-                  ),
-                ),
+                Text(title, style: AppTypography.titleMd),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 13,
+                  style: AppTypography.labelMd.copyWith(
                     fontWeight: FontWeight.w400,
-                    height: 1.3,
+                    color: AppColors.grey600,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  time,
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                Text(time, style: AppTypography.caption),
               ],
             ),
           ),

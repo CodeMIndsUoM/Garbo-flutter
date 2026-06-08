@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
@@ -145,18 +147,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         },
         child: Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         children: [
           Row(
@@ -167,10 +158,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Container(
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.greenSurface2,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
+                    decoration: AppDecorations.metricIconBox(),
                     child: const Icon(
                       Icons.emoji_events,
                       color: AppColors.green700,
@@ -181,20 +169,11 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Level $level',
-                        style: const TextStyle(
-                          color: AppColors.grey900,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      Text('Level $level', style: AppTypography.h3),
                       Text(
                         'Current Rank $rankText',
-                        style: const TextStyle(
+                        style: AppTypography.caption.copyWith(
                           color: AppColors.grey600,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -206,19 +185,13 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 children: [
                   Text(
                     '${points.toStringAsFixed(0)} pts',
-                    style: const TextStyle(
+                    style: AppTypography.titleLg.copyWith(
                       color: AppColors.green700,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     '${_pointsToNextLevel(points).toStringAsFixed(0)} to Level ${level + 1}',
-                    style: const TextStyle(
-                      color: AppColors.grey500,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: AppTypography.captionSm,
                   ),
                 ],
               ),
@@ -237,25 +210,23 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             ),
           ),
           const SizedBox(height: 10),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Level rule: every 250 points increases 1 level.',
-              style: TextStyle(
+              style: AppTypography.captionSm.copyWith(
                 color: AppColors.grey600,
-                fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           const SizedBox(height: 4),
-          const Align(
+          Align(
             alignment: Alignment.centerRight,
             child: Text(
               'Tap to view leaderboard',
-              style: TextStyle(
+              style: AppTypography.captionSm.copyWith(
                 color: AppColors.green700,
-                fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -337,22 +308,16 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       children: [
         Text(
           "Today's Performance • $todayLabel",
-          style: const TextStyle(
-            color: AppColors.grey900,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            height: 1.0,
-          ),
+          style: AppTypography.titleLg,
         ),
         const SizedBox(height: 12),
         if (sessionsToday.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'No routes started today yet. Metrics will update in realtime as you work.',
-              style: TextStyle(
+              style: AppTypography.caption.copyWith(
                 color: AppColors.grey600,
-                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -401,18 +366,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     return Container(
       width: 150,
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 4,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -420,21 +374,13 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.grey900,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTypography.h2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.grey600,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-            ),
+            style: AppTypography.caption.copyWith(color: AppColors.grey600),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -474,17 +420,10 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          children: const [
-            Icon(Icons.route_rounded, size: 20, color: AppColors.grey900),
-            SizedBox(width: 4),
-            Text(
-              "Today's Routes",
-              style: TextStyle(
-                color: AppColors.grey900,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+          children: [
+            const Icon(Icons.route_rounded, size: 20, color: AppColors.grey900),
+            const SizedBox(width: 4),
+            Text("Today's Routes", style: AppTypography.titleLg),
           ],
         ),
         const SizedBox(height: 12),
@@ -492,16 +431,11 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.grey200),
-            ),
-            child: const Text(
+            decoration: AppDecorations.card(),
+            child: Text(
               'No routes yet. Optimize routes to receive realtime updates.',
-              style: TextStyle(
+              style: AppTypography.caption.copyWith(
                 color: AppColors.grey700,
-                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -541,21 +475,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   }) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.grey200,
-          width: 1.2,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -567,30 +487,18 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             ),
             child: Text(
               priority,
-              style: TextStyle(
+              style: AppTypography.overline.copyWith(
                 color: priorityColor,
-                fontSize: 10,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.grey900,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text(title, style: AppTypography.titleLg),
           const SizedBox(height: 4),
           Text(
             details,
-            style: const TextStyle(
-              color: AppColors.grey600,
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-            ),
+            style: AppTypography.caption.copyWith(color: AppColors.grey600),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -610,15 +518,12 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow, size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    'Open Routes',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
+                  const Icon(Icons.play_arrow, size: 16),
+                  const SizedBox(width: 6),
+                  Text('Open Routes', style: AppTypography.buttonMd),
                 ],
               ),
             ),
@@ -638,21 +543,14 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          children: const [
-            Icon(
+          children: [
+            const Icon(
               Icons.emoji_events_rounded,
               size: 20,
               color: AppColors.grey900,
             ),
-            SizedBox(width: 4),
-            Text(
-              'Recent Achievements',
-              style: TextStyle(
-                color: AppColors.grey900,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            const SizedBox(width: 4),
+            Text('Recent Achievements', style: AppTypography.titleLg),
           ],
         ),
         const SizedBox(height: 12),
@@ -660,23 +558,11 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadowSm,
-                  blurRadius: 3,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            child: const Text(
+            decoration: AppDecorations.card(),
+            child: Text(
               'No completed achievements yet. Progress updates will appear here in realtime.',
-              style: TextStyle(
+              style: AppTypography.caption.copyWith(
                 color: AppColors.grey600,
-                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -714,18 +600,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          decoration: AppDecorations.card(),
           child: Row(
             children: [
               Container(
@@ -746,23 +621,9 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppColors.grey900,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    Text(title, style: AppTypography.titleSm),
                     const SizedBox(height: 2),
-                    Text(
-                      timeAgo,
-                      style: const TextStyle(
-                        color: AppColors.grey500,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
+                    Text(timeAgo, style: AppTypography.captionSm),
                   ],
                 ),
               ),

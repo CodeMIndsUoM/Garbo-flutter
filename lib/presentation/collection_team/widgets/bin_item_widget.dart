@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 
 /// A single bin item row displayed inside the route details section.
@@ -39,10 +40,10 @@ class BinItemWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSkipped
-                ? DesignTokens.grey300
+                ? AppColors.grey300
                 : bin.isUrgent
-                ? DesignTokens.red100.withValues(alpha: 0.5)
-                : DesignTokens.grey200,
+                ? AppColors.red100.withValues(alpha: 0.5)
+                : AppColors.grey200,
             width: 1.3,
           ),
         ),
@@ -64,12 +65,10 @@ class BinItemWidget extends StatelessWidget {
                     bin.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: AppTypography.titleSm.copyWith(
                       color: isSkipped
-                          ? DesignTokens.grey500
-                          : DesignTokens.grey900,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                          ? AppColors.grey500
+                          : AppColors.grey900,
                       decoration: isSkipped ? TextDecoration.lineThrough : null,
                     ),
                   ),
@@ -79,10 +78,8 @@ class BinItemWidget extends StatelessWidget {
                     bin.address,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: DesignTokens.grey600,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
+                    style: AppTypography.captionSm.copyWith(
+                      color: AppColors.grey600,
                     ),
                   ),
                   // Info row: distance, time, fill status (hidden for collecting = compact view)
@@ -109,8 +106,8 @@ class BinItemWidget extends StatelessWidget {
                       timestamp: collectedAt!,
                       label: isSkipped ? 'Skipped' : 'Collected',
                       color: isSkipped
-                          ? DesignTokens.grey600
-                          : DesignTokens.green700,
+                          ? AppColors.grey600
+                          : AppColors.green700,
                     ),
                   ],
                 ],
@@ -149,14 +146,14 @@ class _IndexBadge extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isCollected ? DesignTokens.green700 : Colors.white,
+        color: isCollected ? AppColors.green700 : Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isCollected
-              ? DesignTokens.green700
+              ? AppColors.green700
               : isSkipped
-              ? DesignTokens.grey400
-              : DesignTokens.grey300,
+              ? AppColors.grey400
+              : AppColors.grey300,
           width: 1.3,
         ),
       ),
@@ -164,12 +161,11 @@ class _IndexBadge extends StatelessWidget {
       child: isCollected
           ? const Icon(Icons.check, color: Colors.white, size: 20)
           : isSkipped
-          ? const Icon(Icons.forward, color: DesignTokens.grey600, size: 18)
+          ? const Icon(Icons.forward, color: AppColors.grey600, size: 18)
           : Text(
               '$index',
-              style: const TextStyle(
-                color: DesignTokens.grey700,
-                fontSize: 13,
+              style: AppTypography.labelMd.copyWith(
+                color: AppColors.grey700,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -198,52 +194,42 @@ class _BadgeRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: DesignTokens.blue500,
+              color: AppColors.blue500,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Text(
+            child: Text(
               'COLLECTING',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.badge,
             ),
           ),
         ] else if (isCollected) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: DesignTokens.green700,
+              color: AppColors.green700,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Text(
+            child: Text(
               'COLLECTED',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.badge,
             ),
           ),
         ] else if (isSkipped) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: DesignTokens.grey200,
+              color: AppColors.grey200,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.forward, size: 9, color: DesignTokens.grey600),
+                Icon(Icons.forward, size: 9, color: AppColors.grey600),
                 const SizedBox(width: 3),
                 Text(
                   'SKIPPED',
-                  style: TextStyle(
-                    color: DesignTokens.grey600,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
+                  style: AppTypography.badge.copyWith(
+                    color: AppColors.grey600,
                   ),
                 ),
               ],
@@ -254,30 +240,25 @@ class _BadgeRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: DesignTokens.red500,
+              color: AppColors.red500,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Text(
+            child: Text(
               'URGENT',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.badge,
             ),
           ),
         ],
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: DesignTokens.grey200,
+            color: AppColors.grey200,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             bin.id,
-            style: const TextStyle(
-              color: DesignTokens.grey600,
-              fontSize: 9,
+            style: AppTypography.badge.copyWith(
+              color: AppColors.grey600,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -304,16 +285,12 @@ class _InfoRow extends StatelessWidget {
             const Icon(
               Icons.location_on_outlined,
               size: 12,
-              color: DesignTokens.grey500,
+              color: AppColors.grey500,
             ),
             const SizedBox(width: 4),
             Text(
               '${bin.distance} km',
-              style: const TextStyle(
-                color: DesignTokens.grey500,
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-              ),
+              style: AppTypography.captionSm,
             ),
           ],
         ),
@@ -323,16 +300,12 @@ class _InfoRow extends StatelessWidget {
             const Icon(
               Icons.access_time,
               size: 12,
-              color: DesignTokens.grey500,
+              color: AppColors.grey500,
             ),
             const SizedBox(width: 4),
             Text(
               '${bin.duration} mins',
-              style: const TextStyle(
-                color: DesignTokens.grey500,
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-              ),
+              style: AppTypography.captionSm,
             ),
           ],
         ),
@@ -352,14 +325,13 @@ class _FillStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isFull ? DesignTokens.red500 : DesignTokens.orange600,
+        color: isFull ? AppColors.red500 : AppColors.orange600,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         isFull ? 'FULL' : 'HALF',
-        style: const TextStyle(
+        style: AppTypography.overline.copyWith(
           color: Colors.white,
-          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -378,7 +350,7 @@ class _NextEtaRow extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       decoration: const BoxDecoration(
         border: Border(
-          top: BorderSide(color: DesignTokens.grey200, width: 1.3),
+          top: BorderSide(color: AppColors.grey200, width: 1.3),
         ),
       ),
       child: Wrap(
@@ -392,14 +364,13 @@ class _NextEtaRow extends StatelessWidget {
               const Icon(
                 Icons.location_on_outlined,
                 size: 12,
-                color: DesignTokens.blue500,
+                color: AppColors.blue500,
               ),
               const SizedBox(width: 4),
               Text(
                 'Next: $nextDistance km',
-                style: const TextStyle(
-                  color: DesignTokens.blue500,
-                  fontSize: 11,
+                style: AppTypography.captionSm.copyWith(
+                  color: AppColors.blue500,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -411,14 +382,13 @@ class _NextEtaRow extends StatelessWidget {
               const Icon(
                 Icons.access_time,
                 size: 12,
-                color: DesignTokens.blue500,
+                color: AppColors.blue500,
               ),
               const SizedBox(width: 4),
               Text(
                 'ETA: $nextEta mins',
-                style: const TextStyle(
-                  color: DesignTokens.blue500,
-                  fontSize: 11,
+                style: AppTypography.captionSm.copyWith(
+                  color: AppColors.blue500,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -455,7 +425,7 @@ class _CompletionTimestamp extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: DesignTokens.grey200, width: 1),
+        border: Border.all(color: AppColors.grey200, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -471,9 +441,8 @@ class _CompletionTimestamp extends StatelessWidget {
               '$label $date, $time',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: DesignTokens.grey600,
-                fontSize: 10,
+              style: AppTypography.overline.copyWith(
+                color: AppColors.grey600,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -498,23 +467,25 @@ class _SkipButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onSkip,
         style: OutlinedButton.styleFrom(
-          foregroundColor: DesignTokens.grey600,
+          foregroundColor: AppColors.grey600,
           backgroundColor: Colors.white,
           elevation: 0,
           minimumSize: Size.zero,
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          side: const BorderSide(color: DesignTokens.grey300, width: 1),
+          side: const BorderSide(color: AppColors.grey300, width: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.skip_next_rounded, size: 12),
-            SizedBox(width: 4),
+            const Icon(Icons.skip_next_rounded, size: 12),
+            const SizedBox(width: 4),
             Text(
               'Skip',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              style: AppTypography.captionSm.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -537,23 +508,25 @@ class _UndoButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onUndo,
         style: OutlinedButton.styleFrom(
-          foregroundColor: DesignTokens.grey700,
+          foregroundColor: AppColors.grey700,
           backgroundColor: Colors.white,
           elevation: 0,
           minimumSize: Size.zero,
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          side: const BorderSide(color: DesignTokens.grey300, width: 1),
+          side: const BorderSide(color: AppColors.grey300, width: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.undo_rounded, size: 12),
-            SizedBox(width: 4),
+            const Icon(Icons.undo_rounded, size: 12),
+            const SizedBox(width: 4),
             Text(
               'Undo',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              style: AppTypography.captionSm.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

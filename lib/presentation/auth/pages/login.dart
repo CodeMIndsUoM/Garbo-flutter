@@ -241,16 +241,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
                         width: 24,
                         height: 24,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.blue),
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: AppColors.blue500),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Sign in with Google',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                        style: AppTypography.h4,
                       ),
                     ],
                   ),
@@ -261,9 +257,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Choose a Google account to continue to Garbo',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+                style: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
               ),
               const SizedBox(height: 20),
               _buildGoogleAccountItem(
@@ -301,11 +297,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         backgroundColor: AppColors.green700.withAlpha(26),
         child: Text(
           name[0],
-          style: const TextStyle(color: AppColors.green700, fontWeight: FontWeight.bold),
+          style: AppTypography.titleSm.copyWith(color: AppColors.green700),
         ),
       ),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(email),
+      title: Text(name, style: AppTypography.titleMd),
+      subtitle: Text(email, style: AppTypography.bodySm),
       onTap: () async {
         Navigator.pop(context); // Close bottom sheet
         setState(() => _isLoading = true);
@@ -369,32 +365,37 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: OutlinedButton(
-        onPressed: onTap,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          minimumSize: const Size(double.infinity, 54),
-          side: BorderSide(color: Colors.grey[200]!),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icon,
-            const SizedBox(width: 12),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+      child: Material(
+        color: Colors.white,
+        elevation: 2,
+        shadowColor: AppColors.green700.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(28),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: double.infinity,
+            height: 54,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: AppColors.green700.withValues(alpha: 0.25),
               ),
             ),
-          ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                icon,
+                const SizedBox(width: 12),
+                Text(
+                  text,
+                  style: AppTypography.buttonMd.copyWith(
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -412,13 +413,16 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!, width: 1),
-          boxShadow: [
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.black.withValues(alpha: 0.08),
+            width: 1.2,
+          ),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.grey[100]!,
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: AppColors.shadowSm,
+              blurRadius: 3,
+              offset: Offset(0, 1),
             ),
           ],
         ),
@@ -427,7 +431,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             SizedBox(
               width: 44,
               height: 44,
-              child: Icon(icon, size: 28, color: AppColors.green700),
+              child: Icon(icon, size: 28, color: Colors.black),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -436,64 +440,134 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                    style: AppTypography.titleLg.copyWith(
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    style: AppTypography.bodySm.copyWith(
+                      color: Colors.black.withValues(alpha: 0.6),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.black.withValues(alpha: 0.35),
+              size: 16,
+            ),
           ],
         ),
       ),
     );
   }
 
+  InputDecoration _loginFieldDecoration({
+    required String label,
+    Widget? suffixIcon,
+  }) {
+    const fieldBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(28)),
+      borderSide: BorderSide(color: Colors.black, width: 1),
+    );
+
+    return InputDecoration(
+      labelText: label,
+      labelStyle: AppTypography.bodyMd.copyWith(
+        color: Colors.black.withValues(alpha: 0.55),
+      ),
+      floatingLabelStyle: AppTypography.labelMd.copyWith(
+        color: Colors.black,
+      ),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.white,
+      border: fieldBorder,
+      enabledBorder: fieldBorder,
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(28)),
+        borderSide: BorderSide(color: Colors.black, width: 1.2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    );
+  }
+
+  Widget _buildTabLabel(String label, bool selected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Text(
+              label,
+              style: AppTypography.titleSm.copyWith(
+                color: selected ? Colors.black : Colors.black.withValues(alpha: 0.45),
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.green700 : Colors.transparent,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(28, 36, 28, 32),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final headerHeight = MediaQuery.of(context).size.height * 0.34;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF15803D),
+      backgroundColor: AppColors.green700,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           Column(
             children: [
-              // Top Green Area
-              Container(
-                height: 320,
+              SizedBox(
+                height: headerHeight,
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.green700, Color(0xFF15803D)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
                 child: SafeArea(
                   bottom: false,
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'GARBO',
-                          style: TextStyle(
+                          style: AppTypography.displayLg.copyWith(
                             color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
                             letterSpacing: 6,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Text(
                           'Smart Waste Management',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 13,
+                          style: AppTypography.bodySm.copyWith(
+                            color: Colors.white.withValues(alpha: 0.85),
                             letterSpacing: 1,
                           ),
                         ),
@@ -502,269 +576,227 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              // White Form Card Container
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Static Tab switcher (Login / Register)
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => setState(() => _selectedTab = 0),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'Log in',
-                                      style: TextStyle(
-                                        fontWeight: _selectedTab == 0 ? FontWeight.bold : FontWeight.w500,
-                                        color: _selectedTab == 0 ? Colors.black : Colors.grey[400],
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      height: 2,
-                                      color: _selectedTab == 0 ? Colors.black : Colors.grey[200],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => setState(() => _selectedTab = 1),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'Register',
-                                      style: TextStyle(
-                                        fontWeight: _selectedTab == 1 ? FontWeight.bold : FontWeight.w500,
-                                        color: _selectedTab == 1 ? Colors.black : Colors.grey[400],
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      height: 2,
-                                      color: _selectedTab == 1 ? Colors.black : Colors.grey[200],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Form contents switcher
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: _selectedTab == 0
-                              ? Column(
-                                  key: const ValueKey('login_form_view'),
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Email Field
-                                    TextField(
-                                      controller: _usernameController,
-                                      keyboardType: TextInputType.emailAddress,
-                                      decoration: InputDecoration(
-                                        labelText: 'Email',
-                                        labelStyle: TextStyle(color: Colors.grey[500]),
-                                        floatingLabelStyle: const TextStyle(color: Colors.black87),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                                        ),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-
-                                    // Password Field
-                                    TextField(
-                                      controller: _passwordController,
-                                      obscureText: _obscurePassword,
-                                      decoration: InputDecoration(
-                                        labelText: 'Passwords',
-                                        labelStyle: TextStyle(color: Colors.grey[500]),
-                                        floatingLabelStyle: const TextStyle(color: Colors.black87),
-                                        suffixIcon: IconButton(
-                                          icon: Icon(
-                                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                            color: Colors.grey[400],
-                                          ),
-                                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                        ),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: BorderSide(color: Colors.grey[300]!),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                                        ),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-
-                                    // Forget password link
-                                    RichText(
-                                      text: TextSpan(
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 14, fontFamily: 'Outfit'),
-                                        children: [
-                                          const TextSpan(text: 'Forget password? '),
-                                          TextSpan(
-                                            text: 'Reset it',
-                                            style: const TextStyle(
-                                              color: AppColors.green700,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                            recognizer: TapGestureRecognizer()
-                                              ..onTap = () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) => Forgotpassword(),
-                                                  ),
-                                                );
-                                              },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 32),
-
-                                    // Log in Button
-                                    SizedBox(
-                                      width: double.infinity,
-                                      height: 54,
-                                      child: ElevatedButton(
-                                        onPressed: _isLoading ? null : _handleLogin,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.green700,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          elevation: 0,
-                                        ),
-                                        child: _isLoading
-                                            ? const SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child: CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2.5,
-                                                ),
-                                              )
-                                            : const Text(
-                                                'Log in',
-                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-
-                                    // Or divider
-                                    Row(
-                                      children: [
-                                        Expanded(child: Divider(color: Colors.grey[200])),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                                          child: Text(
-                                            'or',
-                                            style: TextStyle(color: Colors.grey[400], fontSize: 14),
-                                          ),
-                                        ),
-                                        Expanded(child: Divider(color: Colors.grey[200])),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 24),
-
-                                    // Social login buttons
-                                    _buildSocialButton(
-                                      icon: Image.network(
-                                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
-                                        width: 20,
-                                        height: 20,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.blue),
-                                      ),
-                                      text: 'Continue with Google',
-                                      onTap: _handleGoogleOAuth,
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  key: const ValueKey('register_choices_view'),
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      'Select your role to start registration',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    _buildRegisterCard(
-                                      icon: Icons.person_outline,
-                                      title: 'Citizen',
-                                      description: 'Report waste items and request waste pickups in your area.',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const Register()),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 16),
-                                    _buildRegisterCard(
-                                      icon: Icons.local_shipping_outlined,
-                                      title: 'Third Party Collector',
-                                      description: 'Offer waste collection services for citizens and local authorities.',
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const CollectorRegister()),
-                                        );
-                                      },
-                                    ),
-
-                                  ],
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: headerHeight - 28,
+            bottom: 0,
+            child: _buildFormCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      _buildTabLabel(
+                        'Log in',
+                        _selectedTab == 0,
+                        () => setState(() => _selectedTab = 0),
+                      ),
+                      _buildTabLabel(
+                        'Register',
+                        _selectedTab == 1,
+                        () => setState(() => _selectedTab = 1),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _selectedTab == 0
+                        ? Column(
+                            key: const ValueKey('login_form_view'),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextField(
+                                controller: _usernameController,
+                                keyboardType: TextInputType.emailAddress,
+                                style: AppTypography.bodyMd.copyWith(
+                                  color: Colors.black,
+                                ),
+                                decoration: _loginFieldDecoration(label: 'Email'),
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                style: AppTypography.bodyMd.copyWith(
+                                  color: Colors.black,
+                                ),
+                                decoration: _loginFieldDecoration(
+                                  label: 'Password',
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: Colors.black.withValues(alpha: 0.45),
+                                    ),
+                                    onPressed: () => setState(
+                                      () => _obscurePassword = !_obscurePassword,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              RichText(
+                                text: TextSpan(
+                                  style: AppTypography.bodyMd.copyWith(
+                                    color: Colors.black,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'Forget password? '),
+                                    TextSpan(
+                                      text: 'Reset it',
+                                      style: AppTypography.titleSm.copyWith(
+                                        color: AppColors.green700,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const Forgotpassword(),
+                                            ),
+                                          );
+                                        },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              Material(
+                                elevation: 4,
+                                shadowColor:
+                                    AppColors.green700.withValues(alpha: 0.35),
+                                borderRadius: BorderRadius.circular(28),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 54,
+                                  child: ElevatedButton(
+                                    onPressed:
+                                        _isLoading ? null : _handleLogin,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.green700,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor: AppColors.green700
+                                          .withValues(alpha: 0.45),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(28),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2.5,
+                                            ),
+                                          )
+                                        : Text(
+                                            'Log in',
+                                            style: AppTypography.buttonLg
+                                                .copyWith(color: Colors.white),
+                                          ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: Colors.black.withValues(alpha: 0.12),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Text(
+                                      'or',
+                                      style: AppTypography.bodyMd.copyWith(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.45,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: Colors.black.withValues(alpha: 0.12),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              _buildSocialButton(
+                                icon: Image.network(
+                                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
+                                  width: 20,
+                                  height: 20,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.g_mobiledata,
+                                    color: AppColors.green700,
+                                  ),
+                                ),
+                                text: 'Continue with Google',
+                                onTap: _handleGoogleOAuth,
+                              ),
+                            ],
+                          )
+                        : Column(
+                            key: const ValueKey('register_choices_view'),
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Select your role to start registration',
+                                style: AppTypography.bodyMd.copyWith(
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              _buildRegisterCard(
+                                icon: Icons.person_outline,
+                                title: 'Citizen',
+                                description:
+                                    'Report waste items and request waste pickups in your area.',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const Register(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              _buildRegisterCard(
+                                icon: Icons.local_shipping_outlined,
+                                title: 'Third Party Collector',
+                                description:
+                                    'Offer waste collection services for citizens and local authorities.',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CollectorRegister(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
+            ),
           ),
           
           // Success Overlay Animation

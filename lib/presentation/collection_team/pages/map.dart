@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
@@ -333,9 +334,8 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                     const SizedBox(width: 6),
                     Text(
                       _isNavigating ? 'Navigation Live' : 'Optimized Journey',
-                      style: const TextStyle(
+                      style: AppTypography.labelSm.copyWith(
                         color: AppColors.blue600,
-                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -356,9 +356,8 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                   ),
                   child: Text(
                     _followCamera ? 'Auto-follow ON' : 'Auto-follow OFF',
-                    style: const TextStyle(
+                    style: AppTypography.captionSm.copyWith(
                       color: AppColors.green700,
-                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -421,11 +420,10 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                                 const SizedBox(width: 6),
                                 Text(
                                   'R${session.sequenceNumber}',
-                                  style: TextStyle(
+                                  style: AppTypography.labelSm.copyWith(
                                     color: selected
                                         ? session.color
                                         : AppColors.grey700,
-                                    fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -470,14 +468,11 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   Widget _buildRouteStat(String value, String label) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        Text(value, style: AppTypography.h3),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: AppColors.grey600),
+          style: AppTypography.caption.copyWith(color: AppColors.grey600),
         ),
       ],
     );
@@ -585,10 +580,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                   mapData.totalStops > 0
                       ? (_isNavigating ? 'End Navigation' : 'Start Navigation')
                       : 'Waiting For Route',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.titleLg,
                 ),
               ],
             ),
@@ -613,13 +605,9 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Select Route To Navigate',
-                  style: TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTypography.titleLg,
                 ),
                 const SizedBox(height: 12),
                 ...sessions.map((session) {
@@ -636,10 +624,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                     ),
                     title: Text(
                       session.title,
-                      style: const TextStyle(
-                        color: AppColors.grey900,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.titleSm,
                     ),
                     subtitle: Text(
                       '${session.totalStops} stops • ${session.estimatedMinutes} mins',

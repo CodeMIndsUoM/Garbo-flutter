@@ -49,25 +49,25 @@ class OfferCard extends StatelessWidget {
     };
 
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.emerald50,
-        child: Container(
-          padding: const EdgeInsets.all(14),
+        child: Ink(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 6,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),
+          padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -183,13 +183,13 @@ class ActiveJobCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+            color: AppColors.shadowSm,
+            blurRadius: 3,
+            offset: Offset(0, 1),
           ),
         ],
       ),
@@ -399,11 +399,7 @@ Widget buildImageSlot(String? imageUrl) {
       color: AppColors.grey100,
       alignment: Alignment.center,
       child: imageUrl == null
-          ? const Icon(
-              Icons.image_rounded,
-              color: AppColors.grey300,
-              size: 28,
-            )
+          ? const Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
           : Image.network(
               imageUrl,
               fit: BoxFit.cover,
