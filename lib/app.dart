@@ -35,7 +35,8 @@ class App extends StatelessWidget {
       scrollBehavior: const NoScrollbarBehavior(),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.green700),
-        fontFamily: 'Arimo',
+        scaffoldBackgroundColor: AppColors.grey50,
+        fontFamily: 'Manrope',
       ),
       initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,

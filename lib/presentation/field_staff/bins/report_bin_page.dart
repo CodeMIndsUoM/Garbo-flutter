@@ -306,8 +306,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.half,
                     label: 'Half Full',
                     description: 'Bin is about halfway filled',
-                    color: AppColors.yellow400,
-                    bgColor: AppColors.yellow,
+                    color: AppColors.amber600,
+                    bgColor: AppColors.amberSurface,
                     icon: Icons.sentiment_neutral,
                   ),
                   const SizedBox(height: 12),
@@ -390,11 +390,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: TextButton(
+                    child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppColors
-                            .red100, // Light red background like screenshot
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.red500,
+                        side: const BorderSide(color: AppColors.red500, width: 1.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -403,6 +403,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                         'Cancel',
                         style: AppTypography.titleLg.copyWith(
                           color: AppColors.red500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -418,7 +419,6 @@ class _ReportBinPageState extends State<ReportBinPage> {
     return Text(title, style: AppTypography.titleLg);
   }
 
-  // DEVELOPER NOTE: Sizing, border, background color, and margin styling for individual fill level selection cards (Empty, Half, Full).
   Widget _buildStatusOption({
     required BinStatus status,
     required String label,
@@ -433,15 +433,25 @@ class _ReportBinPageState extends State<ReportBinPage> {
       onTap: () {
         setState(() => _selectedStatus = status);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: isSelected ? bgColor : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : Colors.transparent,
-            width: 2,
+            color: isSelected ? color : color.withValues(alpha: 0.35),
+            width: isSelected ? 2 : 1.2,
           ),
+          boxShadow: isSelected
+              ? []
+              : [
+                  const BoxShadow(
+                    color: AppColors.shadowXs,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -449,27 +459,43 @@ class _ReportBinPageState extends State<ReportBinPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color,
+                color: isSelected ? color : color.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: Colors.white, size: 28),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : color,
+                size: 26,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: AppTypography.titleLg),
+                  Text(
+                    label,
+                    style: AppTypography.titleLg.copyWith(
+                      color: isSelected ? AppColors.grey900 : AppColors.grey700,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     description,
                     style: AppTypography.bodySm.copyWith(
-                      color: AppColors.grey600,
+                      color: AppColors.grey500,
                     ),
                   ),
                 ],
               ),
             ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: color,
+                size: 24,
+              ),
           ],
         ),
       ),
@@ -484,9 +510,9 @@ class _ReportBinPageState extends State<ReportBinPage> {
         width: double.infinity,
         height: 160,
         decoration: BoxDecoration(
-          color: _selectedImage == null ? AppColors.blue50 : Colors.black12,
+          color: _selectedImage == null ? Colors.white : Colors.black12,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.blue200),
+          border: Border.all(color: AppColors.grey200, width: 1.2),
           image: _selectedImage != null
               ? DecorationImage(
                   image: FileImage(_selectedImage!),
@@ -500,16 +526,19 @@ class _ReportBinPageState extends State<ReportBinPage> {
                 children: [
                   const Icon(
                     Icons.camera_alt_outlined,
-                    size: 40,
-                    color: AppColors.blue600,
+                    size: 36,
+                    color: AppColors.grey500,
                   ),
                   const SizedBox(height: 12),
-                  Text('Take Photo', style: AppTypography.titleLg),
+                  Text(
+                    'Take Photo',
+                    style: AppTypography.titleMd.copyWith(color: AppColors.grey700),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     'Document damage or issues',
                     style: AppTypography.bodySm.copyWith(
-                      color: AppColors.grey600,
+                      color: AppColors.grey500,
                     ),
                   ),
                 ],

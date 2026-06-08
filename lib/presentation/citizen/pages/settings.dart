@@ -15,13 +15,14 @@ class SettingsPageState extends State<CitizenSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Menu'),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -44,8 +45,8 @@ class SettingsPageState extends State<CitizenSettingsPage> {
         buildMenuItem(
           icon: Icons.person_outline,
           title: 'My Profile',
-          backgroundColor: AppColors.blue50,
-          iconColor: AppColors.blue600,
+          backgroundColor: AppColors.greenSurface2,
+          iconColor: AppColors.green700,
           onTap: () {
             Navigator.pushNamed(context, AppRouter.citizenProfile);
           },

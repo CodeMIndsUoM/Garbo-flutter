@@ -22,42 +22,36 @@ class ThirdPartyHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(
-        20,
+        24,
         MediaQuery.of(context).padding.top + 10,
-        20,
+        24,
         10,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.grey50,
+      decoration: BoxDecoration(
+        color: title == 'Profile' ? Colors.white : AppColors.grey50,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTypography.h1.copyWith(color: AppColors.grey900),
-                ),
-              ],
+            child: Text(
+              title,
+              style: AppTypography.h1.copyWith(color: AppColors.grey900),
             ),
           ),
           GestureDetector(
-            onTap: onNotificationTap ?? () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsPage(),
-                ),
-              );
-            },
+            onTap: onNotificationTap ??
+                () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsPage(),
+                    ),
+                  );
+                },
             child: Container(
               width: 48,
               height: 48,
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-              ),
+              decoration: const BoxDecoration(color: Colors.transparent),
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,

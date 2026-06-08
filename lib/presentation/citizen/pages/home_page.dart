@@ -15,13 +15,14 @@ class CitizenHomePageState extends State<CitizenHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Home'),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -71,7 +72,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: AppColors.emerald50,
+                    color: AppColors.greenSurface2,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: AppColors.emerald200,
@@ -97,7 +98,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                       Text(
                         "Let's make our city cleaner",
                         style: TextStyle(
-                          color: AppColors.citizenGrey900,
+                          color: AppColors.grey900,
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           height: 1.2,
@@ -139,7 +140,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                     Text(
                       '145',
                       style: TextStyle(
-                        color: AppColors.citizenGrey900,
+                        color: AppColors.grey900,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                       ),
@@ -148,7 +149,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                     Text(
                       'pts',
                       style: TextStyle(
-                        color: AppColors.citizenGrey500,
+                        color: AppColors.grey500,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -170,7 +171,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         const Text(
           'Quick Actions',
           style: TextStyle(
-            color: AppColors.citizenGrey900,
+            color: AppColors.grey900,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -255,7 +256,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.emerald50,
+                    color: AppColors.greenSurface2,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(icon, color: AppColors.green700, size: 24),
@@ -265,7 +266,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: AppColors.citizenGrey900,
+                    color: AppColors.grey900,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -275,7 +276,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   subtitle,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: AppColors.citizenGrey500,
+                    color: AppColors.grey500,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -295,7 +296,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         const Text(
           'Recent Activity',
           style: TextStyle(
-            color: AppColors.citizenGrey900,
+            color: AppColors.grey900,
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -351,7 +352,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppColors.emerald50,
+              color: AppColors.greenSurface2,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: AppColors.emerald600, size: 22),
@@ -364,7 +365,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: AppColors.citizenGrey900,
+                    color: AppColors.grey900,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -374,7 +375,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   subtitle,
                   style: const TextStyle(
-                    color: AppColors.citizenGrey600,
+                    color: AppColors.grey600,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     height: 1.3,
@@ -384,7 +385,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   time,
                   style: const TextStyle(
-                    color: AppColors.citizenGrey500,
+                    color: AppColors.grey500,
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
                   ),
@@ -419,7 +420,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.emerald50,
+              color: AppColors.greenSurface2,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -436,7 +437,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Waste Management Tip',
                   style: TextStyle(
-                    color: AppColors.citizenGrey900,
+                    color: AppColors.grey900,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -446,7 +447,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                 Text(
                   'Separate your recyclables from general waste to help reduce landfill impact and promote sustainability.',
                   style: TextStyle(
-                    color: AppColors.citizenGrey600,
+                    color: AppColors.grey600,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     height: 1.4,

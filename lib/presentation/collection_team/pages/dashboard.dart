@@ -86,6 +86,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     final levelProgress = _resolveLevelProgress(points);
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
@@ -157,12 +158,12 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.blue50,
+                      color: AppColors.greenSurface2,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Icons.emoji_events,
-                      color: AppColors.blue500,
+                      color: AppColors.green700,
                       size: 24,
                     ),
                   ),
@@ -196,7 +197,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   Text(
                     '${points.toStringAsFixed(0)} pts',
                     style: const TextStyle(
-                      color: AppColors.blue600,
+                      color: AppColors.green700,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -220,7 +221,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               value: levelProgress,
               backgroundColor: AppColors.grey100,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.blue500,
+                AppColors.green700,
               ),
               minHeight: 12,
             ),
@@ -497,7 +498,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 details:
                     '${session.totalStops} bins • ${session.estimatedMinutes} mins • $collected collected',
                 gradientColors: pending == 0
-                    ? const [AppColors.blue50, AppColors.indigo50]
+                    ? const [AppColors.greenSurface2, AppColors.greenSurface3]
                     : const [AppColors.red50, AppColors.orange50],
               ),
             );

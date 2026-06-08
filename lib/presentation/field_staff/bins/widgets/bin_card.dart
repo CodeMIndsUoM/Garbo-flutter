@@ -35,12 +35,16 @@ class BinCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: AppColors.shadowSm,
-              blurRadius: 3,
-              offset: Offset(0, 1),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -186,36 +190,31 @@ class BinCard extends StatelessWidget {
   }
 
   Widget _buildUndoButton() {
-    return GestureDetector(
-      onTap: onUndo,
-      child: Container(
-        width: double.infinity,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowXs,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.undo, color: AppColors.grey700, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              'Undo Report',
-              style: AppTypography.titleSm.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.grey700,
+    return Align(
+      alignment: Alignment.centerRight,
+      child: GestureDetector(
+        onTap: onUndo,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-            ),
-          ],
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.more_vert, color: AppColors.grey700, size: 20),
         ),
       ),
     );

@@ -170,7 +170,7 @@ class RequestsList extends StatelessWidget {
                                 child: Text(
                                   request.wasteType.replaceAll('_', ' '),
                                   style: const TextStyle(
-                                    color: AppColors.citizenGrey900,
+                                    color: AppColors.grey900,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                     height: 1.3,
@@ -204,14 +204,14 @@ class RequestsList extends StatelessWidget {
                               const Icon(
                                 Icons.location_on_rounded,
                                 size: 14,
-                                color: AppColors.citizenGrey600,
+                                color: AppColors.grey600,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   requestSubtitle(request),
                                   style: const TextStyle(
-                                    color: AppColors.citizenGrey600,
+                                    color: AppColors.grey600,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -226,7 +226,7 @@ class RequestsList extends StatelessWidget {
                               Text(
                                 formatRequestDate(request.preferredDate),
                                 style: const TextStyle(
-                                  color: AppColors.citizenGrey500,
+                                  color: AppColors.grey500,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -291,7 +291,7 @@ class RequestsList extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.citizenGrey900,
+                        color: AppColors.grey900,
                       ),
                     ),
                     SizedBox(height: 2),
@@ -299,7 +299,7 @@ class RequestsList extends StatelessWidget {
                       'You can review collector price proposals and accept the one that fits best.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.citizenGrey600,
+                        color: AppColors.grey600,
                         height: 1.4,
                       ),
                     ),

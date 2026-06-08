@@ -436,6 +436,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
@@ -444,7 +445,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
             child: RefreshIndicator(
               onRefresh: _loadRequests,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 children: [
                   const SizedBox(height: 12),
                   RequestActionButtons(

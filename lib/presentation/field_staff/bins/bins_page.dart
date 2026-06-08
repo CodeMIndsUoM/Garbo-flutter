@@ -385,35 +385,97 @@ class _BinsPageState extends State<BinsPage> {
   Future<void> _handleUndo(BinModel bin) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Undo Report?'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Text(
-          'This will reset the bin status to Not Checked. You can then report it again safely.',
-          style: AppTypography.bodyMd,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: AppTypography.buttonMd.copyWith(color: AppColors.grey600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.green700,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.red50,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.undo_rounded,
+                    color: AppColors.red500,
+                    size: 24,
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              'Undo',
-              style: AppTypography.buttonMd.copyWith(color: Colors.white),
-            ),
+              const SizedBox(height: 14),
+              Text(
+                'Undo Report?',
+                textAlign: TextAlign.center,
+                style: AppTypography.h4,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'This will reset the bin status to Not Checked. You can then report it again safely.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodySm,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Material(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(false),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            'Cancel',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.buttonMd.copyWith(
+                              color: AppColors.grey700,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Material(
+                      color: AppColors.red500,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Navigator.of(context).pop(true),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(
+                            'Undo',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.buttonMd.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
 
