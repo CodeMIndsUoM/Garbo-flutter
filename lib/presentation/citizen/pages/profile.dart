@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
+import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_stats_section.dart';
 
 class CitizenProfilePage extends StatefulWidget {
   const CitizenProfilePage({super.key});
@@ -15,180 +20,54 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBody: true,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          CitizenHeader(name: 'Profile'),
+          const CitizenHeader(name: 'Profile'),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  buildProfileCard(),
-                  const SizedBox(height: 24),
-                  buildContactInfo(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.grey900,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  buildSettingsOptions(),
-                  const SizedBox(height: 24),
-                  buildLogoutButton(),
-                  const SizedBox(height: 24),
-                ],
+            child: ProfilePageBody(
+              profileCard: ProfileCard(
+                name: 'Micheal',
+                role: 'Citizen Account',
+                employeeId: '-',
+                email: 'michealmarsh@gmail.com',
+                joinedDate: 'Jan 1, 2025',
+              ),
+              sections: [
+                const ProfileStatsSection(
+                  rows: [
+                    ProfileStatRow(label: 'Reports Submitted', value: '9'),
+                    ProfileStatRow(label: 'Events Joined', value: '2'),
+                    ProfileStatRow(label: 'Reward Points', value: '145'),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: ProfileAchievementList(),
+                ),
+                ProfileExpandableSection(
+                  title: 'Contact Details',
+                  icon: Icons.contact_page_outlined,
+                  subtitle: 'Name, phone, email & address',
+                  child: buildContactInfo(),
+                ),
+                ProfileExpandableSection(
+                  title: 'Settings',
+                  icon: Icons.settings_outlined,
+                  subtitle: 'Notifications, privacy & preferences',
+                  child: buildSettingsOptions(),
+                ),
+              ],
+              footer: const ProfileLogoutButton(
+                dialogMessage:
+                    "You'll need to sign in again to access your dashboard.",
               ),
             ),
           ),
         ],
       ),
       bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 4),
-    );
-  }
-
-  Widget buildProfileCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Center(
-                  child: Text(
-                    'M',
-                    style: TextStyle(
-                      color: AppColors.grey900,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Micheal',
-                      style: TextStyle(
-                        color: AppColors.grey900,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Citizen Account',
-                      style: TextStyle(
-                        color: AppColors.grey500,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              buildStatItem('9', 'Reports'),
-              Container(
-                width: 1,
-                height: 32,
-                color: AppColors.grey200,
-              ),
-              buildStatItem('2', 'Events'),
-              Container(
-                width: 1,
-                height: 32,
-                color: AppColors.grey200,
-              ),
-              buildStatItem('145', 'Points'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.emerald50,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(
-                  Icons.workspace_premium_outlined,
-                  color: AppColors.green700,
-                  size: 16,
-                ),
-                SizedBox(width: 6),
-                Text(
-                  'Active Member Since 2025',
-                  style: TextStyle(
-                    color: AppColors.green700,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildStatItem(String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.grey900,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.grey600,
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
     );
   }
 
@@ -199,32 +78,24 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           icon: Icons.person_outline,
           label: 'Full Name',
           value: 'MIcheal Marsh',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.phone_outlined,
           label: 'Phone Number',
           value: '077 1234567',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.email_outlined,
           label: 'Email',
           value: 'michealmarsh@gmail.com',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.location_on_outlined,
           label: 'Default Address',
           value: '123 Main Street',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
         ),
       ],
     );
@@ -234,8 +105,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     required IconData icon,
     required String label,
     required String value,
-    required Color backgroundColor,
-    required Color iconColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -253,15 +122,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
+          Icon(icon, color: AppColors.green700, size: 24),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -299,8 +160,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           icon: Icons.notifications_outlined,
           title: 'Notifications',
           subtitle: 'Manage your alerts',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -315,8 +174,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           icon: Icons.security_outlined,
           title: 'Privacy & Security',
           subtitle: 'Password & data settings',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -328,11 +185,9 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         ),
         const SizedBox(height: 12),
         buildSettingItem(
-          icon: Icons.settings_outlined,
+          icon: Icons.tune_outlined,
           title: 'Preferences',
           subtitle: 'App settings & defaults',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -347,8 +202,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           icon: Icons.help_outline,
           title: 'Help & Support',
           subtitle: 'FAQs and contact us',
-          backgroundColor: AppColors.emerald50,
-          iconColor: AppColors.emerald600,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -366,8 +219,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color backgroundColor,
-    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -389,15 +240,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         ),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
+            Icon(icon, color: AppColors.green700, size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -427,273 +270,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildLogoutButton() {
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.red100, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _confirmLogout(context),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.logout_rounded,
-                  color: AppColors.red500,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Log Out',
-                  style: TextStyle(
-                    color: AppColors.red500,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.35),
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.red50,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.logout_rounded,
-                    color: AppColors.red500,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'Log out of your account?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.grey900,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                "You'll need to sign in again to access your dashboard.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.grey600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Material(
-                      color: AppColors.grey100,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => Navigator.of(ctx).pop(false),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: const Text(
-                            'Cancel',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.grey700,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Material(
-                      color: AppColors.red500,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => Navigator.of(ctx).pop(true),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: const Text(
-                            'Log Out',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const Login()),
-        (route) => false,
-      );
-    }
-  }
-
-  Widget buildAccountInformation() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Account Information',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.grey900,
-            ),
-          ),
-          const SizedBox(height: 20),
-          buildInfoItem(
-            icon: Icons.person_outline,
-            label: 'Full Name',
-            value: 'MIcheal Smith',
-            iconColor: AppColors.emerald700,
-          ),
-          const SizedBox(height: 16),
-          buildInfoItem(
-            icon: Icons.phone_outlined,
-            label: 'Phone Number',
-            value: '077 1234567',
-            iconColor: AppColors.emerald700,
-          ),
-          const SizedBox(height: 16),
-          buildInfoItem(
-            icon: Icons.email_outlined,
-            label: 'Email',
-            value: 'michealsmith@gmail.com',
-            iconColor: AppColors.emerald700,
-          ),
-          const SizedBox(height: 16),
-          buildInfoItem(
-            icon: Icons.location_on_outlined,
-            label: 'Default Address',
-            value: '123 Main Street',
-            iconColor: AppColors.emerald700,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildInfoItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color iconColor,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.grey600,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.grey900,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -5,13 +5,18 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/performance_stats_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
-import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
+import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_stats_section.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
@@ -27,7 +32,9 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   static const String _baseUrl = ApiConstants.baseUrl;
   static const Duration _performanceStatsTimeout = Duration(seconds: 20);
 
-  bool _didLoadGamification = false;
+  bool _didInitProfile = false;
+  bool _achievementsLoaded = false;
+  bool _achievementsLoading = false;
   CollectorPerformanceStats? _performanceStats;
   bool _isPerformanceLoading = false;
   String? _performanceError;
@@ -41,28 +48,22 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_didLoadGamification) {
+    if (_didInitProfile) {
       return;
     }
 
-    _didLoadGamification = true;
+    _didInitProfile = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
 
       final authProvider = context.read<AuthProvider>();
-      final gamificationProvider = context.read<GamificationTasksProvider>();
-
       final userId = authProvider.currentUser?.empId;
-      final role = authProvider.currentUser?.role;
 
       if (userId != null) {
         _activeUserId = userId;
-        _refreshProfileProgress(gamificationProvider, userId);
-      }
-      if (role != null && role.isNotEmpty) {
-        gamificationProvider.loadAvailableTasks(role);
+        _loadPerformanceStats(userId);
       }
 
       _attachPerformanceRealtimeRefresh(context.read<WebSocketProvider>());
@@ -95,23 +96,42 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         if (!mounted || _activeUserId == null) {
           return;
         }
-        _refreshProfileProgress(
-          context.read<GamificationTasksProvider>(),
-          _activeUserId!,
-        );
+        _loadPerformanceStats(_activeUserId!);
+        if (_achievementsLoaded) {
+          context.read<GamificationTasksProvider>().loadUserTasks(
+            _activeUserId!,
+          );
+        }
       });
     });
   }
 
-  Future<void> _refreshProfileProgress(
-    GamificationTasksProvider gamificationProvider,
-    int userId,
-  ) async {
-    await gamificationProvider.loadUserTasks(userId);
-    if (!mounted) {
+  Future<void> _loadAchievementsIfNeeded() async {
+    if (_achievementsLoaded || _achievementsLoading || _activeUserId == null) {
       return;
     }
-    await _loadPerformanceStats(userId);
+
+    setState(() => _achievementsLoading = true);
+
+    final gamificationProvider = context.read<GamificationTasksProvider>();
+    final role = context.read<AuthProvider>().currentUser?.role;
+
+    try {
+      if (role != null && role.isNotEmpty) {
+        await gamificationProvider.loadAvailableTasks(role);
+      }
+      await gamificationProvider.loadUserTasks(_activeUserId!);
+      if (mounted) {
+        setState(() {
+          _achievementsLoaded = true;
+          _achievementsLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _achievementsLoading = false);
+      }
+    }
   }
 
   @override
@@ -233,29 +253,39 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
   @override
   Widget build(BuildContext context) {
+    final authUser = context.watch<AuthProvider>().currentUser;
+    final fullName = (authUser?.empName ?? '').trim().isNotEmpty
+        ? authUser!.empName
+        : 'Collection Team Member';
+    final roleLabel = _formatRoleLabel(authUser?.role);
+    final email = (authUser?.email ?? '').trim().isNotEmpty
+        ? authUser!.email
+        : '-';
+    final joined = _formatJoinedDate(authUser?.createdAt);
+    final status = _formatDutyStatus(authUser);
+    final employeeId =
+        authUser != null ? '${authUser.empId}' : '-';
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBody: true,
+      backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           const HeaderReduced(title: 'Profile'),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  buildProfileCard(),
-                  const SizedBox(height: 24),
-                  buildPerformanceStats(),
-                  const SizedBox(height: 24),
-                  buildAchievements(),
-                  const SizedBox(height: 24),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: buildLogoutButton(),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+            child: ProfilePageBody(
+              profileCard: ProfileCard(
+                name: fullName,
+                role: roleLabel,
+                employeeId: employeeId,
+                email: email,
+                joinedDate: joined,
               ),
+              sections: [
+                _buildPerformanceStatsSection(status),
+                _buildAchievementsSection(),
+              ],
+              footer: const ProfileLogoutButton(),
             ),
           ),
         ],
@@ -264,143 +294,45 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     );
   }
 
-  Widget buildProfileCard() {
-    final authUser = context.watch<AuthProvider>().currentUser;
-    final fullName = (authUser?.empName ?? '').trim().isNotEmpty
-      ? authUser!.empName
-      : 'Collection Team Member';
-    final roleLabel = _formatRoleLabel(authUser?.role);
-    final idLabel = authUser != null ? 'ID: ${authUser.empId}' : 'ID: --';
-    final initials = _buildInitials(fullName);
-    final email = (authUser?.email ?? '').trim().isNotEmpty
-      ? authUser!.email
-      : '--';
-    final joined = _formatJoinedDate(authUser?.createdAt);
-    final status = _formatDutyStatus(authUser);
+  Widget _buildPerformanceStatsSection(String dutyStatus) {
+    final stats = _performanceStats;
+    final totalCollectedText =
+        stats != null ? '${stats.totalCollected}' : '--';
+    final routesDoneText = stats != null ? '${stats.routesDone}' : '--';
+    final avgRouteTimeText = stats != null
+        ? _formatDuration(stats.averageRouteTimeSeconds)
+        : '--';
+    final efficiencyText = stats != null
+        ? '${stats.efficiencyPercent.toStringAsFixed(1)}%'
+        : '--';
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: AppColors.grey100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      color: AppColors.grey900,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      fullName,
-                      style: const TextStyle(
-                        color: AppColors.grey900,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      roleLabel,
-                      style: const TextStyle(color: AppColors.grey600, fontSize: 14),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      idLabel,
-                      style: const TextStyle(color: AppColors.grey500, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: buildInfoItem(
-                  Icons.email_outlined,
-                  'Email',
-                  email,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: buildInfoItem(
-                  Icons.local_shipping_outlined,
-                  'Role',
-                  roleLabel,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: buildInfoItem(
-                  Icons.calendar_today_outlined,
-                  'Joined',
-                  joined,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: buildInfoItem(
-                  Icons.access_time_outlined,
-                  'Status',
-                  status,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    Widget? topWidget;
+    if (_isPerformanceLoading) {
+      topWidget = const LinearProgressIndicator(minHeight: 3);
+    } else if (_performanceError != null) {
+      topWidget = Text(
+        _performanceError!,
+        style: const TextStyle(
+          color: AppColors.red500,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+
+    return ProfileStatsSection(
+      topWidget: topWidget,
+      rows: [
+        ProfileStatRow(label: 'Total Collected', value: totalCollectedText),
+        ProfileStatRow(label: 'Routes Done', value: routesDoneText),
+        ProfileStatRow(
+          label: 'All-time Avg Route Time',
+          value: avgRouteTimeText,
+        ),
+        ProfileStatRow(label: 'Efficiency', value: efficiencyText),
+        ProfileStatRow(label: 'Duty Status', value: dutyStatus),
+      ],
     );
-  }
-
-  String _buildInitials(String fullName) {
-    final parts = fullName
-        .split(' ')
-        .where((part) => part.trim().isNotEmpty)
-        .toList(growable: false);
-    if (parts.isEmpty) {
-      return '--';
-    }
-    if (parts.length == 1) {
-      return parts.first.substring(0, 1).toUpperCase();
-    }
-    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
   String _formatRoleLabel(String? role) {
@@ -479,166 +411,6 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     return 'On Duty for ${minutes}m';
   }
 
-  Widget buildInfoItem(IconData icon, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey100, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: AppColors.green700, size: 14),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(color: AppColors.grey600, fontSize: 11),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.grey900,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildPerformanceStats() {
-    final stats = _performanceStats;
-    final totalCollectedText = stats != null ? '${stats.totalCollected}' : '--';
-    final routesDoneText = stats != null ? '${stats.routesDone}' : '--';
-    final avgRouteTimeText = stats != null
-      ? _formatDuration(stats.averageRouteTimeSeconds)
-      : '--';
-    final efficiencyText = stats != null
-        ? '${stats.efficiencyPercent.toStringAsFixed(1)}%'
-        : '--';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.bar_chart_rounded, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Performance Stats',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_isPerformanceLoading)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: LinearProgressIndicator(minHeight: 3),
-            ),
-          if (_performanceError != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                _performanceError!,
-                style: const TextStyle(
-                  color: AppColors.red500,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          Row(
-            children: [
-              Expanded(
-                child: buildStatBox(
-                  totalCollectedText,
-                  'Total Collected',
-                  AppColors.green700,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: buildStatBox(
-                  routesDoneText,
-                  'Routes Done',
-                  AppColors.blue500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: buildStatBox(
-                  avgRouteTimeText,
-                  'All-time Avg Route Time',
-                  const Color(0xFFD946EF),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: buildStatBox(
-                  efficiencyText,
-                  'Efficiency',
-                  AppColors.orange500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildStatBox(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: AppColors.grey600, fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
   String _formatDuration(double totalSeconds) {
     final duration = Duration(seconds: totalSeconds.round().clamp(0, 1 << 31));
     final hours = duration.inHours;
@@ -654,229 +426,190 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     return '${seconds}s';
   }
 
-  Widget buildAchievements() {
+  Widget _buildAchievementsHeader({String? badge}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
+            const SizedBox(width: 8),
+            Text('Achievements', style: AppTypography.titleLg),
+          ],
+        ),
+        if (badge != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: ShapeDecoration(
+              color: AppColors.yellow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              badge,
+              style: AppTypography.captionSm.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.yellowDark,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAchievementsSection() {
     return Consumer<GamificationTasksProvider>(
       builder: (context, gamificationProvider, _) {
-        final completedTasks = gamificationProvider.completedTasks;
-        final ongoingTasks = gamificationProvider.ongoingTasks;
         final totalTasks = gamificationProvider.totalTasks;
         final totalCompleted = gamificationProvider.totalCompleted;
+        final subtitle = _achievementsLoaded && totalTasks > 0
+            ? '$totalCompleted of $totalTasks completed — tap to view'
+            : 'Completed & in-progress tasks';
 
-        if (gamificationProvider.isLoading) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.emoji_events,
-                        color: Color(0xFFEAB308),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Achievements',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Center(child: CircularProgressIndicator()),
-              ],
-            ),
-          );
-        }
-
-        if (gamificationProvider.errorMessage != null) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.emoji_events,
-                        color: Color(0xFFEAB308),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Achievements',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  gamificationProvider.errorMessage!,
-                  style: const TextStyle(
-                    color: AppColors.red500,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with count badge
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.emoji_events,
-                      color: Color(0xFFEAB308),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Achievements',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAB308),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$totalCompleted/$totalTasks',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Completed tasks section
-              if (completedTasks.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Completed',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.grey700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...completedTasks.map((task) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildCompletedTaskCard(task),
-                      );
-                    }),
-                    const SizedBox(height: 20),
-                    CustomPaint(
-                      size: const Size(double.infinity, 1),
-                      painter: DashedLinePainter(color: AppColors.grey300),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-
-              // Ongoing tasks section
-              if (ongoingTasks.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'In Progress',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.grey700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...ongoingTasks.map((task) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildOngoingTaskCard(task),
-                      );
-                    }),
-                  ],
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.blue[700]),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Great job! You\'ve completed all tasks.',
-                          style: TextStyle(
-                            color: Colors.blue[700],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+        return ProfileExpandableSection(
+          title: 'Achievements',
+          icon: Icons.emoji_events_outlined,
+          subtitle: subtitle,
+          onExpandedChanged: (_) => _loadAchievementsIfNeeded(),
+          child: _buildAchievementsContent(gamificationProvider),
         );
       },
+    );
+  }
+
+  Widget _buildAchievementsContent(GamificationTasksProvider gamificationProvider) {
+    final completedTasks = gamificationProvider.completedTasks;
+    final ongoingTasks = gamificationProvider.ongoingTasks;
+    final totalTasks = gamificationProvider.totalTasks;
+    final totalCompleted = gamificationProvider.totalCompleted;
+
+    if (_achievementsLoading || gamificationProvider.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (gamificationProvider.errorMessage != null) {
+      return Text(
+        gamificationProvider.errorMessage!,
+        style: const TextStyle(
+          color: AppColors.red500,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
+
+    if (!_achievementsLoaded) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildAchievementsHeader(
+          badge: totalTasks > 0 ? '$totalCompleted/$totalTasks' : null,
+        ),
+        const SizedBox(height: 12),
+        if (completedTasks.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Completed',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...completedTasks.map((task) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildCompletedTaskCard(task),
+                );
+              }),
+              const SizedBox(height: 20),
+              CustomPaint(
+                size: const Size(double.infinity, 1),
+                painter: DashedLinePainter(color: AppColors.grey300),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        if (ongoingTasks.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'In Progress',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...ongoingTasks.map((task) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildOngoingTaskCard(task),
+                );
+              }),
+            ],
+          )
+        else if (completedTasks.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.grey200, width: 1.2),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.emoji_events_outlined, color: AppColors.green700),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'No achievements yet. Complete routes to earn badges.',
+                    style: TextStyle(
+                      color: AppColors.grey600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.greenSurface2,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.greenBorder2),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.check_circle, color: AppColors.green700),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Great job! You\'ve completed all tasks.',
+                    style: TextStyle(
+                      color: AppColors.green700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -1144,7 +877,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w800,
-          color: AppColors.blue500,
+          color: AppColors.green700,
         ),
       ),
     );
@@ -1191,168 +924,6 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       'Dec',
     ];
     return '${monthNames[value.month - 1]} ${value.day}';
-  }
-
-  Widget buildLogoutButton() {
-    return Container(
-      width: double.infinity,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.red100, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _confirmLogout(context),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.logout_rounded,
-                  color: AppColors.red500,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Log Out',
-                  style: TextStyle(
-                    color: AppColors.red500,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.35),
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-        ),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.red50,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.logout_rounded,
-                    color: AppColors.red500,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'Log out of your account?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.grey900,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                "You'll need to sign in again to access your dashboard.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.grey600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Material(
-                      color: AppColors.grey100,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => Navigator.of(ctx).pop(false),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: const Text(
-                            'Cancel',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.grey700,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Material(
-                      color: AppColors.red500,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () => Navigator.of(ctx).pop(true),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: const Text(
-                            'Log Out',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const Login()),
-        (route) => false,
-      );
-    }
   }
 
 }

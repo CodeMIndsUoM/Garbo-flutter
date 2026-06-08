@@ -20,13 +20,14 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Reports'),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
@@ -355,7 +356,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                       Text(
                         report['title'] as String,
                         style: const TextStyle(
-                          color: AppColors.citizenGrey900,
+                          color: AppColors.grey900,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           height: 1.3,
@@ -365,13 +366,13 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                       Row(
                         children: [
                           const Icon(Icons.location_on_rounded,
-                              size: 14, color: AppColors.citizenGrey600),
+                              size: 14, color: AppColors.grey600),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               report['location'] as String,
                               style: const TextStyle(
-                                color: AppColors.citizenGrey600,
+                                color: AppColors.grey600,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -383,7 +384,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                       Text(
                         report['date'] as String,
                         style: const TextStyle(
-                          color: AppColors.citizenGrey500,
+                          color: AppColors.grey500,
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                         ),

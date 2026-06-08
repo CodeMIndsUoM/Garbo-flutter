@@ -99,6 +99,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
     _scheduleRoadGeometryFetch(sessions);
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
