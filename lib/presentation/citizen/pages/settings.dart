@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
@@ -15,6 +17,8 @@ class CitizenSettingsPage extends StatefulWidget {
 class SettingsPageState extends State<CitizenSettingsPage> {
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.grey50,
@@ -187,29 +191,10 @@ class SettingsPageState extends State<CitizenSettingsPage> {
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowSm,
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
+        decoration: AppDecorations.card(),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
+            Icon(icon, color: iconColor, size: 24),
             const SizedBox(width: 14),
             Expanded(
               child: Text(title, style: AppTypography.titleMd),
@@ -230,7 +215,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
                 ),
               ),
             if (badge == null)
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 color: AppColors.grey400,
                 size: 20,

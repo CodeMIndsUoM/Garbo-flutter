@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
@@ -74,6 +75,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
     final authProvider = context.watch<AuthProvider>();
     final leaderboardProvider = context.watch<LeaderboardProvider>();
     final routeProvider = context.watch<RouteProvider>();
@@ -155,15 +157,10 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: AppDecorations.metricIconBox(),
-                    child: const Icon(
-                      Icons.emoji_events,
-                      color: AppColors.green700,
-                      size: 24,
-                    ),
+                  const Icon(
+                    Icons.emoji_events,
+                    color: AppColors.green700,
+                    size: 24,
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -421,7 +418,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       children: [
         Row(
           children: [
-            const Icon(Icons.route_rounded, size: 20, color: AppColors.grey900),
+            Icon(Icons.route_rounded, size: 20, color: AppColors.grey900),
             const SizedBox(width: 4),
             Text("Today's Routes", style: AppTypography.titleLg),
           ],
@@ -456,8 +453,8 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                 details:
                     '${session.totalStops} bins • ${session.estimatedMinutes} mins • $collected collected',
                 gradientColors: pending == 0
-                    ? const [AppColors.greenSurface2, AppColors.greenSurface3]
-                    : const [AppColors.red50, AppColors.orange50],
+                    ? [AppColors.greenSurface2, AppColors.greenSurface3]
+                    : [AppColors.red50, AppColors.orange50],
               ),
             );
           }),
@@ -544,7 +541,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.emoji_events_rounded,
               size: 20,
               color: AppColors.grey900,
@@ -603,19 +600,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
           decoration: AppDecorations.card(),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.yellow, AppColors.yellowOrange],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: AppColors.orange500, size: 24),
-              ),
+              Icon(icon, color: AppColors.orange500, size: 24),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -627,7 +612,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 color: AppColors.grey500,
                 size: 20,

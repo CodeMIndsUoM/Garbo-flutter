@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
@@ -296,7 +297,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     final shouldApply = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -419,9 +420,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.grey200, width: 1.2),
+                          border: Border.all(color: AppColors.border, width: 1),
                         ),
                         child: TextField(
                           controller: queryController,
@@ -431,7 +432,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                             hintStyle: AppTypography.bodyMd.copyWith(
                               color: AppColors.grey400,
                             ),
-                            prefixIcon: const Icon(
+                            prefixIcon: Icon(
                               Icons.search_rounded,
                               color: AppColors.grey400,
                               size: 22,
@@ -705,6 +706,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       extendBody: true,

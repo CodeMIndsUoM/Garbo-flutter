@@ -14,8 +14,8 @@ class BinDetailsOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const ShapeDecoration(
-        color: Colors.white,
+      decoration: ShapeDecoration(
+        color: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
@@ -81,7 +81,7 @@ class BinDetailsOverlay extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(
+                    child: Icon(
                       Icons.cancel_outlined,
                       color: AppColors.grey900,
                       size: 28,
@@ -140,9 +140,9 @@ class BinDetailsOverlay extends StatelessWidget {
 
               // Details List
               _buildDetailRow('Type', bin.displayCategory),
-              const Divider(color: AppColors.grey100, height: 32),
+              Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Last Checked', bin.timeAgo),
-              const Divider(color: AppColors.grey100, height: 32),
+              Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Assigned To', bin.assignedToName ?? 'Unassigned'),
               const SizedBox(height: 32),
 
@@ -165,7 +165,7 @@ class BinDetailsOverlay extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           color: AppColors.grey700,
                           size: 20,

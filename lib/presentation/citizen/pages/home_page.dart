@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -41,9 +42,11 @@ class CitizenHomePageState extends State<CitizenHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const CitizenHeader(name: 'Home'),
@@ -143,15 +146,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.greenSurface2,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: AppColors.green700, size: 22),
-              ),
+              Icon(icon, color: AppColors.green700, size: 22),
               const SizedBox(height: 10),
               Text(
                 title,
@@ -222,15 +217,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.greenSurface2,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppColors.emerald600, size: 22),
-          ),
+          Icon(icon, color: AppColors.green700, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

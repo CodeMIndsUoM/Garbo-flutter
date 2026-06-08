@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
@@ -12,6 +13,7 @@ import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_nav_button.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
@@ -283,6 +285,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
     final authUser = context.watch<AuthProvider>().currentUser;
     final fullName = (authUser?.empName ?? '').trim().isNotEmpty
         ? authUser!.empName
@@ -319,6 +322,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 _buildPerformanceStatsSection(status),
                 _buildLeaderboardSection(),
                 _buildAchievementsSection(),
+                const ProfileAppearanceSection(),
               ],
               footer: const ProfileLogoutButton(),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
@@ -24,6 +25,8 @@ class RequestsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     if (loading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 48),

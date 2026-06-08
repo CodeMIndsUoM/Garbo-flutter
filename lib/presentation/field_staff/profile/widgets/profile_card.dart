@@ -51,7 +51,7 @@ class ProfileCard extends StatelessWidget {
                   Container(
                     width: 76,
                     height: 76,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.grey100,
                       shape: BoxShape.circle,
                     ),
@@ -87,7 +87,7 @@ class ProfileCard extends StatelessWidget {
                       child: Container(
                         width: 24,
                         height: 24,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.green700,
                           shape: BoxShape.circle,
                           boxShadow: [
@@ -130,7 +130,7 @@ class ProfileCard extends StatelessWidget {
               // Edit Icon at the right top corner of this section
               if (onEditTap != null)
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit_outlined,
                     color: AppColors.grey500,
                     size: 22,

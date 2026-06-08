@@ -36,7 +36,7 @@ class BinItemWidget extends StatelessWidget {
         margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSkipped
@@ -146,7 +146,7 @@ class _IndexBadge extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isCollected ? AppColors.green700 : Colors.white,
+        color: isCollected ? AppColors.green700 : AppColors.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isCollected
@@ -161,7 +161,7 @@ class _IndexBadge extends StatelessWidget {
       child: isCollected
           ? const Icon(Icons.check, color: Colors.white, size: 20)
           : isSkipped
-          ? const Icon(Icons.forward, color: AppColors.grey600, size: 18)
+          ? Icon(Icons.forward, color: AppColors.grey600, size: 18)
           : Text(
               '$index',
               style: AppTypography.labelMd.copyWith(
@@ -282,7 +282,7 @@ class _InfoRow extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_outlined,
               size: 12,
               color: AppColors.grey500,
@@ -297,7 +297,7 @@ class _InfoRow extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.access_time,
               size: 12,
               color: AppColors.grey500,
@@ -348,7 +348,7 @@ class _NextEtaRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 8),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           top: BorderSide(color: AppColors.grey200, width: 1.3),
         ),
@@ -423,7 +423,7 @@ class _CompletionTimestamp extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppColors.grey200, width: 1),
       ),
@@ -468,11 +468,11 @@ class _SkipButton extends StatelessWidget {
         onPressed: onSkip,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.grey600,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.surface,
           elevation: 0,
           minimumSize: Size.zero,
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          side: const BorderSide(color: AppColors.grey300, width: 1),
+          side: BorderSide(color: AppColors.grey300, width: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Row(
@@ -509,11 +509,11 @@ class _UndoButton extends StatelessWidget {
         onPressed: onUndo,
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.grey700,
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.surface,
           elevation: 0,
           minimumSize: Size.zero,
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          side: const BorderSide(color: AppColors.grey300, width: 1),
+          side: BorderSide(color: AppColors.grey300, width: 1),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Row(

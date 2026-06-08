@@ -10,8 +10,8 @@ class SettingsOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const ShapeDecoration(
-        color: Colors.white,
+      decoration: ShapeDecoration(
+        color: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
@@ -42,7 +42,7 @@ class SettingsOverlay extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         color: AppColors.grey600,
                         size: 20,
@@ -62,7 +62,6 @@ class SettingsOverlay extends StatelessWidget {
               _buildOption(
                 icon: Icons.settings_outlined,
                 iconColor: AppColors.green700,
-                iconBgColor: AppColors.emerald50,
                 title: 'Account Settings',
                 subtitle: 'Manage your profile and preferences',
               ),
@@ -70,7 +69,6 @@ class SettingsOverlay extends StatelessWidget {
               _buildOption(
                 icon: Icons.notifications_none_outlined,
                 iconColor: AppColors.green700,
-                iconBgColor: AppColors.emerald50,
                 title: 'Notifications',
                 subtitle: 'Configure notification preferences',
                 badgeCount: '2',
@@ -79,7 +77,6 @@ class SettingsOverlay extends StatelessWidget {
               _buildOption(
                 icon: Icons.history,
                 iconColor: AppColors.green700,
-                iconBgColor: AppColors.emerald50,
                 title: 'History',
                 subtitle: 'View your activity history',
               ),
@@ -87,7 +84,6 @@ class SettingsOverlay extends StatelessWidget {
               _buildOption(
                 icon: Icons.shield_outlined,
                 iconColor: AppColors.green700,
-                iconBgColor: AppColors.emerald50,
                 title: 'Privacy & Security',
                 subtitle: 'Security settings and privacy controls',
               ),
@@ -95,7 +91,6 @@ class SettingsOverlay extends StatelessWidget {
               _buildOption(
                 icon: Icons.help_outline,
                 iconColor: AppColors.green700,
-                iconBgColor: AppColors.emerald50,
                 title: 'Help & Support',
                 subtitle: 'Get help and contact support',
               ),
@@ -110,7 +105,6 @@ class SettingsOverlay extends StatelessWidget {
   Widget _buildOption({
     required IconData icon,
     required Color iconColor,
-    required Color iconBgColor,
     required String title,
     required String subtitle,
     String? badgeCount,
@@ -122,16 +116,10 @@ class SettingsOverlay extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: AppDecorations.metricIconBox(background: iconBgColor),
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 24,
-            ),
+          Icon(
+            icon,
+            color: iconColor,
+            size: 24,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -163,7 +151,7 @@ class SettingsOverlay extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(
+          Icon(
             Icons.chevron_right,
             color: AppColors.grey400,
             size: 20,

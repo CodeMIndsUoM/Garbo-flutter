@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -29,6 +30,8 @@ class _RateOfferDialogState extends State<RateOfferDialog> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return AlertDialog(
       title: Text('Rate this collector', style: AppTypography.titleLg),
       content: Column(

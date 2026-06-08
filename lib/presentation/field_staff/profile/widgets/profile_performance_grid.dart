@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -58,6 +60,8 @@ class ProfilePerformanceGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return FutureBuilder<_PerformanceStats>(
       future: _loadPerformanceStats(),
       builder: (context, snapshot) {
@@ -74,7 +78,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.analytics_outlined,
                   color: AppColors.grey900,
                   size: 20,
@@ -85,18 +89,7 @@ class ProfilePerformanceGrid extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey200, width: 1.2),
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.shadowSm,
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
+              decoration: AppDecorations.card(),
               child: Column(
                 children: [
                   _buildListRow(

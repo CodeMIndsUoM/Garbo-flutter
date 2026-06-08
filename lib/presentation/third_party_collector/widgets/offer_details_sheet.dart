@@ -104,8 +104,8 @@ class OfferDetailsSheet extends StatelessWidget {
               onTap: () {},
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(28),
                   ),
@@ -217,7 +217,7 @@ class OfferDetailsSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
               color: AppColors.grey600,
               size: 18,
@@ -239,19 +239,10 @@ class OfferDetailsSheet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.emerald100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.inventory_2_outlined,
-              color: AppColors.green800,
-              size: 20,
-            ),
+          const Icon(
+            Icons.inventory_2_outlined,
+            color: AppColors.green800,
+            size: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -469,21 +460,21 @@ class OfferDetailsSheet extends StatelessWidget {
     ) = switch (status) {
       OfferStatus.pending => (
         'Cancel Offer',
-        Colors.white,
+        AppColors.surface,
         AppColors.orange500,
         AppColors.orange200,
         Icons.close_rounded,
       ),
       OfferStatus.accepted => (
         'Cancel Offer',
-        Colors.white,
+        AppColors.surface,
         AppColors.red500,
         AppColors.red100,
         Icons.close_rounded,
       ),
       OfferStatus.rejected => (
         'Remove from List',
-        Colors.white,
+        AppColors.surface,
         AppColors.grey600,
         AppColors.grey200,
         Icons.delete_outline_rounded,

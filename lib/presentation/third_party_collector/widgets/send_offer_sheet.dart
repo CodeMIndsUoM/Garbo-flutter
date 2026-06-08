@@ -193,8 +193,8 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                 ),
                 child: Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                     boxShadow: [
                       BoxShadow(color: AppColors.shadowMd, offset: Offset(0, -6), blurRadius: 28),
@@ -339,7 +339,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.close_rounded, color: AppColors.grey600, size: 18),
+            child: Icon(Icons.close_rounded, color: AppColors.grey600, size: 18),
           ),
         ),
       ],
@@ -371,7 +371,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
                 height: 60,
                 color: AppColors.emerald100,
                 alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined, color: AppColors.emerald600, size: 24),
+                child: Icon(Icons.broken_image_outlined, color: AppColors.emerald600, size: 24),
               ),
             ),
           Padding(
@@ -452,10 +452,10 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            color: active ? Colors.white : Colors.transparent,
+            color: active ? AppColors.surface : Colors.transparent,
             borderRadius: BorderRadius.circular(9),
             boxShadow: active
-                ? [const BoxShadow(color: AppColors.shadowSm, blurRadius: 6, offset: Offset(0, 2))]
+                ? [BoxShadow(color: AppColors.shadowSm, blurRadius: 6, offset: Offset(0, 2))]
                 : null,
           ),
           child: Row(
@@ -496,7 +496,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: focused ? AppColors.green700 : AppColors.grey200,
@@ -543,7 +543,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
   Widget _unitPicker() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.grey200),
       ),
@@ -552,7 +552,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         child: DropdownButton<String>(
           isExpanded: true,
           value: _priceUnit,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
           borderRadius: BorderRadius.circular(12),
           style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
           items: const [
@@ -578,7 +578,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: picked ? AppColors.emerald200 : AppColors.grey200),
         ),
@@ -651,12 +651,12 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
             width: 22,
             height: 22,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.grey200),
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.info_outline_rounded, color: AppColors.grey500, size: 13),
+            child: Icon(Icons.info_outline_rounded, color: AppColors.grey500, size: 13),
           ),
           const SizedBox(width: 10),
           Expanded(

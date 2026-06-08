@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_performance_grid.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
 
@@ -112,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _onChangeAvatar() async {
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -215,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -309,11 +311,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.grey200),
+                    borderSide: BorderSide(color: AppColors.grey200),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.grey200),
+                    borderSide: BorderSide(color: AppColors.grey200),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -396,6 +398,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return ProfilePageBody(
       profileCard: ProfileCard(
         name: _name,
@@ -415,6 +419,7 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: ProfileAchievementList(),
         ),
+        ProfileAppearanceSection(),
       ],
       footer: const ProfileLogoutButton(),
     );

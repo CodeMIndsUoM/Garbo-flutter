@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -7,6 +9,8 @@ class Forgotpassword extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       resizeToAvoidBottomInset: true,
@@ -64,18 +68,7 @@ class Forgotpassword extends StatelessWidget {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey200, width: 1.2),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.shadowSm,
-                        blurRadius: 3,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
-                  ),
+                  decoration: AppDecorations.card(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -105,7 +98,7 @@ class Forgotpassword extends StatelessWidget {
                           hintStyle: AppTypography.bodyMd.copyWith(
                             color: AppColors.grey400,
                           ),
-                          prefixIcon: const Icon(
+                          prefixIcon: Icon(
                             Icons.person_outline,
                             color: AppColors.grey400,
                             size: 22,

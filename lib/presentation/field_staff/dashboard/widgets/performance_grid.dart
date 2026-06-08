@@ -77,13 +77,7 @@ class PerformanceGrid extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: AppDecorations.metricIconBox(),
-            child: Icon(icon, color: AppColors.green700, size: 22),
-          ),
+          Icon(icon, color: AppColors.green700, size: 22),
           const SizedBox(height: 14),
           Text(
             title,

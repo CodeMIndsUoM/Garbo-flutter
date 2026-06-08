@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -61,6 +62,8 @@ class _RequestFormState extends State<RequestForm> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

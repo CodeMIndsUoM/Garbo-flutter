@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 
-/// Consistent white card surface used across citizen tabs.
+/// Consistent card surface used across citizen tabs.
 class CitizenSurfaceCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -20,18 +20,7 @@ class CitizenSurfaceCard extends StatelessWidget {
       width: double.infinity,
       margin: margin,
       padding: padding,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: child,
     );
   }

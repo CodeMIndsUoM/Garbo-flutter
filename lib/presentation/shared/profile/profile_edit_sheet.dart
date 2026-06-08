@@ -36,7 +36,7 @@ Future<void> showUserProfileEditSheet({
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -46,7 +46,7 @@ Future<void> showUserProfileEditSheet({
           Future<void> changePhoto() async {
             final source = await showModalBottomSheet<ImageSource>(
               context: context,
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.surface,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
