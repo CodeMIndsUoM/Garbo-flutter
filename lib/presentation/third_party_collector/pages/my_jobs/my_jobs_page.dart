@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -65,7 +66,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       }
     });
     _bootstrap();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _attachMarketplaceListener());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _attachMarketplaceListener(),
+    );
   }
 
   void _attachMarketplaceListener() {
@@ -307,7 +310,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                   setModalState(() => localCreatedWithinDays = days);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.green700 : AppColors.grey100,
                     borderRadius: BorderRadius.circular(99),
@@ -335,7 +341,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                   });
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.green700 : AppColors.grey100,
                     borderRadius: BorderRadius.circular(99),
@@ -379,10 +388,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       // Header
                       Row(
                         children: [
-                          Text(
-                            'Advanced Filters',
-                            style: AppTypography.h3,
-                          ),
+                          Text('Advanced Filters', style: AppTypography.h3),
                           const Spacer(),
                           TextButton(
                             onPressed: () {
@@ -411,38 +417,29 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       // Search section
                       Text('Search', style: AppTypography.titleSm),
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: queryController,
-                        decoration: InputDecoration(
-                          hintText: 'Citizen, address, request id',
-                          hintStyle: AppTypography.bodyMd.copyWith(
-                            color: AppColors.grey400,
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.search_rounded,
-                            color: AppColors.grey400,
-                            size: 22,
-                          ),
-                          filled: true,
-                          fillColor: AppColors.grey50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: AppColors.grey200),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: AppColors.green700,
-                              width: 1.5,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.grey200, width: 1.2),
+                        ),
+                        child: TextField(
+                          controller: queryController,
+                          style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
+                          decoration: AppDecorations.searchInput(
+                            hintText: 'Citizen, address, request id',
+                            hintStyle: AppTypography.bodyMd.copyWith(
+                              color: AppColors.grey400,
                             ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppColors.grey400,
+                              size: 22,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -455,7 +452,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       const SizedBox(height: 12),
                       if (wasteTypes.isEmpty)
                         Text(
-                           'No waste types available yet',
+                          'No waste types available yet',
                           style: AppTypography.captionSm.copyWith(
                             color: AppColors.grey500,
                           ),
@@ -465,10 +462,12 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                           spacing: 8,
                           runSpacing: 10,
                           children: wasteTypes
-                              .map((type) => buildWasteChip(
-                                    type,
-                                    localWasteTypes.contains(type),
-                                  ))
+                              .map(
+                                (type) => buildWasteChip(
+                                  type,
+                                  localWasteTypes.contains(type),
+                                ),
+                              )
                               .toList(growable: false),
                         ),
                       const SizedBox(height: 20),
@@ -543,14 +542,21 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Clear Rejected Offers'),
-        content: const Text(
+        title: Text(
+          'Clear Rejected Offers',
+          style: AppTypography.titleLg.copyWith(color: AppColors.grey900),
+        ),
+        content: Text(
           'This removes all rejected, withdrawn, and cancelled offers from My Jobs.',
+          style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: AppTypography.buttonMd.copyWith(color: AppColors.grey600),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -558,7 +564,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               backgroundColor: AppColors.green700,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Clear All'),
+            child: Text(
+              'Clear All',
+              style: AppTypography.buttonMd.copyWith(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -711,15 +720,11 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               showOffers: _tab == _TabType.offer,
               offersCount: _myOffersTotal,
               activeCount: _activeJobs.length,
-              onOffersTap: () =>
-                  setState(() => _tab = _TabType.offer),
-              onActiveTap: () =>
-                  setState(() => _tab = _TabType.active),
+              onOffersTap: () => setState(() => _tab = _TabType.offer),
+              onActiveTap: () => setState(() => _tab = _TabType.active),
             ),
           ),
-          Expanded(
-            child: _buildBody(),
-          ),
+          Expanded(child: _buildBody()),
         ],
       ),
       bottomNavigationBar: const ThirdPartyBottomNavbar(currentIndex: 2),
@@ -751,13 +756,10 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
               searchQuery: _searchQuery,
               selectedWasteTypes: _selectedWasteTypes,
               createdWithinDays: _createdWithinDays,
-              onClearSearch: () =>
-                  setState(() => _searchQuery = ''),
-              onRemoveWasteType: (type) => setState(
-                () => _selectedWasteTypes.remove(type),
-              ),
-              onClearDays: () =>
-                  setState(() => _createdWithinDays = null),
+              onClearSearch: () => setState(() => _searchQuery = ''),
+              onRemoveWasteType: (type) =>
+                  setState(() => _selectedWasteTypes.remove(type)),
+              onClearDays: () => setState(() => _createdWithinDays = null),
               onClearAll: _clearAllFilters,
             ),
             Expanded(
@@ -765,9 +767,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                 onRefresh: _loadData,
                 child: TabBarView(
                   children: _offerTabs
-                      .map(
-                        (tab) => _buildOfferStatusList(tab.$1),
-                      )
+                      .map((tab) => _buildOfferStatusList(tab.$1))
                       .toList(growable: false),
                 ),
               ),
@@ -788,9 +788,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
           ? ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-              children: const [
-                EmptyActiveJobs(),
-              ],
+              children: const [EmptyActiveJobs()],
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),

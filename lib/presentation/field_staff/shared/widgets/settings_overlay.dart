@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -50,12 +51,11 @@ class SettingsOverlay extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              
-              // Big Title & Subtitle
-              Text('Settings & More', style: AppTypography.h1),
               const SizedBox(height: 4),
-              Text('Manage your account and app preferences', style: AppTypography.bodyMd.copyWith(color: AppColors.grey600)),
+              Text(
+                'Manage your account and app preferences',
+                style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
+              ),
               const SizedBox(height: 24),
               
               // Menu Options
@@ -118,39 +118,14 @@ class SettingsOverlay extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(width: 1.27, color: AppColors.grey100),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        shadows: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 2,
-            offset: Offset(0, 1),
-            spreadRadius: -1,
-          ),
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-            spreadRadius: 0,
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             width: 48,
             height: 48,
-            decoration: ShapeDecoration(
-              color: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
+            decoration: AppDecorations.metricIconBox(background: iconBgColor),
             alignment: Alignment.center,
             child: Icon(
               icon,

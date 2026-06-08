@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/models/performance_stats_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -346,9 +347,8 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
     } else if (_performanceError != null) {
       topWidget = Text(
         _performanceError!,
-        style: const TextStyle(
+        style: AppTypography.caption.copyWith(
           color: AppColors.red500,
-          fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
       );

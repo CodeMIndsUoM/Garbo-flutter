@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -429,7 +430,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: isError ? AppColors.red500 : AppColors.green700,
       ),
     );
   }

@@ -64,7 +64,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red.shade600),
+      SnackBar(content: Text(message), backgroundColor: AppColors.red500),
     );
   }
 
@@ -77,9 +77,10 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: AppColors.emerald600,
-        foregroundColor: Colors.white,
-        title: Text(widget.appBarTitle),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: AppColors.grey900,
+        title: Text(widget.appBarTitle, style: AppTypography.titleLg),
       ),
       body: Column(
         children: [

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'bin_item_widget.dart';
 // import 'high_priority_badge.dart';
@@ -44,18 +46,7 @@ class RouteCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.hardEdge,
       padding: const EdgeInsets.fromLTRB(16, 21, 16, 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: DesignTokens.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: DesignTokens.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,7 +82,7 @@ class RouteCard extends StatelessWidget {
                       child: Column(
                         children: [
                           const SizedBox(height: 12),
-                          Container(height: 1, color: DesignTokens.grey200),
+                          Container(height: 1, color: AppColors.grey200),
                           _RouteDetailsSection(
                             bins: bins,
                             binStatuses: binStatuses,
@@ -148,11 +139,7 @@ class _HeaderRow extends StatelessWidget {
                 route.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: DesignTokens.grey900,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTypography.h3,
               ),
               const SizedBox(height: 8),
               // Route details chips
@@ -194,7 +181,7 @@ class _HeaderRow extends StatelessWidget {
               curve: Curves.easeInOut,
               child: const Icon(
                 Icons.keyboard_arrow_down,
-                color: DesignTokens.grey600,
+                color: AppColors.grey600,
                 size: 20,
               ),
             ),
@@ -219,14 +206,14 @@ class _StatusBadge extends StatelessWidget {
       RouteStatus.pending => 'PENDING',
     };
     final background = switch (status) {
-      RouteStatus.completed => DesignTokens.emeraldLight,
-      RouteStatus.highPriority => DesignTokens.red100,
-      RouteStatus.pending => DesignTokens.grey200,
+      RouteStatus.completed => AppColors.emeraldLight,
+      RouteStatus.highPriority => AppColors.red100,
+      RouteStatus.pending => AppColors.grey200,
     };
     final foreground = switch (status) {
-      RouteStatus.completed => DesignTokens.green700,
-      RouteStatus.highPriority => DesignTokens.red500,
-      RouteStatus.pending => DesignTokens.grey700,
+      RouteStatus.completed => AppColors.green700,
+      RouteStatus.highPriority => AppColors.red500,
+      RouteStatus.pending => AppColors.grey700,
     };
 
     return Container(
@@ -237,9 +224,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: AppTypography.overline.copyWith(
           color: foreground,
-          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -257,15 +243,11 @@ class _DetailChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: DesignTokens.grey600, size: 12),
+        Icon(icon, color: AppColors.grey600, size: 12),
         const SizedBox(width: 4),
         Text(
           text,
-          style: const TextStyle(
-            color: DesignTokens.grey600,
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
+          style: AppTypography.caption.copyWith(color: AppColors.grey600),
         ),
       ],
     );
@@ -292,19 +274,14 @@ class _ProgressSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Progress',
-                style: TextStyle(
-                  color: DesignTokens.grey600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: AppTypography.caption.copyWith(color: AppColors.grey600),
               ),
               Text(
                 '${route.progress}/${route.totalBins}',
-                style: const TextStyle(
-                  color: DesignTokens.grey900,
-                  fontSize: 13,
+                style: AppTypography.labelMd.copyWith(
+                  color: AppColors.grey900,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -315,9 +292,9 @@ class _ProgressSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(100),
             child: LinearProgressIndicator(
               value: progressPercent,
-              backgroundColor: DesignTokens.grey200,
+              backgroundColor: AppColors.grey200,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                DesignTokens.green700,
+                AppColors.green700,
               ),
               minHeight: 10,
             ),
@@ -342,22 +319,19 @@ class _StartRouteButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: DesignTokens.green700,
+          backgroundColor: AppColors.green700,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.play_arrow, size: 16),
-            SizedBox(width: 6),
-            Text(
-              'Start Route',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-            ),
+            const Icon(Icons.play_arrow, size: 16),
+            const SizedBox(width: 6),
+            Text('Start Route', style: AppTypography.buttonMd),
           ],
         ),
       ),
@@ -387,7 +361,7 @@ class _NavigateCollectButtons extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onNavigate,
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignTokens.green700,
+                backgroundColor: AppColors.green700,
                 foregroundColor: Colors.white,
                 elevation: 0,
                 minimumSize: Size.zero,
@@ -396,15 +370,12 @@ class _NavigateCollectButtons extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.navigation_rounded, size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    'Navigate',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
+                  const Icon(Icons.navigation_rounded, size: 16),
+                  const SizedBox(width: 6),
+                  Text('Navigate', style: AppTypography.buttonMd),
                 ],
               ),
             ),
@@ -418,25 +389,22 @@ class _NavigateCollectButtons extends StatelessWidget {
             child: OutlinedButton(
               onPressed: onCollectNext,
               style: OutlinedButton.styleFrom(
-                foregroundColor: DesignTokens.green700,
+                foregroundColor: AppColors.green700,
                 backgroundColor: Colors.white,
                 elevation: 0,
                 minimumSize: Size.zero,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                side: const BorderSide(color: DesignTokens.green700, width: 2),
+                side: const BorderSide(color: AppColors.green700, width: 2),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle_outline, size: 16),
-                  SizedBox(width: 6),
-                  Text(
-                    'Collect Next',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
+                  const Icon(Icons.check_circle_outline, size: 16),
+                  const SizedBox(width: 6),
+                  Text('Collect Next', style: AppTypography.buttonMd),
                 ],
               ),
             ),
@@ -477,21 +445,12 @@ class _RouteDetailsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Route Details',
-                style: TextStyle(
-                  color: DesignTokens.grey900,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text('Route Details', style: AppTypography.titleLg),
               if (urgentCount > 0)
                 Text(
                   '$urgentCount urgent',
-                  style: const TextStyle(
-                    color: DesignTokens.red500,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  style: AppTypography.labelSm.copyWith(
+                    color: AppColors.red500,
                   ),
                 ),
             ],

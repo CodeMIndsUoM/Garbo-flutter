@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 
 /// Bottom sheet that displays all offers for a collection request.
 class RequestOffersSheet extends StatelessWidget {
@@ -57,18 +59,13 @@ class RequestOffersSheet extends StatelessWidget {
                     children: [
                       Text(
                         request.wasteType.replaceAll('_', ' '),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.grey900,
-                        ),
+                        style: AppTypography.h3,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         request.addressLine,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.grey600,
+                        style: AppTypography.labelMd.copyWith(
+                          fontWeight: FontWeight.w400,
                           height: 1.4,
                         ),
                       ),
@@ -98,8 +95,7 @@ class RequestOffersSheet extends StatelessWidget {
                     request.offers.isEmpty
                         ? 'No offers yet. Collectors will appear here once they respond.'
                         : '${request.offers.length} collector offer${request.offers.length == 1 ? '' : 's'} available for this request.',
-                    style: const TextStyle(
-                      fontSize: 13,
+                    style: AppTypography.bodySm.copyWith(
                       color: AppColors.emerald900,
                       height: 1.4,
                     ),
@@ -114,21 +110,9 @@ class RequestOffersSheet extends StatelessWidget {
                       offer.status == 'COMPLETED' && offer.citizenRating == null;
                   final rated = offer.citizenRating != null;
 
-                  return Container(
+                  return CitizenSurfaceCard(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.grey200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          offset: const Offset(0, 1),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -137,11 +121,7 @@ class RequestOffersSheet extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 offer.collectorName,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.grey900,
-                                ),
+                                style: AppTypography.titleMd,
                               ),
                             ),
                             Container(
@@ -157,11 +137,10 @@ class RequestOffersSheet extends StatelessWidget {
                               ),
                               child: Text(
                                 offer.status.toLowerCase(),
-                                style: TextStyle(
+                                style: AppTypography.labelSm.copyWith(
                                   color: accepted
                                       ? AppColors.emerald900
                                       : AppColors.grey700,
-                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -172,9 +151,8 @@ class RequestOffersSheet extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             offer.collectorCompany!,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.grey600,
+                            style: AppTypography.labelMd.copyWith(
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ],
@@ -194,8 +172,7 @@ class RequestOffersSheet extends StatelessWidget {
                                 offer.pricePerUnit != null
                                     ? 'LKR ${offer.pricePerUnit!.toStringAsFixed(2)} (${offer.priceUnit})'
                                     : 'Exchange for: ${offer.exchangeItem ?? "Unknown"}',
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: AppTypography.labelMd.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.grey900,
                                 ),
@@ -214,9 +191,8 @@ class RequestOffersSheet extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               _formatDateTime(offer.proposedPickupAt),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.grey700,
+                              style: AppTypography.labelMd.copyWith(
+                                fontWeight: FontWeight.w400,
                               ),
                             ),
                           ],
@@ -225,9 +201,8 @@ class RequestOffersSheet extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             offer.messageToCitizen!,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.grey700,
+                            style: AppTypography.labelMd.copyWith(
+                              fontWeight: FontWeight.w400,
                               height: 1.4,
                             ),
                           ),
@@ -293,8 +268,7 @@ class RequestOffersSheet extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 '${offer.citizenRating}/5',
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: AppTypography.labelMd.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.grey900,
                                 ),
@@ -305,9 +279,8 @@ class RequestOffersSheet extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               offer.citizenFeedback!,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.grey700,
+                              style: AppTypography.labelMd.copyWith(
+                                fontWeight: FontWeight.w400,
                                 height: 1.4,
                               ),
                             ),

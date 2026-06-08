@@ -135,12 +135,12 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               ListTile(
                 leading: const Icon(Icons.camera_alt_rounded, color: AppColors.green700),
-                title: const Text('Take a Photo'),
+                title: Text('Take a Photo', style: AppTypography.bodyMd),
                 onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library_rounded, color: AppColors.green700),
-                title: const Text('Choose from Gallery'),
+                title: Text('Choose from Gallery', style: AppTypography.bodyMd),
                 onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
               ),
             ],
@@ -297,8 +297,10 @@ class _ProfilePageState extends State<ProfilePage> {
               TextField(
                 controller: nameController,
                 cursorColor: AppColors.green700,
+                style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
                 decoration: InputDecoration(
                   hintText: 'Enter your name',
+                  hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
                   filled: true,
                   fillColor: AppColors.grey50,
                   contentPadding: const EdgeInsets.symmetric(

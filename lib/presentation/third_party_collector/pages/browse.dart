@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
@@ -50,7 +51,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   void initState() {
     super.initState();
     _bootstrap();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _attachMarketplaceListener());
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _attachMarketplaceListener(),
+    );
   }
 
   @override
@@ -154,7 +157,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 'proposedPickupAt': proposedPickupAt.toUtc().toIso8601String(),
                 'messageToCitizen': messageToCitizen,
               };
-              
+
               if (pricePerUnit != null && priceUnit != null) {
                 payload['pricePerUnit'] = pricePerUnit;
                 payload['priceUnit'] = priceUnit;
@@ -288,7 +291,11 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                         ? const SliverToBoxAdapter(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 64),
-                              child: Center(child: CircularProgressIndicator(color: AppColors.green700)),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.green700,
+                                ),
+                              ),
                             ),
                           )
                         : results.isEmpty
@@ -317,12 +324,12 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1),
+        border: Border.all(color: AppColors.grey200, width: 1.2),
       ),
       child: TextField(
         onChanged: (v) => setState(() => _searchQuery = v),
         style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-        decoration: InputDecoration(
+        decoration: AppDecorations.searchInput(
           hintText: 'Search by location or waste type...',
           hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey400),
           prefixIcon: const Icon(
@@ -330,12 +337,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
             color: AppColors.grey400,
             size: 20,
           ),
-          border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 14,
           ),
-          isDense: true,
         ),
       ),
     );
@@ -354,7 +359,10 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOut,
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: selected ? AppColors.green700 : AppColors.grey100,
                   borderRadius: BorderRadius.circular(99),
@@ -376,126 +384,121 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
 
   Widget _buildRequestCard(CollectionRequestModel request) {
     final wasteType = request.wasteType.replaceAll('_', ' ');
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            offset: const Offset(0, 2),
-            blurRadius: 6,
-            spreadRadius: -1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _submittingOffer ? null : () => _openSendOfferSheet(request),
+        borderRadius: BorderRadius.circular(16),
+        splashColor: AppColors.emerald50,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: _submittingOffer ? null : () => _openSendOfferSheet(request),
-          borderRadius: BorderRadius.circular(14),
-          splashColor: AppColors.emerald50,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildIconSlot(wasteType, request.photoUrl),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$wasteType Waste',
-                            style: AppTypography.titleMd,
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.person_outline_rounded,
-                                color: AppColors.grey400,
-                                size: 14,
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildIconSlot(wasteType, request.photoUrl),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('$wasteType Waste', style: AppTypography.titleMd),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.person_outline_rounded,
+                              color: AppColors.grey400,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                request.citizenName.isEmpty
+                                    ? 'Citizen'
+                                    : request.citizenName,
+                                style: AppTypography.bodySm,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  request.citizenName.isEmpty
-                                      ? 'Citizen'
-                                      : request.citizenName,
-                                  style: AppTypography.bodySm,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          _buildMetaItem(
-                            Icons.location_on_outlined,
-                            request.addressLine,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildMetaItem(
-                            Icons.access_time_rounded,
-                            _preferredTimeLabel(request),
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _buildMetaItem(
+                          Icons.location_on_outlined,
+                          request.addressLine,
+                        ),
+                        const SizedBox(height: 4),
+                        _buildMetaItem(
+                          Icons.access_time_rounded,
+                          _preferredTimeLabel(request),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(height: 1, color: AppColors.grey100),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.local_offer_outlined,
-                      color: AppColors.grey400,
-                      size: 13,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(height: 1, color: AppColors.grey100),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_offer_outlined,
+                    color: AppColors.grey400,
+                    size: 13,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${request.offersCount} offer${request.offersCount == 1 ? '' : 's'} so far',
+                    style: AppTypography.caption,
+                  ),
+                  const Spacer(),
+                  Text(
+                    _submittingOffer ? 'Sending...' : 'Tap to offer',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.green800,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${request.offersCount} offer${request.offersCount == 1 ? '' : 's'} so far',
-                      style: AppTypography.caption,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSecondaryActionButton(
+                      icon: Icons.map_outlined,
+                      label: 'View Map',
+                      onTap: () => _openPickupMap(request),
                     ),
-                    const Spacer(),
-                    Text(
-                      _submittingOffer ? 'Sending...' : 'Tap to offer',
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.green800,
-                      ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildPrimaryActionButton(
+                      icon: Icons.local_offer_outlined,
+                      label: 'Send Offer',
+                      onTap: _submittingOffer
+                          ? null
+                          : () => _openSendOfferSheet(request),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSecondaryActionButton(
-                        icon: Icons.map_outlined,
-                        label: 'View Map',
-                        onTap: () => _openPickupMap(request),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildPrimaryActionButton(
-                        icon: Icons.local_offer_outlined,
-                        label: 'Send Offer',
-                        onTap: _submittingOffer
-                            ? null
-                            : () => _openSendOfferSheet(request),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

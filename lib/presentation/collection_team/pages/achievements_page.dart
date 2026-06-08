@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
@@ -61,10 +62,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.grey900,
         elevation: 0,
-        title: const Text(
-          'Achievements',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
+        title: Text('Achievements', style: AppTypography.titleLg),
       ),
       body: Consumer<GamificationTasksProvider>(
         builder: (context, gamificationProvider, _) {
@@ -83,9 +81,8 @@ class _AchievementsPageState extends State<AchievementsPage> {
                     Text(
                       gamificationProvider.errorMessage!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: AppTypography.bodyMd.copyWith(
                         color: AppColors.red500,
-                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -128,13 +125,9 @@ class _AchievementsPageState extends State<AchievementsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Completed',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grey700,
-                ),
+                style: AppTypography.titleSm.copyWith(color: AppColors.grey700),
               ),
               const SizedBox(height: 12),
               ...completedTasks.map((task) {
@@ -155,13 +148,9 @@ class _AchievementsPageState extends State<AchievementsPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'In Progress',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.grey700,
-                ),
+                style: AppTypography.titleSm.copyWith(color: AppColors.grey700),
               ),
               const SizedBox(height: 12),
               ...ongoingTasks.map((task) {
@@ -175,21 +164,16 @@ class _AchievementsPageState extends State<AchievementsPage> {
         else if (completedTasks.isEmpty)
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
-            ),
-            child: const Row(
+            decoration: AppDecorations.card(),
+            child: Row(
               children: [
-                Icon(Icons.emoji_events_outlined, color: AppColors.green700),
-                SizedBox(width: 12),
+                const Icon(Icons.emoji_events_outlined, color: AppColors.green700),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'No achievements yet. Complete routes to earn badges.',
-                    style: TextStyle(
+                    style: AppTypography.bodySm.copyWith(
                       color: AppColors.grey600,
-                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -204,16 +188,15 @@ class _AchievementsPageState extends State<AchievementsPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.greenBorder2),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.check_circle, color: AppColors.green700),
-                SizedBox(width: 12),
+                const Icon(Icons.check_circle, color: AppColors.green700),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Great job! You\'ve completed all tasks.',
-                    style: TextStyle(
+                    style: AppTypography.bodySm.copyWith(
                       color: AppColors.green700,
-                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -260,18 +243,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
     final progressPercent = task.progressPercentage;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Row(
         children: [
           Container(
@@ -297,11 +269,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                     Expanded(
                       child: Text(
                         task.taskTitle,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                        style: AppTypography.titleMd,
                       ),
                     ),
                     if (task.isNew) _buildNewBadge(),
@@ -310,17 +278,13 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 2),
                 Text(
                   _shortTaskDescription(task.taskDescription),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey500,
-                  ),
+                  style: AppTypography.caption,
                 ),
                 if (_buildTaskDuration(task) != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     _buildTaskDuration(task)!,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: AppTypography.captionSm.copyWith(
                       color: AppColors.grey600,
                       fontWeight: FontWeight.w600,
                     ),
@@ -329,10 +293,9 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 8),
                 Text(
                   task.pointsStatusLabel,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: AppTypography.captionSm.copyWith(
                     color: task.isCompleted
-                        ? const Color(0xFFEAB308)
+                        ? AppColors.yellow400
                         : AppColors.green700,
                     fontWeight: FontWeight.w700,
                   ),
@@ -352,9 +315,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 4),
                 Text(
                   '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.grey500,
+                  style: AppTypography.overline.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -366,7 +327,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
             width: 28,
             height: 28,
             decoration: const BoxDecoration(
-              color: Color(0xFFECFDF5),
+              color: AppColors.emerald50,
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -385,18 +346,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Row(
         children: [
           Container(
@@ -426,9 +376,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                     Expanded(
                       child: Text(
                         task.taskTitle,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                        style: AppTypography.titleMd.copyWith(
                           color: AppColors.grey700,
                         ),
                       ),
@@ -439,17 +387,13 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 2),
                 Text(
                   _shortTaskDescription(task.taskDescription),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.grey500,
-                  ),
+                  style: AppTypography.caption,
                 ),
                 if (_buildTaskDuration(task) != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     _buildTaskDuration(task)!,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: AppTypography.captionSm.copyWith(
                       color: AppColors.grey600,
                       fontWeight: FontWeight.w600,
                     ),
@@ -458,10 +402,9 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 8),
                 Text(
                   task.pointsStatusLabel,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: AppTypography.captionSm.copyWith(
                     color: task.isCompleted
-                        ? const Color(0xFFEAB308)
+                        ? AppColors.yellow400
                         : AppColors.green700,
                     fontWeight: FontWeight.w700,
                   ),
@@ -481,9 +424,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 const SizedBox(height: 4),
                 Text(
                   '${task.currentProgress.toStringAsFixed(0)}/${task.targetProgress.toStringAsFixed(0)} complete',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.grey500,
+                  style: AppTypography.overline.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -510,13 +451,12 @@ class _AchievementsPageState extends State<AchievementsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: const Color(0xFFDBEAFE),
+        color: AppColors.blue100,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: const Text(
+      child: Text(
         'NEW',
-        style: TextStyle(
-          fontSize: 10,
+        style: AppTypography.overline.copyWith(
           fontWeight: FontWeight.w800,
           color: AppColors.green700,
         ),

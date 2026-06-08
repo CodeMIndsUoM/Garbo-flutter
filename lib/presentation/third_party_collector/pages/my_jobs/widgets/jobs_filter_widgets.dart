@@ -45,9 +45,14 @@ class JobsFilterBar extends StatelessWidget {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 180),
                             curve: Curves.easeOut,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
-                              color: selected ? AppColors.green700 : AppColors.grey100,
+                              color: selected
+                                  ? AppColors.green700
+                                  : AppColors.grey100,
                               borderRadius: BorderRadius.circular(99),
                             ),
                             child: Row(
@@ -56,21 +61,32 @@ class JobsFilterBar extends StatelessWidget {
                                 Text(
                                   label,
                                   style: AppTypography.labelMd.copyWith(
-                                    color: selected ? Colors.white : AppColors.grey600,
-                                    fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                                    color: selected
+                                        ? Colors.white
+                                        : AppColors.grey600,
+                                    fontWeight: selected
+                                        ? FontWeight.bold
+                                        : FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: selected ? Colors.white.withValues(alpha: 0.2) : AppColors.grey200,
+                                    color: selected
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : AppColors.grey200,
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                   child: Text(
                                     '$count',
                                     style: AppTypography.captionSm.copyWith(
-                                      color: selected ? Colors.white : AppColors.grey600,
+                                      color: selected
+                                          ? Colors.white
+                                          : AppColors.grey600,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 10,
                                     ),
@@ -115,10 +131,10 @@ class JobsFilterBar extends StatelessWidget {
                   spreadRadius: -1,
                 ),
               ]
-            : [
+            : const [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  offset: const Offset(0, 1),
+                  color: AppColors.shadowSm,
+                  offset: Offset(0, 1),
                   blurRadius: 3,
                 ),
               ],
@@ -376,10 +392,10 @@ class ClearRejectedBar extends StatelessWidget {
                     border: Border(
                       top: BorderSide(color: AppColors.grey100, width: 1),
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        offset: const Offset(0, -2),
+                        color: AppColors.shadowSm,
+                        offset: Offset(0, -2),
                         blurRadius: 8,
                       ),
                     ],
@@ -497,7 +513,9 @@ class EmptyOffers extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(
-              hasActiveFilters ? Icons.search_off_rounded : Icons.work_off_outlined,
+              hasActiveFilters
+                  ? Icons.search_off_rounded
+                  : Icons.work_off_outlined,
               color: hasActiveFilters ? AppColors.green700 : AppColors.grey400,
               size: 30,
             ),

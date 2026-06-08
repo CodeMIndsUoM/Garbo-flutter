@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 /// Animated pulsing "HIGH PRIORITY" badge.
 class HighPriorityBadge extends StatefulWidget {
@@ -56,13 +57,13 @@ class _HighPriorityBadgeState extends State<HighPriorityBadge>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: DesignTokens.red500.withValues(
+            color: AppColors.red500.withValues(
               alpha: _opacityAnimation.value,
             ),
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: DesignTokens.red500.withValues(
+                color: AppColors.red500.withValues(
                   alpha: _opacityAnimation.value * 0.4,
                 ),
                 blurRadius: 8 * _opacityAnimation.value,
@@ -70,11 +71,10 @@ class _HighPriorityBadgeState extends State<HighPriorityBadge>
               ),
             ],
           ),
-          child: const Text(
+          child: Text(
             'HIGH PRIORITY',
-            style: TextStyle(
+            style: AppTypography.overline.copyWith(
               color: Colors.white,
-              fontSize: 10,
               fontWeight: FontWeight.w700,
             ),
           ),

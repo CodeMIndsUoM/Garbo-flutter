@@ -43,9 +43,10 @@ class LeafletNavigationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: AppColors.green700,
-        foregroundColor: Colors.white,
-        title: const Text('Navigation'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: AppColors.grey900,
+        title: Text('Navigation', style: AppTypography.titleLg),
       ),
       body: Column(
         children: [

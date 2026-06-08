@@ -103,7 +103,7 @@ class RoleSelection extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1),
+          border: Border.all(color: AppColors.grey200, width: 1.2),
           boxShadow: [
             BoxShadow(
               color: AppColors.shadowSm,

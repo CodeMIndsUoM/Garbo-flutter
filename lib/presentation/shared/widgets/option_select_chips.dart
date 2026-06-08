@@ -26,10 +26,9 @@ class OptionSelectChips extends StatelessWidget {
       children: [
         Text(
           optional ? '$label (Optional)' : label,
-          style: const TextStyle(
-            fontSize: 13,
+          style: AppTypography.labelMd.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.grey900,
           ),
         ),
         const SizedBox(height: 10),
@@ -93,10 +92,9 @@ class MultiOptionSelectChips extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 13,
+          style: AppTypography.labelMd.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.grey900,
           ),
         ),
         const SizedBox(height: 10),
