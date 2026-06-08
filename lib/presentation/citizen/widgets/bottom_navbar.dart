@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/pages/home_page.dart';
 import 'package:garbo_swms/presentation/citizen/pages/report.dart';
 import 'package:garbo_swms/presentation/citizen/pages/events.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request.dart';
 import 'package:garbo_swms/presentation/citizen/pages/profile.dart';
+import 'package:garbo_swms/presentation/shared/app_bottom_navigation.dart';
 
 class CitizenBottomNavbar extends StatelessWidget {
   final int currentIndex;
@@ -15,7 +15,7 @@ class CitizenBottomNavbar extends StatelessWidget {
   });
 
   void onTap(BuildContext context, int index) {
-    if (index == currentIndex) return; 
+    if (index == currentIndex) return;
 
     final pages = <int, Widget>{
       0: const CitizenHomePage(),
@@ -35,78 +35,36 @@ class CitizenBottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      NavItem(Icons.home_rounded, 'Home'),
-      NavItem(Icons.report_problem_rounded, 'Report'),
-      NavItem(Icons.event_rounded, 'Events'),
-      NavItem(Icons.receipt_long_rounded, 'Requests'),
-      NavItem(Icons.person_rounded, 'Profile'),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            offset: const Offset(0, -2),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final isSelected = i == currentIndex;
-              return Expanded(
-                child: InkWell(
-                  onTap: () => onTap(context, i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: isSelected ? 32 : 0,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.emerald700
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Icon(
-                        items[i].icon,
-                        color: isSelected
-                            ? AppColors.emerald700
-                            : AppColors.citizenGrey500,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        items[i].label,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppColors.emerald700
-                              : AppColors.citizenGrey500,
-                          fontSize: 11,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
+    return AppBottomNavigation(
+      currentIndex: currentIndex,
+      onTap: (index) => onTap(context, index),
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home_rounded),
+          label: 'Home',
         ),
-      ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.report_problem_outlined),
+          activeIcon: Icon(Icons.report_problem_rounded),
+          label: 'Report',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.event_outlined),
+          activeIcon: Icon(Icons.event_rounded),
+          label: 'Events',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.receipt_long_outlined),
+          activeIcon: Icon(Icons.receipt_long_rounded),
+          label: 'Requests',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person_rounded),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }
@@ -129,11 +87,4 @@ class SmoothPageRoute<T> extends PageRouteBuilder<T> {
             );
           },
         );
-}
-
-class NavItem {
-  final IconData icon;
-  final String label;
-
-  NavItem(this.icon, this.label);
 }

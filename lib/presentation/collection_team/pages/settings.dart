@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -53,8 +57,7 @@ class SettingsPage extends StatelessWidget {
               iconColor: const Color(0xFF6366F1),
               title: 'Account Settings',
               subtitle: 'Manage your profile and preferences',
-              onTap: () {
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 12),
             SettingsMenuItem(
@@ -64,8 +67,7 @@ class SettingsPage extends StatelessWidget {
               title: 'Notifications',
               subtitle: 'Configure notification preferences',
               badge: '2',
-              onTap: () {
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 12),
             SettingsMenuItem(
@@ -74,8 +76,7 @@ class SettingsPage extends StatelessWidget {
               iconColor: AppColors.green700,
               title: 'History',
               subtitle: 'View your activity history',
-              onTap: () {
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 12),
             SettingsMenuItem(
@@ -84,8 +85,7 @@ class SettingsPage extends StatelessWidget {
               iconColor: AppColors.red500,
               title: 'Privacy & Security',
               subtitle: 'Security settings and privacy controls',
-              onTap: () {
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 12),
             SettingsMenuItem(
@@ -94,7 +94,25 @@ class SettingsPage extends StatelessWidget {
               iconColor: AppColors.red500,
               title: 'Help & Support',
               subtitle: 'Get help and contact support',
-              onTap: () {
+              onTap: () {},
+            ),
+            const SizedBox(height: 12),
+            SettingsMenuItem(
+              icon: Icons.logout_rounded,
+              iconBgColor: const Color(0xFFFEF2F2),
+              iconColor: AppColors.red500,
+              title: 'Log Out',
+              subtitle: 'Sign out and return to login',
+              onTap: () async {
+                context.read<LeaderboardProvider>().reset();
+                await context.read<AuthProvider>().logout();
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRouter.login,
+                    (route) => false,
+                  );
+                }
               },
             ),
           ],
@@ -114,6 +132,7 @@ class SettingsMenuItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const SettingsMenuItem({
+    super.key,
     required this.icon,
     required this.iconBgColor,
     required this.iconColor,
@@ -135,7 +154,7 @@ class SettingsMenuItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.grey200, width: 1),
+            border: Border.all(color: Colors.transparent),
           ),
           child: Row(
             children: [
