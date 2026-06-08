@@ -1,0 +1,94 @@
+import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
+
+class LevelProgressCard extends StatelessWidget {
+  const LevelProgressCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 112,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 1.27),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.purple50, AppColors.blue50],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.transparent),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.purple600, AppColors.blue500],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.emoji_events,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Level 8', style: AppTypography.h3),
+                      Text(
+                        'Monitor Expert',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.grey600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '1847 pts',
+                    style: AppTypography.titleLg.copyWith(
+                      color: AppColors.purple600,
+                    ),
+                  ),
+                  Text('153 to Level 9', style: AppTypography.caption),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: LinearProgressIndicator(
+              value: 0.8, // 1847 / 2000 approx
+              backgroundColor: AppColors.white20, // Should be white/60
+              color: null,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.purple600,
+              ), // Gradient not directly supported in LPI, using solid color for now
+              minHeight: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

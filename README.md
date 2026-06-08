@@ -1,62 +1,125 @@
-# garbo_swms
+# Garbo SWMS
 
-A new Flutter project.
+Smart Waste Management System — A Flutter mobile application for managing urban waste collection across multiple user roles.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK (3.x or later)
+- Dart SDK
+- Android Studio / Xcode for emulator
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Run the App
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run
+```
 
+### Third-Party Completion Photo Upload
 
+Photo upload is handled by backend multipart API. Flutter does not require Cloudinary Dart defines.
+
+Team workflow:
+
+1. Start backend with Cloudinary environment variables.
+2. Run Flutter app normally.
+3. Complete collection flow will send photo file to backend, and backend uploads to Cloudinary.
+
+## Test Login Credentials
+
+These mobile test accounts are intended for shared team login testing.
+
+Important:
+- Start the backend first so the seed data is created.
+- `ROLE_SUPERADMIN` is only for the web dashboard, not the mobile app.
+
+| Mobile Role | Email | Password | Mobile Destination |
+|-------|--------|--------|--------|
+| Citizen | `citizen.one@garbo.com` | `Citizen123` | Citizen home |Moratuwa
+| Collection Team | `collector.test@garbo.com` | `Collector123` | Collection team dashboard |
+| Field Staff | `sasindu@gmail.com` | `Sj1234` | Field staff dashboard |
+| Third-Party Collector | `thirdparty.one@garbo.com` | `ThirdParty123` | Third-party collector home |Colombo,Moratuwa
+
+Additional seeded demo accounts:
+
+| Mobile Role | Email | Password | Mobile Destination |
+|-------|--------|--------|--------|
+| Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |Colombo
+| Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |Kaduwela
+| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdParty123` | Third-party collector home |Dehiwala-Mt. Lavinia,Kaduwela
+| Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |Sri Jayewardenepura Kotte,Colombo
+
+### Create Seed Users
+
+Run the backend once to create these accounts automatically:
+
+```bash
+cd ../Garbo_backend
+./run-local.sh
+```
+
+Note: `run-local.sh` loads `.env` first, so Cloudinary-backed upload endpoints work correctly.
+
+## Project Structure
+
+```
 lib/
-├── main.dart                 # App entry point & dependency injection setup [cite: 38]
-├── app.dart                  # Role-based routing logic (Admin, Staff, Citizen) 
-│
-├── core/                     # Cross-cutting concerns
-│   ├── constants/            # API endpoints & asset paths [cite: 30, 216]
-│   ├── theme/                # Global styles & multi-lingual configs [cite: 32, 53]
-│   ├── utils/                # Formatters & Permission handlers (GPS/Camera) [cite: 128]
-│   └── errors/               # Custom Failure objects for API/GPS errors
-│
-├── data/                     # INFRASTRUCTURE LAYER (External Communication)
-│   ├── sources/              # Remote & Local Data Providers
-│   │   ├── api_service.dart  # REST client for Spring Boot (Dio/Http) [cite: 141, 143]
-│   │   ├── storage_service.dart# AWS S3 / GCS Upload logic for photos [cite: 173, 176]
-│   │   ├── location_service.dart# Streams from Phone GPS hardware [cite: 28, 227]
-│   │   └── local_db.dart     # SQLite/Hive for offline data caching [cite: 130]
-│   ├── models/               # DTOs (Data Transfer Objects) [cite: 45]
-│   │   ├── bin_model.dart    # Maps JSON from backend to Dart objects
-│   │   └── route_model.dart  # Maps Google Maps/OR-Tools polyline data [cite: 161, 167]
-│   └── repositories/         # Implementation of domain repository interfaces
-│
-├── domain/                   # LOGIC LAYER (Pure Dart)
-│   ├── entities/             # Core business objects (Bin, Task, Feedback) [cite: 43]
-│   ├── repositories/         # Abstract contracts (Interfaces)
-│   └── usecases/             # Specific business actions
-│       ├── update_bin_status.dart # Logic for "Fill Level + Photo + GPS" [cite: 49, 188]
-│       ├── get_optimized_route.dart # Logic for "Dijkstra/A* pathing" [cite: 30, 190]
-│       └── submit_feedback.dart # Citizen reporting logic [cite: 220]
-│
-├── presentation/             # UI LAYER (Organized by User Roles) [cite: 218]
-│   ├── auth/                 # Screens for Authentication
-│   │   ├── pages/            # LoginPage, RegisterPage, ForgotPasswordPage
-│   │   └── state/            # Auth state management logic
-│   ├── field_staff/          # Screens for Bin Monitoring [cite: 218]
-│   │   ├── pages/            # BinCapturePage, StaffDashboard
-│   │   └── state/            # BLoC/Riverpod logic for staff tasks
-│   ├── collection_team/      # Screens for Route Execution [cite: 219]
-│   │   ├── pages/            # MapNavigationPage, TaskCompletePage
-│   │   ├── state/            # Map/GPS state management logic
-│   │   └── widgets/          # Collection-team-specific widgets (RouteCard, BinItem, etc.)
-│   ├── citizen/              # Screens for Feedback Portal [cite: 220]
-│   │   ├── pages/            # ComplaintFormPage, StatusTrackerPage
-│   │   └── state/            # Feedback submission state
-│   └── widgets/              # Reusable UI (Custom Buttons, Cards, Loaders)
+├── main.dart                         # App entry point
+├── app.dart                          # Root app widget
+├── core/                             # Shared app-level config and styling
+│   ├── constants/                    # API base URL and shared constants
+│   ├── errors/                       # Shared error placeholders / future expansion
+│   ├── router/                       # Central app routing
+│   ├── theme/                        # Colors and typography
+│   └── utils/                        # Shared utility placeholders / future expansion
+├── data/                             # API-facing models and services
+│   ├── models/                       # Request/offer/dashboard/websocket models
+│   ├── repositories/                 # Reserved for repository implementations
+│   └── sources/                      # REST and websocket services
+├── domain/                           # Reserved clean-architecture domain layer
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+└── presentation/                     # UI grouped by role and feature
+    ├── auth/                         # Login/register/forgot-password flow
+    │   ├── pages/
+    │   └── state/
+    ├── citizen/                      # Citizen request and reporting experience
+    │   ├── pages/
+    │   ├── state/
+    │   └── widgets/
+    ├── collection_team/              # Bin collector route and job screens
+    │   ├── pages/
+    │   ├── state/
+    │   └── widgets/
+    ├── field_staff/                  # Field mentor dashboard, bins, and profile
+    │   ├── bins/
+    │   ├── dashboard/
+    │   ├── profile/
+    │   ├── shared/
+    │   └── state/
+    ├── providers/                    # Cross-screen providers and app state
+    ├── third_party_collector/        # Feed, jobs, profile, and completion flow
+    │   ├── pages/
+    │   └── widgets/
+    └── widgets/                      # Shared presentation widgets
+```
+
+## Architecture
+
+The codebase uses a mostly role-based presentation structure with lightweight layered separation:
+
+| Layer | Folder | Responsibility |
+|-------|--------|----------------|
+| **Presentation** | `presentation/` | Role-specific pages, widgets, and providers |
+| **Data** | `data/` | API services, websocket services, and response models |
+| **Core** | `core/` | Routing, constants, and theme |
+| **Domain** | `domain/` | Reserved for domain abstractions and future use cases |
+
+## Resources
+
+- [Flutter Documentation](https://docs.flutter.dev/)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter Cookbook](https://docs.flutter.dev/cookbook)

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 
 class CitizenSettingsPage extends StatefulWidget {
@@ -14,19 +15,20 @@ class SettingsPageState extends State<CitizenSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
           CitizenHeader(name: 'Menu'),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
                   buildMenuItems(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
@@ -43,10 +45,10 @@ class SettingsPageState extends State<CitizenSettingsPage> {
         buildMenuItem(
           icon: Icons.person_outline,
           title: 'My Profile',
-          backgroundColor: AppColors.blue50,
-          iconColor: AppColors.blue600,
+          backgroundColor: AppColors.greenSurface2,
+          iconColor: AppColors.green700,
           onTap: () {
-            Navigator.pushNamed(context, '/citizen/profile');
+            Navigator.pushNamed(context, AppRouter.citizenProfile);
           },
         ),
         const SizedBox(height: 12),
@@ -129,7 +131,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
         buildMenuItem(
           icon: Icons.logout,
           title: 'Logout',
-          backgroundColor: Colors.red.withOpacity(0.1),
+          backgroundColor: Colors.red.withValues(alpha: 0.1),
           iconColor: Colors.red,
           onTap: () {
             showDialog(
@@ -184,7 +186,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               offset: const Offset(0, 1),
               blurRadius: 6,
               spreadRadius: -1,
@@ -197,14 +199,10 @@ class SettingsPageState extends State<CitizenSettingsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: backgroundColor,
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
+              child: Icon(icon, color: iconColor, size: 24),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -221,7 +219,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
