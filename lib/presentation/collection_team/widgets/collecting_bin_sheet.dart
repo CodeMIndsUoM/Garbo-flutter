@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 
 /// Bottom sheet for collecting a bin — report issues, add notes, take photo,
@@ -79,7 +80,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                     width: 48,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: DesignTokens.grey300,
+                      color: AppColors.grey300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -118,22 +119,11 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Collecting Bin',
-                style: TextStyle(
-                  color: DesignTokens.grey900,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Text('Collecting Bin', style: AppTypography.displaySm),
               const SizedBox(height: 4),
               Text(
                 widget.locationName,
-                style: const TextStyle(
-                  color: DesignTokens.grey600,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
               ),
             ],
           ),
@@ -144,13 +134,13 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: DesignTokens.grey100,
+              color: AppColors.grey100,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.close,
               size: 16,
-              color: DesignTokens.grey600,
+              color: AppColors.grey600,
             ),
           ),
         ),
@@ -166,9 +156,9 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
     return Container(
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: DesignTokens.grey50,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: DesignTokens.grey200),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,17 +169,16 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: DesignTokens.green700.withValues(alpha: 0.1),
+                  color: AppColors.green700.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: DesignTokens.green700.withValues(alpha: 0.3),
+                    color: AppColors.green700.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Text(
                   widget.bin.id,
-                  style: const TextStyle(
-                    color: DesignTokens.green700,
-                    fontSize: 11,
+                  style: AppTypography.captionSm.copyWith(
+                    color: AppColors.green700,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -202,14 +191,13 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isFull ? DesignTokens.red500 : DesignTokens.orange600,
+                  color: isFull ? AppColors.red500 : AppColors.orange600,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   isFull ? 'FULL' : 'HALF',
-                  style: const TextStyle(
+                  style: AppTypography.labelSm.copyWith(
                     color: Colors.white,
-                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -219,11 +207,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
           const SizedBox(height: 8),
           Text(
             widget.bin.address,
-            style: const TextStyle(
-              color: DesignTokens.grey600,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
+            style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
           ),
         ],
       ),
@@ -236,17 +220,13 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.error_outline, size: 16, color: DesignTokens.red500),
-            SizedBox(width: 8),
+            const Icon(Icons.error_outline, size: 16, color: AppColors.red500),
+            const SizedBox(width: 8),
             Text(
               'Report Issues (Optional)',
-              style: TextStyle(
-                color: DesignTokens.grey900,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.titleSm,
             ),
           ],
         ),
@@ -274,23 +254,22 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? DesignTokens.green700.withValues(alpha: 0.08)
+                      ? AppColors.green700.withValues(alpha: 0.08)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
-                        ? DesignTokens.green700
-                        : DesignTokens.grey200,
+                        ? AppColors.green700
+                        : AppColors.grey200,
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
                 child: Text(
                   issue,
-                  style: TextStyle(
+                  style: AppTypography.labelMd.copyWith(
                     color: isSelected
-                        ? DesignTokens.green700
-                        : DesignTokens.grey700,
-                    fontSize: 13,
+                        ? AppColors.green700
+                        : AppColors.grey700,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
@@ -308,21 +287,17 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(
+            const Icon(
               Icons.edit_note_rounded,
               size: 16,
-              color: DesignTokens.grey600,
+              color: AppColors.grey600,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'Add Notes (Optional)',
-              style: TextStyle(
-                color: DesignTokens.grey900,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.titleSm,
             ),
           ],
         ),
@@ -331,15 +306,15 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: DesignTokens.grey200),
+            border: Border.all(color: AppColors.grey200),
           ),
           child: TextField(
             controller: _notesController,
             maxLines: 3,
-            style: const TextStyle(color: DesignTokens.grey900, fontSize: 14),
-            decoration: const InputDecoration(
+            style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
+            decoration: InputDecoration(
               hintText: 'Any additional information...',
-              hintStyle: TextStyle(color: DesignTokens.grey500, fontSize: 14),
+              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
               contentPadding: EdgeInsets.all(12),
               border: InputBorder.none,
             ),
@@ -365,20 +340,22 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
           );
         },
         style: OutlinedButton.styleFrom(
-          foregroundColor: DesignTokens.grey700,
-          side: const BorderSide(color: DesignTokens.grey200),
+          foregroundColor: AppColors.grey700,
+          side: const BorderSide(color: AppColors.grey200),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.camera_alt_outlined, size: 16),
-            SizedBox(width: 8),
+            const Icon(Icons.camera_alt_outlined, size: 16),
+            const SizedBox(width: 8),
             Text(
               'Take Photo (Optional)',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: AppTypography.buttonMd.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -395,21 +372,21 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
       child: ElevatedButton(
         onPressed: () => Navigator.pop(context, true),
         style: ElevatedButton.styleFrom(
-          backgroundColor: DesignTokens.green700,
+          backgroundColor: AppColors.green700,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle_outline, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.check_circle_outline, size: 20),
+            const SizedBox(width: 8),
             Text(
               'Mark as Collected',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              style: AppTypography.buttonLg,
             ),
           ],
         ),

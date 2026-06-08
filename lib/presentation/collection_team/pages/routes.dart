@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/route_model.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/route_provider.dart';
@@ -512,11 +514,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
   Widget buildSubsectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        color: AppColors.grey700,
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-      ),
+      style: AppTypography.titleSm.copyWith(color: AppColors.grey700),
     );
   }
 
@@ -609,11 +607,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.grey200),
-        ),
+        decoration: AppDecorations.card(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -630,9 +624,8 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                   ),
                   child: Text(
                     badgeLabel,
-                    style: TextStyle(
+                    style: AppTypography.overline.copyWith(
                       color: badgeTextColor,
-                      fontSize: 8,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -643,9 +636,8 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: AppTypography.labelMd.copyWith(
                       color: AppColors.grey900,
-                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -655,9 +647,8 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
             const SizedBox(height: 4),
             Text(
               '$dateLabel · $collectedBins/$assignedBins bins · $durationLabel',
-              style: const TextStyle(
+              style: AppTypography.overline.copyWith(
                 color: AppColors.grey600,
-                fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -672,16 +663,11 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.transparent),
-      ),
-      child: const Text(
+      decoration: AppDecorations.card(),
+      child: Text(
         'No routes assigned for today yet.',
-        style: TextStyle(
+        style: AppTypography.labelMd.copyWith(
           color: AppColors.grey700,
-          fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
       ),

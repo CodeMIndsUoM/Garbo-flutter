@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_constants.dart';
 
 /// Search bar, filter icon, active-filter rail, and the filter bottom sheet.
@@ -40,41 +42,31 @@ class RequestsFilterBar extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: searchController,
-                onChanged: (_) => onChanged(),
-                decoration: InputDecoration(
-                  hintText: 'Search requests, addresses, #id',
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  suffixIcon: searchController.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () {
-                            searchController.clear();
-                            onChanged();
-                          },
-                        ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.grey300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.grey300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: AppColors.emerald600,
-                      width: 1.4,
+              child: Container(
+                height: 48,
+                decoration: AppDecorations.card(),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (_) => onChanged(),
+                  style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
+                  decoration: AppDecorations.searchInput(
+                    hintText: 'Search requests, addresses, #id',
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.grey500,
+                    ),
+                    suffixIcon: searchController.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () {
+                              searchController.clear();
+                              onChanged();
+                            },
+                          ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
                     ),
                   ),
                 ),
@@ -135,8 +127,7 @@ class RequestsFilterBar extends StatelessWidget {
                     ),
                     child: Text(
                       '$activeCount',
-                      style: const TextStyle(
-                        fontSize: 10,
+                      style: AppTypography.overline.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.emerald700,
                       ),
@@ -198,14 +189,10 @@ class RequestsFilterBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           minimumSize: const Size(0, 32),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          foregroundColor: AppColors.emerald700,
         ),
         child: const Text(
           'Clear all',
-          style: TextStyle(
-            color: AppColors.emerald700,
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
-          ),
         ),
       ),
     );
@@ -246,10 +233,9 @@ class RequestsFilterBar extends StatelessWidget {
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: AppTypography.labelSm.copyWith(
                     color: AppColors.emerald700,
                     fontWeight: FontWeight.w700,
-                    fontSize: 12,
                   ),
                 ),
               ),
@@ -300,14 +286,7 @@ class RequestsFilterBar extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Filters',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.grey900,
-                            ),
-                          ),
+                          Text('Filters', style: AppTypography.titleLg),
                           const Spacer(),
                           TextButton(
                             onPressed: () {
@@ -321,14 +300,7 @@ class RequestsFilterBar extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Text(
-                        'Status',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey700,
-                        ),
-                      ),
+                      Text('Status', style: AppTypography.labelMd),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
@@ -341,12 +313,11 @@ class RequestsFilterBar extends StatelessWidget {
                               onSelected: (_) =>
                                   setSheetState(() => localStatus = value),
                               selectedColor: AppColors.emerald600,
-                              labelStyle: TextStyle(
+                              labelStyle: AppTypography.labelSm.copyWith(
                                 color: localStatus == value
                                     ? Colors.white
                                     : AppColors.grey700,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 12,
                               ),
                               backgroundColor: Colors.white,
                               side: BorderSide(
@@ -358,22 +329,12 @@ class RequestsFilterBar extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Waste Type',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey700,
-                        ),
-                      ),
+                      Text('Waste Type', style: AppTypography.labelMd),
                       const SizedBox(height: 8),
                       if (wasteTypes.isEmpty)
-                        const Text(
+                        Text(
                           'No waste types to filter yet',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.grey500,
-                          ),
+                          style: AppTypography.captionSm,
                         )
                       else
                         Wrap(
@@ -387,12 +348,11 @@ class RequestsFilterBar extends StatelessWidget {
                                 () => localWasteType = 'ALL',
                               ),
                               selectedColor: AppColors.emerald600,
-                              labelStyle: TextStyle(
+                              labelStyle: AppTypography.labelSm.copyWith(
                                 color: localWasteType == 'ALL'
                                     ? Colors.white
                                     : AppColors.grey700,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 12,
                               ),
                               backgroundColor: Colors.white,
                               side: BorderSide(
@@ -409,12 +369,11 @@ class RequestsFilterBar extends StatelessWidget {
                                   () => localWasteType = type,
                                 ),
                                 selectedColor: AppColors.emerald600,
-                                labelStyle: TextStyle(
+                                labelStyle: AppTypography.labelSm.copyWith(
                                   color: localWasteType == type
                                       ? Colors.white
                                       : AppColors.grey700,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 12,
                                 ),
                                 backgroundColor: Colors.white,
                                 side: BorderSide(

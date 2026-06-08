@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_helpers.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
@@ -31,17 +32,13 @@ class RequestsList extends StatelessWidget {
     }
 
     if (allRequests.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
+      return Padding(
+        padding: const EdgeInsets.all(32),
         child: Center(
           child: Text(
             'No requests yet. Create your first collection request to receive offers from collectors.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.grey600,
-              height: 1.4,
-            ),
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
           ),
         ),
       );
@@ -52,13 +49,13 @@ class RequestsList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           filterBar,
-          const Padding(
-            padding: EdgeInsets.all(32),
+          Padding(
+            padding: const EdgeInsets.all(32),
             child: Center(
               child: Text(
                 'No matching requests. Try changing your filters.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.grey600),
+                style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
               ),
             ),
           ),
@@ -95,7 +92,7 @@ class RequestsList extends StatelessWidget {
                               ? request.wasteTypes.first
                               : request.wasteType,
                         ),
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppColors.green700,
                         size: 24,
                       ),
                       const SizedBox(width: 12),
@@ -105,26 +102,25 @@ class RequestsList extends StatelessWidget {
                           children: [
                             Text(
                               wasteTypesLabel(request),
-                              style: Theme.of(context).textTheme.titleSmall,
+                              style: AppTypography.titleSm,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               requestSubtitle(request),
-                              style: Theme.of(context).textTheme.bodySmall,
+                              style: AppTypography.bodySm,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               formatRequestDate(request.preferredDate),
-                              style: Theme.of(context).textTheme.bodySmall,
+                              style: AppTypography.bodySm,
                             ),
                             if (request.offersCount > 0) ...[
                               const SizedBox(height: 6),
                               Text(
                                 '${request.offersCount} offer${request.offersCount == 1 ? '' : 's'} · Tap to review',
-                                style: TextStyle(
-                                  fontSize: 12,
+                                style: AppTypography.labelSm.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: AppColors.green700,
                                 ),
                               ),
                             ],
@@ -142,8 +138,7 @@ class RequestsList extends StatelessWidget {
                         ),
                         child: Text(
                           style.label,
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: AppTypography.captionSm.copyWith(
                             fontWeight: FontWeight.w600,
                             color: style.text,
                           ),

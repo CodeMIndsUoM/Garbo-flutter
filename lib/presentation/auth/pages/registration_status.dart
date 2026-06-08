@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -75,13 +76,10 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Registration Status',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text('Registration Status', style: AppTypography.titleLg),
       ),
       body: SafeArea(
         child: Center(
@@ -146,7 +144,7 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
       width: 120,
       height: 120,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
@@ -188,17 +186,8 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
 
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cardColor.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+      decoration: AppDecorations.card().copyWith(
+        border: Border.all(color: cardColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -266,13 +255,9 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: const Text(
+        child: Text(
           'Go to Login',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.buttonLg.copyWith(color: Colors.white),
         ),
       );
     }

@@ -791,12 +791,13 @@ class _AllCompletedCollectionsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: AppColors.green700,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.grey900,
         elevation: 0,
+        surfaceTintColor: Colors.white,
         title: Text(
           'Completed Collections',
-          style: AppTypography.h3.copyWith(color: Colors.white),
+          style: AppTypography.h3.copyWith(color: AppColors.grey900),
         ),
       ),
       body: collections.isEmpty

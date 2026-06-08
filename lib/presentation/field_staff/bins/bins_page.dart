@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
@@ -242,7 +243,10 @@ class _BinsPageState extends State<BinsPage> {
               'Error loading bins: $_error',
               style: AppTypography.bodyMd.copyWith(color: AppColors.red500),
             ),
-            ElevatedButton(onPressed: _fetchBins, child: const Text('Retry')),
+            ElevatedButton(
+              onPressed: _fetchBins,
+              child: Text('Retry', style: AppTypography.buttonMd),
+            ),
           ],
         ),
       );
@@ -318,11 +322,7 @@ class _BinsPageState extends State<BinsPage> {
   Widget _buildSearchBar() {
     return Container(
       height: 48,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-      ),
+      decoration: AppDecorations.card(),
       child: Row(
         children: [
           const SizedBox(width: 16),
@@ -334,12 +334,10 @@ class _BinsPageState extends State<BinsPage> {
                 setState(() => _searchQuery = value);
               },
               style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-              decoration: InputDecoration(
+              decoration: AppDecorations.searchInput(
                 hintText: 'Search bins by location or ID...',
-                hintStyle: AppTypography.bodyMd.copyWith(color: Colors.black38),
-                border: InputBorder.none,
+                hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
                 contentPadding: const EdgeInsets.only(bottom: 6),
-                isDense: true,
               ),
             ),
           ),
@@ -385,7 +383,7 @@ class _BinsPageState extends State<BinsPage> {
   Future<void> _handleUndo(BinModel bin) async {
     final confirm = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.35),
+      barrierColor: AppColors.scrim,
       builder: (context) => Dialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
