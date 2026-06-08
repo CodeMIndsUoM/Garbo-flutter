@@ -10,12 +10,14 @@ import 'package:garbo_swms/presentation/citizen/pages/request.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/dashboard.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
 import 'package:garbo_swms/presentation/field_staff/dashboard/dashboard_page.dart';
+import 'package:garbo_swms/presentation/auth/pages/third_party_set_password.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/home.dart';
 
 class AppRouter {
   static const String splash = '/';
   static const String login = '/login';
   static const String changePassword = '/change-password';
+  static const String thirdPartySetPassword = '/third-party/set-password';
   static const String citizenHome = '/citizen-home';
   static const String citizenReport = '/citizen/report';
   static const String citizenRequest = '/citizen/request';
@@ -70,6 +72,8 @@ class AppRouter {
         return const Login();
       case changePassword:
         return const ChangePassword();
+      case thirdPartySetPassword:
+        return const Login();
       case citizenHome:
         return const CitizenHomePage();
       case citizenReport:
@@ -97,6 +101,22 @@ class AppRouter {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final routeName = settings.name ?? login;
+
+    if (routeName == thirdPartySetPassword) {
+      final args = settings.arguments;
+      if (args is Map<String, dynamic>) {
+        final empId = args['empId'];
+        final email = args['email']?.toString() ?? '';
+        final parsedId = empId is int ? empId : int.tryParse('$empId') ?? 0;
+        return MaterialPageRoute(
+          builder: (_) => ThirdPartySetPasswordPage(
+            empId: parsedId,
+            email: email,
+          ),
+        );
+      }
+    }
+
     return MaterialPageRoute(builder: (_) => pageForRoute(routeName));
   }
 }

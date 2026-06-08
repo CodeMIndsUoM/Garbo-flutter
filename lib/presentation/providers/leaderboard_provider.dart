@@ -24,6 +24,7 @@ class LeaderboardProvider extends ChangeNotifier {
   bool _isLoadingSnapshot = false;
   bool _isLoadingUserRank = false;
   bool _pendingSnapshotReload = false;
+  Timer? _trackedUserRefreshDebounce;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _messageSubscription;
 
@@ -44,14 +45,34 @@ class LeaderboardProvider extends ChangeNotifier {
     if (_trackedUserId == userId && _trackedRole == normalizedRole) {
       return;
     }
-    _trackedUserId = userId;
-    _trackedRole = normalizedRole;
+
     if (userId == null) {
-      _userRankEntry = null;
-      notifyListeners();
+      reset();
       return;
     }
+
+    final switchedUser = _trackedUserId != null && _trackedUserId != userId;
+    _trackedUserId = userId;
+    _trackedRole = normalizedRole;
+    if (switchedUser) {
+      _userRankEntry = null;
+      _lastChangedUser = null;
+    }
     loadSnapshot();
+  }
+
+  void reset() {
+    _trackedUserRefreshDebounce?.cancel();
+    _trackedUserRefreshDebounce = null;
+    _leaderboardEntries = [];
+    _userRankEntry = null;
+    _lastChangedUser = null;
+    _lastUpdateTime = 0;
+    _errorMessage = null;
+    _trackedUserId = null;
+    _trackedRole = null;
+    _pendingSnapshotReload = false;
+    notifyListeners();
   }
 
   Future<void> loadSnapshot({int limit = 10}) async {
@@ -66,14 +87,11 @@ class LeaderboardProvider extends ChangeNotifier {
     try {
       final headers = await _buildAuthHeaders();
       final roleQuery = _trackedRole != null && _trackedRole!.isNotEmpty
-          ? '&role=${Uri.encodeQueryComponent(_trackedRole!)}'
-          : '';
-      final userQuery = _trackedUserId != null ? '&userId=$_trackedUserId' : '';
+          ? '?role=${Uri.encodeQueryComponent(_trackedRole!)}&limit=$limit'
+          : '?limit=$limit';
       final response = await http
           .get(
-            Uri.parse(
-              '$_baseUrl/leaderboard/top?limit=$limit$roleQuery$userQuery',
-            ),
+            Uri.parse('$_baseUrl/leaderboard/top$roleQuery'),
             headers: headers,
           )
           .timeout(const Duration(seconds: 20));
@@ -98,11 +116,12 @@ class LeaderboardProvider extends ChangeNotifier {
         leaderboardData.entries,
       );
       _lastUpdateTime = leaderboardData.updatedAt;
-      _lastChangedUser = leaderboardData.changedUser;
+      _lastChangedUser = _isChangedUserForTrackedUser(leaderboardData.changedUser)
+          ? leaderboardData.changedUser
+          : null;
       if (_trackedUserId == null) {
         _userRankEntry = null;
-      }
-      if (_trackedUserId != null) {
+      } else {
         await fetchUserRank(_trackedUserId!, role: _trackedRole);
       }
       _errorMessage = null;
@@ -122,19 +141,26 @@ class LeaderboardProvider extends ChangeNotifier {
   }
 
   /// Fetch the current logged-in user's rank from the server
-  Future<void> fetchUserRank(int userId, {String? role}) async {
-    final normalizedRole = _normalizeRole(role);
-    if (_trackedUserId == userId && _leaderboardEntries.isNotEmpty) {
-      final topEntry = _leaderboardEntries
-          .cast<LeaderboardEntryDto?>()
-          .firstWhere(
-            (entry) => entry?.userId == userId,
-            orElse: () => _userRankEntry,
-          );
-      if (topEntry != null) {
+  Future<void> fetchUserRank(
+    int userId, {
+    String? role,
+    bool forceRemote = false,
+  }) async {
+    if (_trackedUserId != userId) {
+      return;
+    }
+
+    final normalizedRole = _normalizeRole(role ?? _trackedRole);
+    if (!forceRemote && _leaderboardEntries.isNotEmpty) {
+      try {
+        final topEntry = _leaderboardEntries.firstWhere(
+          (entry) => entry.userId == userId,
+        );
         _userRankEntry = topEntry;
         notifyListeners();
         return;
+      } catch (_) {
+        // User is outside the current top list; fetch their rank directly.
       }
     }
 
@@ -154,6 +180,10 @@ class LeaderboardProvider extends ChangeNotifier {
             headers: headers,
           )
           .timeout(const Duration(seconds: 20));
+
+      if (_trackedUserId != userId) {
+        return;
+      }
 
       if (response.statusCode != 200) {
         _userRankEntry = null;
@@ -178,7 +208,9 @@ class LeaderboardProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Failed to fetch user rank: $e');
-      _userRankEntry = null;
+      if (_trackedUserId == userId) {
+        _userRankEntry = null;
+      }
     } finally {
       _isLoadingUserRank = false;
     }
@@ -188,42 +220,81 @@ class LeaderboardProvider extends ChangeNotifier {
   void _listenToLeaderboardUpdates() {
     _messageSubscription?.cancel();
     _messageSubscription = webSocketProvider.messageStream.listen((message) {
-      if (message.type == 'LEADERBOARD_UPDATE') {
-        try {
-          // Parse the leaderboard update payload
-          final payload = message.payload;
-          if (payload != null) {
-            final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
-            _leaderboardEntries = _filterEntriesByTrackedRole(
-              leaderboardData.entries,
-            );
-            _lastUpdateTime = leaderboardData.updatedAt;
-            _lastChangedUser =
-                _shouldKeepChangedUser(leaderboardData.changedUser)
-                ? leaderboardData.changedUser
-                : null;
-            _errorMessage = null;
+      if (message.type != 'LEADERBOARD_UPDATE') {
+        return;
+      }
 
-            debugPrint(
-              'Leaderboard update received: ${_leaderboardEntries.length} entries, changedUser=${_lastChangedUser?.userId}, rankDelta=${_lastChangedUser?.rankDelta}, scoreDelta=${_lastChangedUser?.scoreDelta}',
-            );
-            if (_trackedUserId != null) {
-              unawaited(loadSnapshot());
-            } else {
-              notifyListeners();
-            }
-          }
-        } catch (e) {
-          debugPrint('Error parsing leaderboard update: $e');
-          _errorMessage = 'Failed to parse leaderboard update: $e';
-          notifyListeners();
+      try {
+        final payload = message.payload;
+        if (payload == null) {
+          return;
         }
+
+        final leaderboardData = LeaderboardUpdatePayload.fromJson(payload);
+        _leaderboardEntries = _filterEntriesByTrackedRole(
+          leaderboardData.entries,
+        );
+        _lastUpdateTime = leaderboardData.updatedAt;
+        _lastChangedUser =
+            _isChangedUserForTrackedUser(leaderboardData.changedUser)
+            ? leaderboardData.changedUser
+            : null;
+        _errorMessage = null;
+
+        if (_trackedUserId != null) {
+          _applyTrackedUserFromEntries(_leaderboardEntries);
+          _scheduleTrackedUserRefresh();
+        }
+
+        debugPrint(
+          'Leaderboard update received: ${_leaderboardEntries.length} entries, trackedUser=$_trackedUserId, changedUser=${_lastChangedUser?.userId}',
+        );
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Error parsing leaderboard update: $e');
+        _errorMessage = 'Failed to parse leaderboard update: $e';
+        notifyListeners();
+      }
+    });
+  }
+
+  void _applyTrackedUserFromEntries(List<LeaderboardEntryDto> entries) {
+    final trackedId = _trackedUserId;
+    if (trackedId == null) {
+      return;
+    }
+
+    for (final entry in entries) {
+      if (entry.userId == trackedId) {
+        _userRankEntry = entry;
+        return;
+      }
+    }
+  }
+
+  void _scheduleTrackedUserRefresh() {
+    final trackedId = _trackedUserId;
+    if (trackedId == null) {
+      return;
+    }
+
+    _trackedUserRefreshDebounce?.cancel();
+    _trackedUserRefreshDebounce = Timer(const Duration(milliseconds: 600), () {
+      if (_trackedUserId == trackedId) {
+        unawaited(
+          fetchUserRank(
+            trackedId,
+            role: _trackedRole,
+            forceRemote: true,
+          ),
+        );
       }
     });
   }
 
   @override
   void dispose() {
+    _trackedUserRefreshDebounce?.cancel();
     _messageSubscription?.cancel();
     super.dispose();
   }
@@ -242,16 +313,12 @@ class LeaderboardProvider extends ChangeNotifier {
     return _leaderboardEntries.take(limit).toList();
   }
 
-  /// Get user's rank (returns null if not in top 10)
+  /// Get the tracked user's rank entry only.
   LeaderboardEntryDto? getUserRank(int userId) {
-    if (_userRankEntry?.userId == userId) {
-      return _userRankEntry;
-    }
-    try {
-      return _leaderboardEntries.firstWhere((entry) => entry.userId == userId);
-    } catch (e) {
+    if (_trackedUserId != userId) {
       return null;
     }
+    return _userRankEntry;
   }
 
   /// Get last update timestamp formatted
@@ -287,13 +354,14 @@ class LeaderboardProvider extends ChangeNotifier {
     return 0xFF808080; // Gray
   }
 
-  /// True when this entry matches the latest user that triggered a realtime update.
+  /// True when this entry matches the latest update for the tracked user.
   bool isEntryRecentlyChanged(LeaderboardEntryDto entry) {
     final changed = _lastChangedUser;
-    if (changed == null || entry.userId == null) {
+    if (changed == null || entry.userId == null || _trackedUserId == null) {
       return false;
     }
-    return changed.userId == entry.userId &&
+    return changed.userId == _trackedUserId &&
+        changed.userId == entry.userId &&
         changed.role.toUpperCase() == entry.role.toUpperCase();
   }
 
@@ -310,8 +378,12 @@ class LeaderboardProvider extends ChangeNotifier {
         .toList();
   }
 
-  bool _shouldKeepChangedUser(LeaderboardChangedUserPayload? changedUser) {
-    if (changedUser == null) {
+  bool _isChangedUserForTrackedUser(LeaderboardChangedUserPayload? changedUser) {
+    if (changedUser == null || _trackedUserId == null) {
+      return false;
+    }
+
+    if (changedUser.userId != _trackedUserId) {
       return false;
     }
 

@@ -1,13 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
+import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/send_offer_sheet.dart';
+import 'package:provider/provider.dart';
 
 class ThirdPartyBrowsePage extends StatefulWidget {
   const ThirdPartyBrowsePage({super.key});
@@ -26,6 +32,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   bool _usingLiveLocation = false;
   String? _collectorId;
   List<CollectionRequestModel> _allRequests = const [];
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? _marketplaceSub;
 
   static const List<String> _filters = [
     'All',
@@ -43,6 +50,22 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   void initState() {
     super.initState();
     _bootstrap();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _attachMarketplaceListener());
+  }
+
+  @override
+  void dispose() {
+    _marketplaceSub?.cancel();
+    super.dispose();
+  }
+
+  void _attachMarketplaceListener() {
+    if (!mounted) return;
+    _marketplaceSub?.cancel();
+    _marketplaceSub = MarketplaceRealtimeListener.attach(
+      context.read<WebSocketProvider>(),
+      _loadFeed,
+    );
   }
 
   Future<void> _bootstrap() async {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_edit_sheet.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
@@ -17,6 +19,82 @@ class CitizenProfilePage extends StatefulWidget {
 }
 
 class CitizenProfilePageState extends State<CitizenProfilePage> {
+  final ApiService _apiService = ApiService();
+
+  String _name = 'Citizen';
+  String _employeeId = '-';
+  String _email = '-';
+  String _phone = '-';
+  String _address = '-';
+  String _joinedDate = '-';
+  String? _avatarUrl;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final empId = await _apiService.getStoredEmpId();
+      if (empId.isEmpty) {
+        if (mounted) setState(() => _loading = false);
+        return;
+      }
+
+      final profile = await _apiService.getUserProfile(empId);
+      if (!mounted || profile == null) {
+        setState(() => _loading = false);
+        return;
+      }
+
+      setState(() {
+        _employeeId = empId;
+        _name = (profile['empName'] ?? 'Citizen').toString();
+        _email = (profile['email'] ?? '-').toString();
+        _phone = (profile['phone'] ?? '-').toString();
+        _address = (profile['defaultAddress'] ?? '-').toString();
+        final avatar = (profile['avatarUrl'] ?? '').toString();
+        _avatarUrl = avatar.isEmpty ? null : avatar;
+        _joinedDate = _formatJoinedDate(profile['createdAt']);
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _formatJoinedDate(dynamic rawCreatedAt) {
+    if (rawCreatedAt == null) return '-';
+    try {
+      final parsed = DateTime.parse(rawCreatedAt.toString());
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+      return '${months[parsed.month - 1]} ${parsed.day}, ${parsed.year}';
+    } catch (_) {
+      return '-';
+    }
+  }
+
+  void _openEditSheet() {
+    showUserProfileEditSheet(
+      context: context,
+      apiService: _apiService,
+      userId: _employeeId,
+      avatarUrl: _avatarUrl,
+      initial: ProfileEditFields(
+        name: _name,
+        phone: _phone == '-' ? '' : _phone,
+        defaultAddress: _address == '-' ? '' : _address,
+      ),
+      onUpdated: _loadProfile,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,46 +102,49 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          const CitizenHeader(name: 'Profile'),
+          CitizenHeader(name: _loading ? 'Profile' : _name),
           Expanded(
-            child: ProfilePageBody(
-              profileCard: ProfileCard(
-                name: 'Micheal',
-                role: 'Citizen Account',
-                employeeId: '-',
-                email: 'michealmarsh@gmail.com',
-                joinedDate: 'Jan 1, 2025',
-              ),
-              sections: [
-                const ProfileStatsSection(
-                  rows: [
-                    ProfileStatRow(label: 'Reports Submitted', value: '9'),
-                    ProfileStatRow(label: 'Events Joined', value: '2'),
-                    ProfileStatRow(label: 'Reward Points', value: '145'),
-                  ],
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: ProfileAchievementList(),
-                ),
-                ProfileExpandableSection(
-                  title: 'Contact Details',
-                  icon: Icons.contact_page_outlined,
-                  subtitle: 'Name, phone, email & address',
-                  child: buildContactInfo(),
-                ),
-                ProfileExpandableSection(
-                  title: 'Settings',
-                  icon: Icons.settings_outlined,
-                  subtitle: 'Notifications, privacy & preferences',
-                  child: buildSettingsOptions(),
-                ),
-              ],
-              footer: const ProfileLogoutButton(
-                dialogMessage:
-                    "You'll need to sign in again to access your dashboard.",
-              ),
-            ),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : ProfilePageBody(
+                    profileCard: ProfileCard(
+                      name: _name,
+                      role: 'Citizen Account',
+                      employeeId: _employeeId,
+                      email: _email,
+                      joinedDate: _joinedDate,
+                      avatarUrl: _avatarUrl,
+                      onEditTap: _openEditSheet,
+                    ),
+                    sections: [
+                      const ProfileStatsSection(
+                        rows: [
+                          ProfileStatRow(label: 'Account Type', value: 'Citizen'),
+                          ProfileStatRow(label: 'Council', value: 'Your local council'),
+                        ],
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: ProfileAchievementList(),
+                      ),
+                      ProfileExpandableSection(
+                        title: 'Contact Details',
+                        icon: Icons.contact_page_outlined,
+                        subtitle: 'Name, phone, email & address',
+                        child: buildContactInfo(),
+                      ),
+                      ProfileExpandableSection(
+                        title: 'Settings',
+                        icon: Icons.settings_outlined,
+                        subtitle: 'Notifications, privacy & preferences',
+                        child: buildSettingsOptions(),
+                      ),
+                    ],
+                    footer: const ProfileLogoutButton(
+                      dialogMessage:
+                          "You'll need to sign in again to access your dashboard.",
+                    ),
+                  ),
           ),
         ],
       ),
@@ -77,25 +158,25 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         buildContactCard(
           icon: Icons.person_outline,
           label: 'Full Name',
-          value: 'MIcheal Marsh',
+          value: _name,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.phone_outlined,
           label: 'Phone Number',
-          value: '077 1234567',
+          value: _phone,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.email_outlined,
           label: 'Email',
-          value: 'michealmarsh@gmail.com',
+          value: _email,
         ),
         const SizedBox(height: 12),
         buildContactCard(
           icon: Icons.location_on_outlined,
           label: 'Default Address',
-          value: '123 Main Street',
+          value: _address,
         ),
       ],
     );
@@ -183,34 +264,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
             );
           },
         ),
-        const SizedBox(height: 12),
-        buildSettingItem(
-          icon: Icons.tune_outlined,
-          title: 'Preferences',
-          subtitle: 'App settings & defaults',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Preferences settings coming soon'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        buildSettingItem(
-          icon: Icons.help_outline,
-          title: 'Help & Support',
-          subtitle: 'FAQs and contact us',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Help & Support coming soon'),
-                duration: Duration(seconds: 1),
-              ),
-            );
-          },
-        ),
       ],
     );
   }
@@ -230,13 +283,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.grey200, width: 1.2),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowSm,
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
         ),
         child: Row(
           children: [
@@ -260,7 +306,6 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.grey600,
-                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],

@@ -28,7 +28,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
                 children: [
                   const SizedBox(height: 12),
                   buildMenuItems(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),

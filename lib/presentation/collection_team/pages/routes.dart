@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -123,9 +121,10 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
         );
       }
 
-      final existing = routes.where((r) => r.id == routeId).firstOrNull;
-      final previousProgress = existing?.progress ?? 0;
-      final clampedProgress = previousProgress.clamp(0, session.totalStops);
+      final collected = provider.getCollectedCount(routeId);
+      final skipped = provider.getSkippedCount(routeId);
+      final resolved = collected + skipped;
+      final isComplete = session.totalStops > 0 && resolved >= session.totalStops;
 
       nextRoutes.add(
         RouteData(
@@ -134,11 +133,9 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
           bins: session.totalStops,
           distance: 0,
           duration: session.estimatedMinutes,
-          progress: clampedProgress,
+          progress: resolved,
           totalBins: session.totalStops,
-          status: clampedProgress >= session.totalStops
-              ? RouteStatus.completed
-              : RouteStatus.pending,
+          status: isComplete ? RouteStatus.completed : RouteStatus.pending,
         ),
       );
       nextBinsByRoute[routeId] = bins;
@@ -215,7 +212,12 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                         'Completed Today (${completedRoutes.length})',
                       ),
                       const SizedBox(height: 12),
-                      ...completedRoutes.map((route) => _buildRouteCard(route)),
+                      ...completedRoutes.map(
+                        (route) => _buildCompletedRouteSummary(
+                          route,
+                          routeProvider,
+                        ),
+                      ),
                     ],
                     if (pastSessions.isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -224,12 +226,17 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
                       ),
                       const SizedBox(height: 12),
                       ...pastSessions.map(
-                        (session) =>
-                            _buildPastRouteCard(session, routeProvider),
+                        (session) => _buildRouteSummaryCard(
+                          session: session,
+                          provider: routeProvider,
+                          badgeLabel: 'TRACKING RECORD',
+                          badgeColor: AppColors.grey100,
+                          badgeTextColor: AppColors.grey700,
+                        ),
                       ),
                     ],
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
@@ -513,165 +520,149 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  Widget _buildPastRouteCard(RouteSessionView session, RouteProvider provider) {
-    final assignedDate = _formatAssignedDate(session.generatedAt);
+  Widget _buildCompletedRouteSummary(
+    RouteData route,
+    RouteProvider provider,
+  ) {
+    RouteSessionView? session;
+    for (final item in provider.routeHistory) {
+      if (item.sessionId == route.id) {
+        session = item;
+        break;
+      }
+    }
+
+    if (session != null) {
+      final assignedBins = session.totalStops;
+      final collectedBins = provider.getCollectedCount(session.sessionId);
+      final dateLabel = _formatAssignedDateShort(session.generatedAt);
+      final durationLabel = session.estimatedMinutes > 0
+          ? '${session.estimatedMinutes}m'
+          : _buildCompletedDurationLabel(
+              session: session,
+              provider: provider,
+            );
+
+      return _buildCompactRouteSummary(
+        title: session.title,
+        badgeLabel: 'COMPLETED',
+        badgeColor: AppColors.emeraldLight,
+        badgeTextColor: AppColors.green700,
+        dateLabel: dateLabel,
+        collectedBins: collectedBins,
+        assignedBins: assignedBins,
+        durationLabel: durationLabel,
+      );
+    }
+
+    final durationLabel = route.duration > 0 ? '${route.duration}m' : '--';
+    return _buildCompactRouteSummary(
+      title: route.name,
+      badgeLabel: 'COMPLETED',
+      badgeColor: AppColors.emeraldLight,
+      badgeTextColor: AppColors.green700,
+      dateLabel: 'Today',
+      collectedBins: route.progress,
+      assignedBins: route.totalBins,
+      durationLabel: durationLabel,
+    );
+  }
+
+  Widget _buildRouteSummaryCard({
+    required RouteSessionView session,
+    required RouteProvider provider,
+    required String badgeLabel,
+    required Color badgeColor,
+    required Color badgeTextColor,
+  }) {
     final assignedBins = session.totalStops;
     final collectedBins = provider.getCollectedCount(session.sessionId);
-    final completedDurationLabel = _buildCompletedDurationLabel(
-      session: session,
-      provider: provider,
-    );
-    final distanceLabel = _formatDistanceKm(_calculateRouteDistanceKm(session));
+    final dateLabel = _formatAssignedDateShort(session.generatedAt);
+    final durationLabel = session.estimatedMinutes > 0
+        ? '${session.estimatedMinutes}m'
+        : _buildCompletedDurationLabel(session: session, provider: provider);
 
+    return _buildCompactRouteSummary(
+      title: session.title,
+      badgeLabel: badgeLabel,
+      badgeColor: badgeColor,
+      badgeTextColor: badgeTextColor,
+      dateLabel: dateLabel,
+      collectedBins: collectedBins,
+      assignedBins: assignedBins,
+      durationLabel: durationLabel,
+    );
+  }
+
+  Widget _buildCompactRouteSummary({
+    required String title,
+    required String badgeLabel,
+    required Color badgeColor,
+    required Color badgeTextColor,
+    required String dateLabel,
+    required int collectedBins,
+    required int assignedBins,
+    required String durationLabel,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.grey200),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey100,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          'TRACKING RECORD',
-                          style: TextStyle(
-                            color: AppColors.grey700,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        session.title,
-                        style: const TextStyle(
-                          color: AppColors.grey900,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Assigned on $assignedDate',
-                        style: const TextStyle(
-                          color: AppColors.grey600,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badgeLabel,
+                    style: TextStyle(
+                      color: badgeTextColor,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  session.sessionId,
-                  style: const TextStyle(
-                    color: AppColors.grey500,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.end,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
+                const SizedBox(width: 6),
                 Expanded(
-                  child: _buildHistoryMetric(
-                    value: '$assignedBins',
-                    label: 'Assigned Bins',
-                    color: AppColors.blue600,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildHistoryMetric(
-                    value: '$collectedBins',
-                    label: 'Collected Bins',
-                    color: AppColors.green700,
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.grey900,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildHistoryMetric(
-                    value: completedDurationLabel,
-                    label: 'Minutes Taken',
-                    color: AppColors.orange500,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildHistoryMetric(
-                    value: distanceLabel,
-                    label: 'Distance Covered',
-                    color: AppColors.purple600,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              '$dateLabel · $collectedBins/$assignedBins bins · $durationLabel',
+              style: const TextStyle(
+                color: AppColors.grey600,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildHistoryMetric({
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.grey600,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -715,15 +706,17 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
 
     final collected = provider.getCollectedCount(route.id);
-    final status = bins.isNotEmpty && collected >= bins.length
-        ? RouteStatus.completed
-        : RouteStatus.highPriority;
+    final skipped = provider.getSkippedCount(route.id);
+    final resolved = collected + skipped;
+    final isComplete =
+        bins.isNotEmpty &&
+        (resolved >= bins.length || provider.isRouteCompleted(route.id));
 
     return route.copyWith(
-      progress: collected,
+      progress: resolved,
       totalBins: bins.length,
       bins: bins.length,
-      status: status,
+      status: isComplete ? RouteStatus.completed : RouteStatus.pending,
     );
   }
 
@@ -735,7 +728,9 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     if (bins.isEmpty) {
       return false;
     }
-    return provider.getCollectedCount(route.id) >= bins.length ||
+    final collected = provider.getCollectedCount(route.id);
+    final skipped = provider.getSkippedCount(route.id);
+    return (collected + skipped) >= bins.length ||
         provider.isRouteCompleted(route.id);
   }
 
@@ -766,7 +761,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     );
   }
 
-  String _formatAssignedDate(DateTime dateTime) {
+  String _formatAssignedDateShort(DateTime dateTime) {
     const months = [
       'Jan',
       'Feb',
@@ -781,9 +776,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       'Nov',
       'Dec',
     ];
-    final month = months[dateTime.month - 1];
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    return '$month ${dateTime.day}, ${dateTime.year} ${dateTime.hour}:$minute';
+    return '${months[dateTime.month - 1]} ${dateTime.day}';
   }
 
   String _buildCompletedDurationLabel({
@@ -817,53 +810,6 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
     return '--';
   }
-
-  String _formatDistanceKm(double distanceKm) {
-    if (distanceKm <= 0) {
-      return '--';
-    }
-    return '${distanceKm.toStringAsFixed(1)} km';
-  }
-
-  double _calculateRouteDistanceKm(RouteSessionView session) {
-    if (session.stops.length < 2) {
-      return 0;
-    }
-
-    double totalMeters = 0;
-    for (var index = 1; index < session.stops.length; index++) {
-      final previous = session.stops[index - 1];
-      final current = session.stops[index];
-      totalMeters += _haversineMeters(
-        previous.lat,
-        previous.lng,
-        current.lat,
-        current.lng,
-      );
-    }
-
-    return totalMeters / 1000;
-  }
-
-  double _haversineMeters(
-    double startLat,
-    double startLng,
-    double endLat,
-    double endLng,
-  ) {
-    const earthRadiusMeters = 6371000.0;
-    final latDistance = _toRadians(endLat - startLat);
-    final lngDistance = _toRadians(endLng - startLng);
-    final a =
-        (sin(latDistance / 2) * sin(latDistance / 2)) +
-        cos(_toRadians(startLat)) *
-            cos(_toRadians(endLat)) *
-            (sin(lngDistance / 2) * sin(lngDistance / 2));
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadiusMeters * c;
-  }
-
-  double _toRadians(double degrees) => degrees * pi / 180.0;
 
   List<BinCollectionStatus> _buildDisplayStatuses(
     RouteData route,

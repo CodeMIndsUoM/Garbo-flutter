@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -169,7 +170,9 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
         break;
       case 'APPROVED':
         title = 'Application Approved';
-        message = 'Your registration has been approved! You can now set your password and log in.';
+        message =
+            'Your registration has been approved. Check your email for your login credentials. '
+            'Sign in with the temporary password — you will be asked to change it on first login.';
         cardColor = AppColors.green700;
         break;
       case 'REJECTED':
@@ -251,8 +254,10 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
     if (status.toUpperCase() == 'APPROVED') {
       return ElevatedButton(
         onPressed: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.login,
+            (route) => false,
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.green700,
@@ -262,7 +267,7 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
           ),
         ),
         child: const Text(
-          'Back to Login',
+          'Go to Login',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,

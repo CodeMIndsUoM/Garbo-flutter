@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -9,16 +10,83 @@ class Register extends StatefulWidget {
 }
 
 class _CitizenRegisterState extends State<Register> {
+  final ApiService _apiService = ApiService();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _userType = 'Citizen'; // 'Citizen' or 'Collector'
+  String _userType = 'Citizen';
+  List<String> _councils = [];
+  String? _selectedCouncil;
+  bool _loadingCouncils = true;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCouncils();
+  }
+
+  Future<void> _loadCouncils() async {
+    try {
+      final councils = await _apiService.fetchCouncils();
+      if (mounted) {
+        setState(() {
+          _councils = councils;
+          _loadingCouncils = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingCouncils = false);
+    }
+  }
+
+  Future<void> _submitRegistration() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+    if (_selectedCouncil == null || _selectedCouncil!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select your council')),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await _apiService.registerCitizen(
+        fullName: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        password: _passwordController.text,
+        council: _selectedCouncil!,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully! Please log in.'),
+          backgroundColor: AppColors.green700,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
   
   @override
   void dispose() {
@@ -291,6 +359,24 @@ class _CitizenRegisterState extends State<Register> {
               ),
               const SizedBox(height: 20),
 
+              // Council dropdown
+              if (_loadingCouncils)
+                const Center(child: CircularProgressIndicator())
+              else
+                DropdownButtonFormField<String>(
+                  value: _selectedCouncil,
+                  decoration: InputDecoration(
+                    labelText: 'Council *',
+                    prefixIcon: Icon(Icons.location_city_outlined, color: Colors.grey[400]),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: _councils
+                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedCouncil = v),
+                ),
+              const SizedBox(height: 20),
+
               // Password field
               TextField(
                 controller: _passwordController,
@@ -370,18 +456,7 @@ class _CitizenRegisterState extends State<Register> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Handle registration logic here
-                    if (_passwordController.text == _confirmPasswordController.text) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Account created successfully!')),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Passwords do not match')),
-                      );
-                    }
-                  },
+                  onPressed: _submitting ? null : _submitRegistration,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.green700,
                     foregroundColor: Colors.white,
@@ -390,9 +465,9 @@ class _CitizenRegisterState extends State<Register> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Create Account',
-                    style: TextStyle(
+                  child: Text(
+                    _submitting ? 'Creating Account...' : 'Create Account',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),

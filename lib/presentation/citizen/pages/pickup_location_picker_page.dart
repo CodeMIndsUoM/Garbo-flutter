@@ -3,7 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:garbo_swms/core/map/silent_network_tile_provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:latlong2/latlong.dart';
 
 class PickupLocationPickerPage extends StatefulWidget {
@@ -35,31 +35,12 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
   Future<void> _useCurrentLocation() async {
     setState(() => _resolvingCurrentLocation = true);
     try {
-      final enabled = await Geolocator.isLocationServiceEnabled();
-      if (!enabled) {
-        _showSnackBar('Location services are turned off.');
-        return;
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _showSnackBar(
-          'Location permission is required to use current location.',
-        );
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+      final position = await LocationHelper.getCurrentPositionOrNull(
+        onError: _showSnackBar,
       );
-      final location = LatLng(position.latitude, position.longitude);
+      if (position == null || !mounted) return;
 
-      if (!mounted) return;
+      final location = LatLng(position.latitude, position.longitude);
       setState(() => _selectedLocation = location);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

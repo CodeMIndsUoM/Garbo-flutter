@@ -237,6 +237,14 @@ class _ThirdPartyEditProfilePageState
               'Tap the camera icon to change photo',
               style: AppTypography.bodySm.copyWith(color: AppColors.grey500),
             ),
+            if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty)
+              TextButton(
+                onPressed: _uploadingPhoto ? null : _onRemoveAvatar,
+                child: const Text(
+                  'Remove Photo',
+                  style: TextStyle(color: AppColors.red500),
+                ),
+              ),
           ],
         ),
       ),
@@ -595,6 +603,31 @@ class _ThirdPartyEditProfilePageState
         _uploadingPhoto = false;
       });
       _showSnack('Failed to upload photo. Please try again.', success: false);
+    }
+  }
+
+  Future<void> _onRemoveAvatar() async {
+    setState(() => _uploadingPhoto = true);
+    try {
+      final ok = await _apiService.removeThirdPartyProfilePicture(_userId);
+      if (!mounted) return;
+      setState(() {
+        _uploadingPhoto = false;
+        if (ok) {
+          _currentAvatarUrl = null;
+          _pickedImageFile = null;
+        }
+      });
+      if (ok) {
+        _showSnack('Photo removed', success: true);
+      } else {
+        _showSnack('Failed to remove photo', success: false);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
+        _showSnack('Failed to remove photo', success: false);
+      }
     }
   }
 

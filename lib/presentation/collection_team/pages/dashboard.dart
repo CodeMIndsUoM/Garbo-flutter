@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/gamification_task_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/profile.dart';
 import 'package:garbo_swms/presentation/collection_team/pages/routes.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
@@ -79,7 +80,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     final currentUserId = authProvider.currentUser?.empId;
     final userEntry = currentUserId == null
         ? null
-        : leaderboardProvider.getUserRank(currentUserId);
+        : leaderboardProvider.userRankEntry;
 
     final points = userEntry?.rewardPoints ?? 0.0;
     final level = _resolveLevel(points);
@@ -114,7 +115,7 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
                   buildTodaysRoutes(routeProvider),
                   const SizedBox(height: 24),
                   buildRecentAchievements(gamificationProvider),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
@@ -132,8 +133,17 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
     required double levelProgress,
   }) {
     final rankText = userEntry?.rank != null ? '#${userEntry!.rank}' : '--';
- 
-    return Container(
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+          );
+        },
+        child: Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -238,7 +248,21 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
               ),
             ),
           ),
+          const SizedBox(height: 4),
+          const Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'Tap to view leaderboard',
+              style: TextStyle(
+                color: AppColors.green700,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
+      ),
+        ),
       ),
     );
   }

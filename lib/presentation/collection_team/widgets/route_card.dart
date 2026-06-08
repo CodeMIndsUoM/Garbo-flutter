@@ -140,7 +140,6 @@ class _HeaderRow extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _StatusBadge(status: route.status),
-                  _RouteBadge(routeId: route.id),
                 ],
               ),
               const SizedBox(height: 8),
@@ -214,44 +213,33 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // if (status == RouteStatus.highPriority) {
-    //   return const HighPriorityBadge();
-    // }
+    final label = switch (status) {
+      RouteStatus.completed => 'COMPLETED',
+      RouteStatus.highPriority => 'HIGH PRIORITY',
+      RouteStatus.pending => 'PENDING',
+    };
+    final background = switch (status) {
+      RouteStatus.completed => DesignTokens.emeraldLight,
+      RouteStatus.highPriority => DesignTokens.red100,
+      RouteStatus.pending => DesignTokens.grey200,
+    };
+    final foreground = switch (status) {
+      RouteStatus.completed => DesignTokens.green700,
+      RouteStatus.highPriority => DesignTokens.red500,
+      RouteStatus.pending => DesignTokens.grey700,
+    };
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: DesignTokens.grey200,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: const Text(
-        'PENDING',
-        style: TextStyle(
-          color: DesignTokens.grey700,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
-
-class _RouteBadge extends StatelessWidget {
-  final String routeId;
-  const _RouteBadge({required this.routeId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: DesignTokens.grey100,
+        color: background,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        routeId,
-        style: const TextStyle(
-          color: DesignTokens.grey600,
-          fontSize: 12,
+        label,
+        style: TextStyle(
+          color: foreground,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),

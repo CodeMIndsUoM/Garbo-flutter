@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
@@ -15,8 +15,11 @@ import 'package:garbo_swms/presentation/citizen/pages/request/widgets/request_fo
 import 'package:garbo_swms/presentation/citizen/pages/request/widgets/request_offers_sheet.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/widgets/requests_filter_bar.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/widgets/requests_list.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
+import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 
 class CitizenRequestPage extends StatefulWidget {
   const CitizenRequestPage({super.key});
@@ -46,8 +49,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   String? _requestPhotoPath;
   List<CollectionRequestModel> _requests = const [];
   Timer? _pollTimer;
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? _marketplaceSub;
   bool _backgroundRefreshInFlight = false;
-  static const Duration _pollInterval = Duration(seconds: 15);
+  static const Duration _pollInterval = Duration(seconds: 60);
 
   String _statusFilter = 'ALL';
   String _wasteTypeFilter = 'ALL';
@@ -62,6 +66,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     WidgetsBinding.instance.addObserver(this);
     _bootstrap();
     _startPolling();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _attachMarketplaceListener());
   }
 
   @override
@@ -78,6 +83,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   @override
   void dispose() {
     _stopPolling();
+    _marketplaceSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _addressController.dispose();
     _phoneController.dispose();
@@ -96,6 +102,15 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   void _stopPolling() {
     _pollTimer?.cancel();
     _pollTimer = null;
+  }
+
+  void _attachMarketplaceListener() {
+    if (!mounted) return;
+    _marketplaceSub?.cancel();
+    _marketplaceSub = MarketplaceRealtimeListener.attach(
+      context.read<WebSocketProvider>(),
+      _refreshSilently,
+    );
   }
 
   Future<void> _refreshSilently() async {
@@ -167,10 +182,19 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     try {
       String? requestPhotoUrl;
       if (_requestPhotoPath != null) {
-        requestPhotoUrl = await _apiService.uploadCitizenRequestPhoto(
-          citizenId: citizenId,
-          photoPath: _requestPhotoPath!,
-        );
+        try {
+          requestPhotoUrl = await _apiService.uploadCitizenRequestPhoto(
+            citizenId: citizenId,
+            photoPath: _requestPhotoPath!,
+          );
+        } catch (_) {
+          if (mounted) {
+            _showSnackBar(
+              'Photo upload failed; submitting request without photo.',
+              isError: false,
+            );
+          }
+        }
       }
 
       await _apiService.createCollectionRequest(
@@ -398,7 +422,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : AppColors.emerald600,
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -437,7 +461,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           const CitizenHeader(name: 'Requests'),
@@ -445,7 +469,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
             child: RefreshIndicator(
               onRefresh: _loadRequests,
               child: ListView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 140),
                 children: [
                   const SizedBox(height: 12),
                   RequestActionButtons(

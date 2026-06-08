@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/utils/location_helper.dart';
+import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CitizenReportPage extends StatefulWidget {
   const CitizenReportPage({super.key});
@@ -11,92 +17,299 @@ class CitizenReportPage extends StatefulWidget {
 }
 
 class CitizenReportPageState extends State<CitizenReportPage> {
+  final ApiService _apiService = ApiService();
+  final _descriptionController = TextEditingController();
+  final _picker = ImagePicker();
+
   int currentStep = 1;
   String? selectedIssueType;
   String? selectedUrgency;
   String? selectedWasteType;
   bool showMyReports = false;
+  bool _submitting = false;
+  bool _loadingReports = false;
+  bool _gettingLocation = false;
+  Position? _location;
+  File? _photoFile;
+  List<Map<String, dynamic>> _reports = [];
+
+  static const _issueTypes = [
+    'Overflowing Bin',
+    'Illegal Dumping',
+    'Missed Collection',
+    'Damaged Bin',
+    'Other',
+  ];
+  static const _urgencyLevels = ['Low', 'Normal', 'High', 'Critical'];
+  static const _wasteTypes = [
+    'General Waste',
+    'Recyclables',
+    'Organic',
+    'Hazardous',
+    'Mixed',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReports();
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReports() async {
+    setState(() => _loadingReports = true);
+    try {
+      final reports = await _apiService.getMyComplaints();
+      if (mounted) setState(() => _reports = reports);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load reports')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loadingReports = false);
+    }
+  }
+
+  Future<void> _captureLocation() async {
+    setState(() => _gettingLocation = true);
+    final position = await LocationHelper.getCurrentPositionOrNull(
+      onError: (msg) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        }
+      },
+    );
+    if (mounted) {
+      setState(() {
+        _location = position;
+        _gettingLocation = false;
+      });
+    }
+  }
+
+  Future<void> _pickPhoto() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1200,
+      imageQuality: 85,
+    );
+    if (picked != null && mounted) {
+      setState(() => _photoFile = File(picked.path));
+    }
+  }
+
+  Future<void> _submitReport() async {
+    if (selectedIssueType == null || selectedUrgency == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete all required fields')),
+      );
+      return;
+    }
+    if (_location == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location is required. Enable location services.')),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      String? imageUrl;
+      if (_photoFile != null) {
+        imageUrl = await _apiService.uploadComplaintImage(_photoFile!);
+      }
+
+      await _apiService.createComplaint({
+        'title': selectedIssueType,
+        'issueType': selectedIssueType,
+        'urgency': selectedUrgency,
+        'wasteType': selectedWasteType,
+        'description': _descriptionController.text.trim().isEmpty
+            ? 'Report submitted via mobile app'
+            : _descriptionController.text.trim(),
+        'location':
+            '${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}',
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report submitted successfully')),
+      );
+      setState(() {
+        currentStep = 1;
+        selectedIssueType = null;
+        selectedUrgency = null;
+        selectedWasteType = null;
+        _descriptionController.clear();
+        _photoFile = null;
+        _location = null;
+        showMyReports = true;
+      });
+      await _loadReports();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to submit report')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
-          CitizenHeader(name: 'Reports'),
+          const CitizenHeader(name: 'Reports'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
-                  buildActionButtons(),
+                  buildActionButtons(theme),
                   const SizedBox(height: 20),
-                  showMyReports ? buildReportsList() : buildReportForm(),
+                  showMyReports ? buildReportsList(theme) : buildReportForm(theme),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: const CitizenBottomNavbar(
-        currentIndex: 1,
-      ),
+      bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 1),
     );
   }
 
-  Widget buildActionButtons() {
-    return Row(
+  Widget buildActionButtons(ThemeData theme) {
+    return SegmentedButton<bool>(
+      segments: const [
+        ButtonSegment(value: false, label: Text('New Report'), icon: Icon(Icons.note_add_outlined)),
+        ButtonSegment(value: true, label: Text('My Reports'), icon: Icon(Icons.list_alt_rounded)),
+      ],
+      selected: {showMyReports},
+      onSelectionChanged: (selection) {
+        final next = selection.first;
+        setState(() => showMyReports = next);
+        if (next) _loadReports();
+      },
+    );
+  }
+
+  Widget buildReportForm(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              setState(() => showMyReports = false);
-            },
-            icon: const Icon(Icons.note_add_outlined, size: 18),
-            label: const Text(
-              'New Report',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: !showMyReports ? AppColors.emerald600 : Colors.white,
-              foregroundColor: !showMyReports ? Colors.white : AppColors.emerald600,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              side: showMyReports ? const BorderSide(color: AppColors.emerald600, width: 1.5) : BorderSide.none,
+        Text('Report Waste Issue', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Text('Step $currentStep of 3', style: theme.textTheme.bodySmall),
+        const SizedBox(height: 12),
+        LinearProgressIndicator(value: currentStep / 3),
+        const SizedBox(height: 24),
+        if (currentStep == 1) ...[
+          _buildDropdownField(
+            label: 'Issue Type',
+            options: _issueTypes,
+            value: selectedIssueType,
+            onChanged: (v) => setState(() => selectedIssueType = v),
+          ),
+          const SizedBox(height: 20),
+          _buildDropdownField(
+            label: 'Urgency',
+            options: _urgencyLevels,
+            value: selectedUrgency,
+            onChanged: (v) => setState(() => selectedUrgency = v),
+          ),
+          const SizedBox(height: 20),
+          _buildDropdownField(
+            label: 'Waste Type',
+            options: _wasteTypes,
+            value: selectedWasteType,
+            onChanged: (v) => setState(() => selectedWasteType = v),
+            optional: true,
+          ),
+        ] else if (currentStep == 2) ...[
+          TextField(
+            controller: _descriptionController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Description',
+              hintText: 'Describe the issue...',
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              setState(() => showMyReports = true);
-            },
-            icon: const Icon(Icons.list_alt_rounded, size: 18),
-            label: const Text(
-              'My Reports',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _pickPhoto,
+            icon: const Icon(Icons.photo_camera_outlined),
+            label: Text(_photoFile == null ? 'Add Photo (Optional)' : 'Photo Selected'),
+          ),
+        ] else ...[
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              _location != null ? Icons.location_on : Icons.location_off,
+              color: theme.colorScheme.primary,
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: showMyReports ? AppColors.emerald600 : Colors.white,
-              foregroundColor: showMyReports ? Colors.white : AppColors.emerald600,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              side: !showMyReports ? const BorderSide(color: AppColors.emerald600, width: 1.5) : BorderSide.none,
+            title: Text(
+              _location != null
+                  ? 'Location captured (${_location!.latitude.toStringAsFixed(4)}, ${_location!.longitude.toStringAsFixed(4)})'
+                  : 'Location required',
+            ),
+            subtitle: const Text('You must enable location services'),
+          ),
+          FilledButton.icon(
+            onPressed: _gettingLocation ? null : _captureLocation,
+            icon: _gettingLocation
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.onPrimary,
+                    ),
+                  )
+                : const Icon(Icons.my_location),
+            label: Text(_gettingLocation ? 'Getting location...' : 'Use Current Location'),
+          ),
+        ],
+        const SizedBox(height: 32),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: _submitting
+                ? null
+                : () {
+                    if (currentStep < 3) {
+                      if (currentStep == 1 &&
+                          (selectedIssueType == null || selectedUrgency == null)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please select issue type and urgency')),
+                        );
+                        return;
+                      }
+                      setState(() => currentStep++);
+                    } else {
+                      _submitReport();
+                    }
+                  },
+            child: Text(
+              currentStep < 3
+                  ? 'Next'
+                  : (_submitting ? 'Submitting...' : 'Submit Report'),
             ),
           ),
         ),
@@ -104,313 +317,99 @@ class CitizenReportPageState extends State<CitizenReportPage> {
     );
   }
 
-  Widget buildReportForm() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-          ),
-        ],
+  Widget _buildDropdownField({
+    required String label,
+    required List<String> options,
+    required String? value,
+    required ValueChanged<String?> onChanged,
+    bool optional = false,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: optional ? '$label (Optional)' : label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      hint: Text('Select $label'),
+      isExpanded: true,
+      items: [
+        if (optional)
+          const DropdownMenuItem<String>(
+            value: null,
+            child: Text('None'),
+          ),
+        ...options.map(
+          (option) => DropdownMenuItem<String>(
+            value: option,
+            child: Text(option),
+          ),
+        ),
+      ],
+      onChanged: onChanged,
+    );
+  }
+
+  Widget buildReportsList(ThemeData theme) {
+    if (_loadingReports) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_reports.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: Text('No reports yet')),
+      );
+    }
+
+    return Column(
+      children: _reports.map((report) {
+        final title = (report['title'] ?? report['issueType'] ?? 'Report').toString();
+        final location = (report['location'] ?? '-').toString();
+        final status = (report['status'] ?? 'PENDING').toString();
+        final createdAt = (report['createdAt'] ?? '').toString();
+
+        return CitizenSurfaceCard(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Report Waste Issue',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.grey900,
+              Icon(Icons.report_outlined, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 4),
+                    Text(location, style: theme.textTheme.bodySmall),
+                    if (createdAt.isNotEmpty)
+                      Text(
+                        createdAt.split('T').first,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                  ],
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                },
-                child: const Text(
-                  'Issue Details',
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.emerald600,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Step $currentStep of 3',
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.grey600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: currentStep / 3,
-              backgroundColor: AppColors.grey200,
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.emerald600,
-              ),
-              minHeight: 6,
-            ),
-          ),
-          const SizedBox(height: 28),
-          buildFormField(
-            label: "What's the issue?",
-            hint: 'Select issue type',
-            value: selectedIssueType,
-            onChanged: (value) => setState(() => selectedIssueType = value),
-          ),
-          const SizedBox(height: 20),
-          buildFormField(
-            label: 'How urgent is this?',
-            hint: 'Select urgency',
-            value: selectedUrgency,
-            onChanged: (value) => setState(() => selectedUrgency = value),
-          ),
-          const SizedBox(height: 20),
-          buildFormField(
-            label: 'Waste Type (Optional)',
-            hint: 'Select waste type',
-            value: selectedWasteType,
-            onChanged: (value) => setState(() => selectedWasteType = value),
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                if (currentStep < 3) {
-                  setState(() => currentStep++);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.emerald600,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Next',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, size: 18),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildFormField({
-    required String label,
-    required String hint,
-    required String? value,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.grey700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: value,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(
-              fontSize: 14,
-              color: AppColors.grey400,
-            ),
-            filled: true,
-            fillColor: AppColors.grey50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.emerald700, width: 1.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 14,
-            ),
-          ),
-          items: const [], 
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-
-  Widget buildReportsList() {
-    final reports = [
-      {
-        'icon': Icons.info_rounded,
-        'title': 'Overflowing Bin',
-        'location': 'Main Street',
-        'date': '2025-11-15',
-        'status': 'in-progress',
-        'statusColor': AppColors.blue200,
-        'statusTextColor': AppColors.blue600,
-        'iconBackgroundColor': AppColors.blue50,
-        'iconColor': AppColors.blue600,
-      },
-      {
-        'icon': Icons.warning_rounded,
-        'title': 'Illegal Dumping',
-        'location': 'Park Avenue',
-        'date': '2025-11-16',
-        'status': 'pending',
-        'statusColor': AppColors.orange50,
-        'statusTextColor': AppColors.orange600,
-        'iconBackgroundColor': AppColors.orange50,
-        'iconColor': AppColors.orange600,
-      },
-      {
-        'icon': Icons.check_circle_rounded,
-        'title': 'Missed Collection',
-        'location': 'Oak Road',
-        'date': '2025-11-10',
-        'status': 'resolved',
-        'statusColor': AppColors.emerald200,
-        'statusTextColor': AppColors.emerald900,
-        'iconBackgroundColor': AppColors.emerald50,
-        'iconColor': AppColors.emerald600,
-      },
-    ];
-
-    return Column(
-      children: reports.map((report) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  offset: const Offset(0, 1),
-                  blurRadius: 6,
-                  spreadRadius: -1,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: report['iconBackgroundColor'] as Color,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    report['icon'] as IconData,
-                    color: report['iconColor'] as Color,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        report['title'] as String,
-                        style: const TextStyle(
-                          color: AppColors.grey900,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_rounded,
-                              size: 14, color: AppColors.grey600),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              report['location'] as String,
-                              style: const TextStyle(
-                                color: AppColors.grey600,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        report['date'] as String,
-                        style: const TextStyle(
-                          color: AppColors.grey500,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: report['statusColor'] as Color,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    report['status'] as String,
-                    style: TextStyle(
-                      color: report['statusTextColor'] as Color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         );
       }).toList(),

@@ -6,6 +6,10 @@ import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
+import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
+import 'package:provider/provider.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs/utils/my_jobs_helpers.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs/widgets/job_cards.dart';
@@ -42,6 +46,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   List<CollectionOfferModel> _offers = const [];
   List<CollectionOfferModel> _activeJobs = const [];
   final Map<int, CollectionRequestModel> _requestById = {};
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? _marketplaceSub;
 
   static const _offerTabs = [
     (OfferStatus.pending, 'Awaiting'),
@@ -60,11 +65,22 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       }
     });
     _bootstrap();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _attachMarketplaceListener());
+  }
+
+  void _attachMarketplaceListener() {
+    if (!mounted) return;
+    _marketplaceSub?.cancel();
+    _marketplaceSub = MarketplaceRealtimeListener.attach(
+      context.read<WebSocketProvider>(),
+      _loadData,
+    );
   }
 
   @override
   void dispose() {
     _timeTicker?.cancel();
+    _marketplaceSub?.cancel();
     super.dispose();
   }
 
