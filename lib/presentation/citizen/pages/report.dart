@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_segmented_tabs.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
+import 'package:garbo_swms/presentation/citizen/pages/report/report_status_helpers.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_dropdown_field.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -176,17 +180,11 @@ class CitizenReportPageState extends State<CitizenReportPage> {
         children: [
           const CitizenHeader(name: 'Reports'),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
-                  buildActionButtons(theme),
-                  const SizedBox(height: 20),
-                  showMyReports ? buildReportsList(theme) : buildReportForm(theme),
-                  const SizedBox(height: 140),
-                ],
-              ),
+            child: CitizenStickyTabLayout(
+              tabBar: buildActionButtons(theme),
+              onRefresh: _loadReports,
+              isLoading: _loadingReports && _reports.isEmpty && showMyReports,
+              child: showMyReports ? buildReportsList(theme) : buildReportForm(theme),
             ),
           ),
         ],
@@ -196,10 +194,18 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   }
 
   Widget buildActionButtons(ThemeData theme) {
-    return SegmentedButton<bool>(
+    return CitizenSegmentedTabs<bool>(
       segments: const [
-        ButtonSegment(value: false, label: Text('New Report'), icon: Icon(Icons.note_add_outlined)),
-        ButtonSegment(value: true, label: Text('My Reports'), icon: Icon(Icons.list_alt_rounded)),
+        ButtonSegment(
+          value: false,
+          label: Text('New Report'),
+          icon: Icon(Icons.note_add_outlined, size: CitizenSegmentedTabs.iconSize),
+        ),
+        ButtonSegment(
+          value: true,
+          label: Text('My Reports'),
+          icon: Icon(Icons.list_alt_rounded, size: CitizenSegmentedTabs.iconSize),
+        ),
       ],
       selected: {showMyReports},
       onSelectionChanged: (selection) {
@@ -324,29 +330,12 @@ class CitizenReportPageState extends State<CitizenReportPage> {
     required ValueChanged<String?> onChanged,
     bool optional = false,
   }) {
-    return DropdownButtonFormField<String>(
+    return CitizenDropdownField(
+      label: label,
+      options: options,
       value: value,
-      decoration: InputDecoration(
-        labelText: optional ? '$label (Optional)' : label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      hint: Text('Select $label'),
-      isExpanded: true,
-      items: [
-        if (optional)
-          const DropdownMenuItem<String>(
-            value: null,
-            child: Text('None'),
-          ),
-        ...options.map(
-          (option) => DropdownMenuItem<String>(
-            value: option,
-            child: Text(option),
-          ),
-        ),
-      ],
       onChanged: onChanged,
+      optional: optional,
     );
   }
 
@@ -370,6 +359,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
         final location = (report['location'] ?? '-').toString();
         final status = (report['status'] ?? 'PENDING').toString();
         final createdAt = (report['createdAt'] ?? '').toString();
+        final statusColors = complaintStatusStyle(status);
 
         return CitizenSurfaceCard(
           margin: const EdgeInsets.only(bottom: 12),
@@ -377,7 +367,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.report_outlined, color: theme.colorScheme.primary),
+              Icon(Icons.report_outlined, color: statusColors.iconColor),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -397,7 +387,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  color: statusColors.tagBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -405,7 +395,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary,
+                    color: statusColors.tagText,
                   ),
                 ),
               ),

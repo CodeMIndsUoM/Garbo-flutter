@@ -5,6 +5,7 @@ class CollectionRequestModel {
   final int citizenId;
   final String citizenName;
   final String wasteType;
+  final List<String> wasteTypes;
   final String quantityLabel;
   final double? quantityKgEstimate;
   final String addressLine;
@@ -19,12 +20,15 @@ class CollectionRequestModel {
   final int? acceptedOfferId;
   final int offersCount;
   final List<CollectionOfferModel> offers;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const CollectionRequestModel({
     required this.id,
     required this.citizenId,
     required this.citizenName,
     required this.wasteType,
+    this.wasteTypes = const [],
     required this.quantityLabel,
     required this.quantityKgEstimate,
     required this.addressLine,
@@ -39,6 +43,8 @@ class CollectionRequestModel {
     required this.acceptedOfferId,
     required this.offersCount,
     this.offers = const [],
+    this.createdAt,
+    this.updatedAt,
   });
 
   CollectionRequestModel copyWith({
@@ -51,6 +57,7 @@ class CollectionRequestModel {
       citizenId: citizenId,
       citizenName: citizenName,
       wasteType: wasteType,
+      wasteTypes: wasteTypes,
       quantityLabel: quantityLabel,
       quantityKgEstimate: quantityKgEstimate,
       addressLine: addressLine,
@@ -65,6 +72,8 @@ class CollectionRequestModel {
       acceptedOfferId: acceptedOfferId ?? this.acceptedOfferId,
       offersCount: offersCount ?? this.offersCount,
       offers: offers,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     );
   }
 
@@ -74,6 +83,7 @@ class CollectionRequestModel {
       citizenId: (json['citizenId'] as num?)?.toInt() ?? 0,
       citizenName: (json['citizenName'] ?? '').toString(),
       wasteType: (json['wasteType'] ?? '').toString(),
+      wasteTypes: _parseWasteTypes(json),
       quantityLabel: (json['quantityLabel'] ?? '').toString(),
       quantityKgEstimate: (json['quantityKgEstimate'] as num?)?.toDouble(),
       addressLine: (json['addressLine'] ?? '').toString(),
@@ -87,7 +97,30 @@ class CollectionRequestModel {
       status: (json['status'] ?? '').toString(),
       acceptedOfferId: (json['acceptedOfferId'] as num?)?.toInt(),
       offersCount: (json['offersCount'] as num?)?.toInt() ?? 0,
+      createdAt: _parseInstant(json['createdAt']),
+      updatedAt: _parseInstant(json['updatedAt']),
     );
+  }
+
+  static List<String> _parseWasteTypes(Map<String, dynamic> json) {
+    final raw = json['wasteTypes'];
+    if (raw is List) {
+      return raw.map((item) => item.toString()).where((s) => s.isNotEmpty).toList();
+    }
+    final single = (json['wasteType'] ?? '').toString();
+    if (single.isEmpty) return const [];
+    return [single];
+  }
+
+  static DateTime? _parseInstant(dynamic raw) {
+    if (raw == null) return null;
+    final text = raw.toString().trim();
+    if (text.isEmpty) return null;
+    try {
+      return DateTime.parse(text).toLocal();
+    } catch (_) {
+      return null;
+    }
   }
 
   factory CollectionRequestModel.fromDetailJson(Map<String, dynamic> json) {
@@ -106,6 +139,7 @@ class CollectionRequestModel {
       citizenId: request.citizenId,
       citizenName: request.citizenName,
       wasteType: request.wasteType,
+      wasteTypes: request.wasteTypes,
       quantityLabel: request.quantityLabel,
       quantityKgEstimate: request.quantityKgEstimate,
       addressLine: request.addressLine,
@@ -120,6 +154,8 @@ class CollectionRequestModel {
       acceptedOfferId: request.acceptedOfferId,
       offersCount: offers.length,
       offers: offers,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
     );
   }
 }

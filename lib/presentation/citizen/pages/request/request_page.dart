@@ -7,6 +7,7 @@ import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_helpers.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/widgets/rate_offer_dialog.dart';
@@ -36,7 +37,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   final TextEditingController _notesController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
-  String? selectedWasteType;
+  Set<String> selectedWasteTypes = {};
   String? selectedQuantity;
   DateTime? selectedPickupDate;
   String? selectedTimeSlot;
@@ -197,10 +198,14 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
         }
       }
 
+      final mappedWasteTypes =
+          selectedWasteTypes.map(mapWasteType).toList(growable: false);
+
       await _apiService.createCollectionRequest(
         citizenId: citizenId,
         payload: {
-          'wasteType': mapWasteType(selectedWasteType!),
+          'wasteTypes': mappedWasteTypes,
+          'wasteType': mappedWasteTypes.first,
           'quantityLabel': selectedQuantity,
           'quantityKgEstimate': null,
           'addressLine': _addressController.text.trim(),
@@ -233,7 +238,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   }
 
   String? _validateForm() {
-    if (selectedWasteType == null) return 'Please select a waste type.';
+    if (selectedWasteTypes.isEmpty) {
+      return 'Please select at least one waste type.';
+    }
     if (selectedQuantity == null) return 'Please select an estimated quantity.';
     if (selectedPickupDate == null) return 'Please select a pickup date.';
     if (selectedTimeSlot == null) return 'Please select a time slot.';
@@ -251,7 +258,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
 
   void _resetForm() {
     setState(() {
-      selectedWasteType = null;
+      selectedWasteTypes = {};
       selectedQuantity = null;
       selectedPickupDate = null;
       selectedTimeSlot = null;
@@ -428,9 +435,16 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   }
 
   List<String> get _availableWasteTypesForFilter {
-    final types = _requests.map((r) => r.wasteType).toSet().toList();
-    types.sort();
-    return types;
+    final types = <String>{};
+    for (final request in _requests) {
+      if (request.wasteTypes.isNotEmpty) {
+        types.addAll(request.wasteTypes);
+      } else if (request.wasteType.isNotEmpty) {
+        types.add(request.wasteType);
+      }
+    }
+    final list = types.toList()..sort();
+    return list;
   }
 
   List<CollectionRequestModel> get _filteredRequests {
@@ -438,12 +452,14 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     return _requests
         .where((r) {
           if (_statusFilter != 'ALL' && r.status != _statusFilter) return false;
-          if (_wasteTypeFilter != 'ALL' && r.wasteType != _wasteTypeFilter) {
-            return false;
+          if (_wasteTypeFilter != 'ALL') {
+            final types =
+                r.wasteTypes.isNotEmpty ? r.wasteTypes : [r.wasteType];
+            if (!types.contains(_wasteTypeFilter)) return false;
           }
           if (query.isNotEmpty) {
             final haystack = [
-              r.wasteType,
+              wasteTypesLabel(r),
               r.addressLine,
               '#${r.id}',
               r.quantityLabel,
@@ -466,26 +482,22 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
         children: [
           const CitizenHeader(name: 'Requests'),
           Expanded(
-            child: RefreshIndicator(
+            child: CitizenStickyTabLayout(
+              tabBar: RequestActionButtons(
+                showMyRequests: showMyRequests,
+                onNewRequest: () {
+                  setState(() => showMyRequests = false);
+                },
+                onMyRequests: () async {
+                  setState(() => showMyRequests = true);
+                  await _loadRequests();
+                },
+              ),
               onRefresh: _loadRequests,
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 140),
-                children: [
-                  const SizedBox(height: 12),
-                  RequestActionButtons(
-                    showMyRequests: showMyRequests,
-                    onNewRequest: () {
-                      setState(() => showMyRequests = false);
-                    },
-                    onMyRequests: () async {
-                      setState(() => showMyRequests = true);
-                      await _loadRequests();
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  if (showMyRequests)
-                    RequestsList(
-                      loading: _loadingRequests,
+              isLoading: _loadingRequests && showMyRequests && _requests.isEmpty,
+              child: showMyRequests
+                  ? RequestsList(
+                      loading: false,
                       allRequests: _requests,
                       filteredRequests: _filteredRequests,
                       filterBar: RequestsFilterBar(
@@ -501,9 +513,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
                       ),
                       onRequestTap: _openRequestDetail,
                     )
-                  else
-                    RequestForm(
-                      selectedWasteType: selectedWasteType,
+                  : RequestForm(
+                      selectedWasteTypes: selectedWasteTypes,
                       selectedQuantity: selectedQuantity,
                       selectedPickupDate: selectedPickupDate,
                       selectedTimeSlot: selectedTimeSlot,
@@ -513,8 +524,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
                       addressController: _addressController,
                       phoneController: _phoneController,
                       notesController: _notesController,
-                      onWasteTypeChanged: (v) =>
-                          setState(() => selectedWasteType = v),
+                      onWasteTypesChanged: (values) =>
+                          setState(() => selectedWasteTypes = values),
                       onQuantityChanged: (v) =>
                           setState(() => selectedQuantity = v),
                       onPickupDateChanged: (v) =>
@@ -526,8 +537,6 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
                       onSubmit: _submitRequest,
                       showSnackBar: _showSnackBar,
                     ),
-                ],
-              ),
             ),
           ),
         ],

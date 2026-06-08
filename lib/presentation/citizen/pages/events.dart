@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_segmented_tabs.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
-import 'package:garbo_swms/presentation/shared/widgets/option_select_chips.dart';
+import 'package:latlong2/latlong.dart';
 
 enum _EventsView { browse, suggest, mySuggestions }
 
@@ -20,24 +24,16 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   final ApiService _apiService = ApiService();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
 
   List<Map<String, dynamic>> _events = [];
   List<Map<String, dynamic>> _myEvents = [];
   bool _loading = true;
   bool _submitting = false;
+  bool _resolvingLocation = false;
   _EventsView _view = _EventsView.browse;
-  String? _selectedCategory;
   DateTime? _selectedDate;
+  LatLng? _suggestLocation;
   final Set<int> _enrollingIds = {};
-
-  static const _categories = [
-    'Cleanup',
-    'Recycling',
-    'Education',
-    'Community',
-    'Other',
-  ];
 
   @override
   void initState() {
@@ -49,8 +45,13 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
     super.dispose();
+  }
+
+  String? get _locationLabel {
+    if (_suggestLocation == null) return null;
+    return '${_suggestLocation!.latitude.toStringAsFixed(5)}, '
+        '${_suggestLocation!.longitude.toStringAsFixed(5)}';
   }
 
   Future<void> _loadEvents() async {
@@ -100,9 +101,8 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
 
   Future<void> _submitSuggestion() async {
     if (_titleController.text.trim().isEmpty ||
-        _selectedCategory == null ||
         _selectedDate == null ||
-        _locationController.text.trim().isEmpty) {
+        _suggestLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all required fields')),
       );
@@ -115,8 +115,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
         'eventDate': _selectedDate!.toIso8601String().split('T').first,
-        'location': _locationController.text.trim(),
-        'category': _selectedCategory,
+        'location': _locationLabel,
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,10 +123,9 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       );
       _titleController.clear();
       _descriptionController.clear();
-      _locationController.clear();
       setState(() {
-        _selectedCategory = null;
         _selectedDate = null;
+        _suggestLocation = null;
         _view = _EventsView.mySuggestions;
       });
       await _loadEvents();
@@ -142,6 +140,43 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     }
   }
 
+  Future<void> _openLocationPicker() async {
+    final selected = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute<LatLng>(
+        builder: (_) => PickupLocationPickerPage(
+          initialLocation: _suggestLocation ?? const LatLng(6.9271, 79.8612),
+          appBarTitle: 'Choose Event Location',
+          instructions: 'Place the pin where the event will happen.',
+          confirmLabel: 'Confirm Event Location',
+        ),
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+    setState(() => _suggestLocation = selected);
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() => _resolvingLocation = true);
+    try {
+      final position = await LocationHelper.getCurrentPositionOrNull(
+        onError: (message) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message)),
+            );
+          }
+        },
+      );
+      if (position == null || !mounted) return;
+      setState(
+        () => _suggestLocation = LatLng(position.latitude, position.longitude),
+      );
+    } finally {
+      if (mounted) setState(() => _resolvingLocation = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -153,27 +188,19 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         children: [
           const CitizenHeader(name: 'Events'),
           Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadEvents,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildViewToggle(theme),
-                          const SizedBox(height: 20),
-                          if (_view == _EventsView.browse) ..._buildBrowseView(theme),
-                          if (_view == _EventsView.suggest) _buildSuggestForm(theme),
-                          if (_view == _EventsView.mySuggestions)
-                            _buildMySuggestions(theme),
-                          const SizedBox(height: 140),
-                        ],
-                      ),
-                    ),
-                  ),
+            child: CitizenStickyTabLayout(
+              tabBar: _buildViewToggle(theme),
+              onRefresh: _loadEvents,
+              isLoading: _loading && _events.isEmpty && _myEvents.isEmpty,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_view == _EventsView.browse) ..._buildBrowseView(theme),
+                  if (_view == _EventsView.suggest) _buildSuggestForm(theme),
+                  if (_view == _EventsView.mySuggestions) _buildMySuggestions(theme),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -182,22 +209,22 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   }
 
   Widget _buildViewToggle(ThemeData theme) {
-    return SegmentedButton<_EventsView>(
+    return CitizenSegmentedTabs<_EventsView>(
       segments: const [
         ButtonSegment(
           value: _EventsView.browse,
           label: Text('Events'),
-          icon: Icon(Icons.event_outlined, size: 18),
+          icon: Icon(Icons.event_outlined, size: CitizenSegmentedTabs.iconSize),
         ),
         ButtonSegment(
           value: _EventsView.suggest,
           label: Text('Suggest'),
-          icon: Icon(Icons.add_circle_outline, size: 18),
+          icon: Icon(Icons.add_circle_outline, size: CitizenSegmentedTabs.iconSize),
         ),
         ButtonSegment(
           value: _EventsView.mySuggestions,
-          label: Text('My Events'),
-          icon: Icon(Icons.list_alt_rounded, size: 18),
+          label: Text('Mine'),
+          icon: Icon(Icons.list_alt_rounded, size: CitizenSegmentedTabs.iconSize),
         ),
       ],
       selected: {_view},
@@ -244,78 +271,96 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   }
 
   Widget _buildSuggestForm(ThemeData theme) {
-    return CitizenSurfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Suggest an Event', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Your council admin will review and approve your suggestion.',
-            style: theme.textTheme.bodySmall,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Suggest an Event', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Text(
+          'Your council admin will review and approve your suggestion.',
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(labelText: 'Event title *'),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _descriptionController,
+          maxLines: 3,
+          decoration: const InputDecoration(labelText: 'Description'),
+        ),
+        const SizedBox(height: 20),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.calendar_today_outlined, color: theme.colorScheme.primary),
+          title: Text(
+            _selectedDate != null
+                ? _selectedDate!.toIso8601String().split('T').first
+                : 'Event date *',
           ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _titleController,
-            decoration: const InputDecoration(labelText: 'Event title *'),
+          subtitle: _selectedDate == null ? const Text('Tap to select a date') : null,
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _selectedDate ?? DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime.now().add(const Duration(days: 365)),
+            );
+            if (picked != null) setState(() => _selectedDate = picked);
+          },
+        ),
+        const SizedBox(height: 16),
+        InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'Location coordinates *',
+            prefixIcon: Icon(Icons.location_on_outlined),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descriptionController,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Description'),
-          ),
-          const SizedBox(height: 16),
-          OptionSelectChips(
-            label: 'Category',
-            options: _categories,
-            selected: _selectedCategory,
-            onChanged: (v) => setState(() => _selectedCategory = v),
-          ),
-          const SizedBox(height: 16),
-          Text('Event date *', style: theme.textTheme.labelLarge),
-          const SizedBox(height: 8),
-          InkWell(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate ?? DateTime.now(),
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 365)),
-              );
-              if (picked != null) setState(() => _selectedDate = picked);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.35),
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _selectedDate != null
-                    ? _selectedDate!.toIso8601String().split('T').first
-                    : 'Select date',
-              ),
+          child: Text(
+            _locationLabel ?? 'Pick on map or use current location',
+            style: TextStyle(
+              color: _locationLabel == null
+                  ? AppColors.grey500
+                  : AppColors.grey900,
             ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _locationController,
-            decoration: const InputDecoration(labelText: 'Location *'),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _submitting ? null : _submitSuggestion,
-              child: Text(_submitting ? 'Submitting...' : 'Submit Suggestion'),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _openLocationPicker,
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('Choose on map'),
+              ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _resolvingLocation ? null : _useCurrentLocation,
+                icon: _resolvingLocation
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location),
+                label: const Text('Current location'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: _submitting ? null : _submitSuggestion,
+            child: Text(_submitting ? 'Submitting...' : 'Submit Suggestion'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -328,48 +373,57 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     }
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: _myEvents.map((event) {
         final title = (event['title'] ?? 'Event').toString();
         final status = (event['status'] ?? 'PENDING').toString();
         final date = (event['eventDate'] ?? '').toString();
+        final location = (event['location'] ?? '').toString();
         final reason = (event['rejectionReason'] ?? '').toString();
 
         return CitizenSurfaceCard(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(title, style: theme.textTheme.titleSmall),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      status,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
+              Icon(Icons.event_outlined, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.titleSmall),
+                    if (date.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(date.split('T').first, style: theme.textTheme.bodySmall),
+                    ],
+                    if (location.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(location, style: theme.textTheme.bodySmall),
+                    ],
+                    if (reason.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text('Reason: $reason', style: theme.textTheme.bodySmall),
+                    ],
+                  ],
+                ),
               ),
-              if (date.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(date.split('T').first, style: theme.textTheme.bodySmall),
-              ],
-              if (reason.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text('Reason: $reason', style: theme.textTheme.bodySmall),
-              ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -385,7 +439,10 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     final startTime = (event['startTime'] ?? '').toString();
     final endTime = (event['endTime'] ?? '').toString();
     final location = (event['location'] ?? '-').toString();
-    final category = (event['category'] ?? 'Event').toString();
+    final rawCategory = (event['category'] ?? '').toString();
+    final badge = rawCategory.isEmpty || rawCategory == 'null'
+        ? 'Event'
+        : rawCategory;
     final enrolled = (event['enrolledCount'] as num?)?.toInt() ?? 0;
     final max = (event['maxParticipants'] as num?)?.toInt();
     final participants =
@@ -395,11 +452,11 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         : 'Time TBA';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 8),
       child: buildEventCard(
         theme: theme,
         eventId: id,
-        badge: category,
+        badge: badge,
         title: title,
         description: description,
         date: date.split('T').first,
@@ -423,74 +480,51 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   }) {
     final enrolling = _enrollingIds.contains(eventId);
 
-    return CitizenSurfaceCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.grey100,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(color: Colors.white, fontSize: 11),
+              ),
             ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Icon(
-                    Icons.event,
-                    size: 40,
-                    color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      badge,
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(title, style: theme.textTheme.titleSmall),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleSmall),
-                const SizedBox(height: 6),
-                Text(description, style: theme.textTheme.bodySmall),
-                const SizedBox(height: 14),
-                buildEventInfo(Icons.calendar_today_rounded, date),
-                const SizedBox(height: 8),
-                buildEventInfo(Icons.access_time_rounded, time),
-                const SizedBox(height: 8),
-                buildEventInfo(Icons.location_on_outlined, location),
-                const SizedBox(height: 8),
-                buildEventInfo(Icons.group_outlined, participants),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: enrolling ? null : () => _enroll(eventId),
-                    child: Text(enrolling ? 'Enrolling...' : 'Enroll Now'),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
+        ),
+        if (description.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(description, style: theme.textTheme.bodySmall),
         ],
-      ),
+        const SizedBox(height: 12),
+        buildEventInfo(Icons.calendar_today_rounded, date),
+        const SizedBox(height: 8),
+        buildEventInfo(Icons.access_time_rounded, time),
+        const SizedBox(height: 8),
+        buildEventInfo(Icons.location_on_outlined, location),
+        const SizedBox(height: 8),
+        buildEventInfo(Icons.group_outlined, participants),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: enrolling ? null : () => _enroll(eventId),
+            child: Text(enrolling ? 'Enrolling...' : 'Enroll Now'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Divider(height: 24),
+      ],
     );
   }
 

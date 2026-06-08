@@ -9,11 +9,17 @@ import 'package:latlong2/latlong.dart';
 class PickupLocationPickerPage extends StatefulWidget {
   final LatLng initialLocation;
   final String initialAddress;
+  final String appBarTitle;
+  final String instructions;
+  final String confirmLabel;
 
   const PickupLocationPickerPage({
     super.key,
     required this.initialLocation,
-    required this.initialAddress,
+    this.initialAddress = '',
+    this.appBarTitle = 'Choose Pickup Location',
+    this.instructions = 'Place the pin where the waste will be collected.',
+    this.confirmLabel = 'Confirm Pickup Location',
   });
 
   @override
@@ -73,7 +79,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
       appBar: AppBar(
         backgroundColor: AppColors.emerald600,
         foregroundColor: Colors.white,
-        title: const Text('Choose Pickup Location'),
+        title: Text(widget.appBarTitle),
       ),
       body: Column(
         children: [
@@ -85,7 +91,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Place the pin where the waste will be collected.',
+                  widget.instructions,
                   style: AppTypography.titleMd,
                 ),
                 const SizedBox(height: 4),
@@ -198,7 +204,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
                     child: ElevatedButton.icon(
                       onPressed: _confirmSelection,
                       icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('Confirm Pickup Location'),
+                      label: Text(widget.confirmLabel),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.emerald600,
                         foregroundColor: Colors.white,
