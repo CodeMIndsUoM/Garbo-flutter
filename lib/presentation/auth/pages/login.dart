@@ -142,6 +142,10 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         await prefs.setString('token', body['token'] ?? '');
         final role = body['role']?.toString() ?? '';
         await prefs.setString('role', role);
+        final council = body['council']?.toString();
+        if (council != null && council.isNotEmpty) {
+          await prefs.setString('council', council);
+        }
         final mustChangePassword = body['mustChangePassword'] ?? false;
 
         // Save credentials if remember me is checked

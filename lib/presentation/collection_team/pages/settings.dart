@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -103,6 +104,7 @@ class SettingsPage extends StatelessWidget {
               title: 'Log Out',
               subtitle: 'Sign out and return to login',
               onTap: () async {
+                context.read<LeaderboardProvider>().reset();
                 await context.read<AuthProvider>().logout();
                 if (context.mounted) {
                   Navigator.pushNamedAndRemoveUntil(

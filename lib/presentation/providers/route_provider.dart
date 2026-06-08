@@ -633,7 +633,14 @@ class RouteProvider extends ChangeNotifier {
       if (rawSessionId != null && rawSessionId.isNotEmpty) {
         sessionIds.add(rawSessionId);
         final updatedAt = _toInt(item['updatedAt']);
-        if (updatedAt > 0) {
+        final createdDateRaw = item['createdDate']?.toString();
+        final createdAt = createdDateRaw != null && createdDateRaw.isNotEmpty
+            ? DateTime.tryParse(createdDateRaw)
+            : null;
+        if (createdAt != null) {
+          nextSessionUpdatedAtById[rawSessionId] =
+              createdAt.millisecondsSinceEpoch;
+        } else if (updatedAt > 0) {
           nextSessionUpdatedAtById[rawSessionId] = updatedAt;
         }
       }

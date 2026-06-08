@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 
 class ProfileLogoutButton extends StatelessWidget {
   final String dialogMessage;
@@ -160,6 +163,13 @@ class ProfileLogoutButton extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      final authProvider = context.read<AuthProvider>();
+      final leaderboardProvider = context.read<LeaderboardProvider>();
+      await authProvider.logout();
+      leaderboardProvider.reset();
+      if (!context.mounted) {
+        return;
+      }
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const Login()),
         (route) => false,

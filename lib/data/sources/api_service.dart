@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/models/collector_dashboard_model.dart';
+import 'package:garbo_swms/data/sources/auth_api.dart';
 import 'package:garbo_swms/data/sources/citizen_api.dart';
 import 'package:garbo_swms/data/sources/field_staff_api.dart';
 import 'package:garbo_swms/data/sources/profile_api.dart';
@@ -18,6 +19,9 @@ class ApiService {
   late final ProfileApi _profileApi;
   late final CitizenApi _citizenApi;
   late final ThirdPartyCollectorApi _thirdPartyCollectorApi;
+  late final AuthApi _authApi;
+  late final ComplaintApi _complaintApi;
+  late final EventApi _eventApi;
 
   ApiService({http.Client? client}) : client = client ?? http.Client() {
     _fieldStaffApi = FieldStaffApi(
@@ -39,6 +43,20 @@ class ApiService {
       client: this.client,
       authHeadersProvider: _authHeaders,
       tokenProvider: _accessToken,
+    );
+    _authApi = AuthApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+    _complaintApi = ComplaintApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
+      tokenProvider: _accessToken,
+    );
+    _eventApi = EventApi(
+      client: this.client,
+      authHeadersProvider: _authHeaders,
     );
   }
 
@@ -94,6 +112,51 @@ class ApiService {
 
   Future<String?> uploadProfilePicture(String userId, File imageFile) =>
       _profileApi.uploadProfilePicture(userId, imageFile);
+
+  Future<bool> removeProfilePicture(String userId) =>
+      _profileApi.removeProfilePicture(userId);
+
+  Future<bool> removeThirdPartyProfilePicture(String collectorId) =>
+      _profileApi.removeThirdPartyProfilePicture(collectorId);
+
+  Future<List<String>> fetchCouncils() => _authApi.fetchCouncils();
+
+  Future<Map<String, dynamic>> registerCitizen({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String password,
+    required String council,
+    String? address,
+    String? area,
+  }) => _authApi.registerCitizen(
+    fullName: fullName,
+    email: email,
+    phone: phone,
+    password: password,
+    council: council,
+    address: address,
+    area: area,
+  );
+
+  Future<List<Map<String, dynamic>>> getMyComplaints() =>
+      _complaintApi.getMyComplaints();
+
+  Future<Map<String, dynamic>> createComplaint(Map<String, dynamic> payload) =>
+      _complaintApi.createComplaint(payload);
+
+  Future<String?> uploadComplaintImage(File imageFile) =>
+      _complaintApi.uploadComplaintImage(imageFile);
+
+  Future<List<Map<String, dynamic>>> getEvents() => _eventApi.getEvents();
+
+  Future<List<Map<String, dynamic>>> getMyEvents() => _eventApi.getMyEvents();
+
+  Future<Map<String, dynamic>> enrollInEvent(int eventId) =>
+      _eventApi.enrollInEvent(eventId);
+
+  Future<Map<String, dynamic>> suggestEvent(Map<String, dynamic> payload) =>
+      _eventApi.suggestEvent(payload);
 
   Future<List<CollectionRequestModel>> getCitizenCollectionRequests(
     String citizenId, {

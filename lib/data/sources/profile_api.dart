@@ -161,4 +161,32 @@ class ProfileApi {
     }
     return null;
   }
+
+  Future<bool> removeProfilePicture(String userId) async {
+    if (userId.isEmpty) return false;
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.users}/$userId/avatar',
+    );
+    final headers = await authHeadersProvider();
+    final response = await client.delete(url, headers: headers);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      return body['success'] == true;
+    }
+    return false;
+  }
+
+  Future<bool> removeThirdPartyProfilePicture(String collectorId) async {
+    if (collectorId.isEmpty) return false;
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}${ApiConstants.thirdPartyCollectors}/$collectorId/avatar',
+    );
+    final headers = await authHeadersProvider();
+    final response = await client.delete(url, headers: headers);
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body) as Map<String, dynamic>;
+      return body['success'] == true;
+    }
+    return false;
+  }
 }

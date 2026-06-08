@@ -85,18 +85,17 @@ class _ChangePasswordState extends State<ChangePassword> {
       );
 
       if (response.statusCode == 200) {
-        // Password changed successfully, now log in again with new password
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Password changed successfully!')),
           );
 
-          // Clear current session and redirect to login
-          await prefs.clear();
+          final role = prefs.getString('role');
+          final nextRoute = AppRouter.routeForRole(role) ?? AppRouter.login;
           if (mounted) {
             Navigator.pushNamedAndRemoveUntil(
               context,
-              AppRouter.login,
+              nextRoute,
               (route) => false,
             );
           }

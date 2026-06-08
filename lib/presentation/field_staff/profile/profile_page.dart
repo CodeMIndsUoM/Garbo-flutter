@@ -260,6 +260,29 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: AppTypography.labelMd.copyWith(color: AppColors.green700, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  if (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: _uploadingPhoto ? null : () async {
+                        Navigator.of(context).pop();
+                        setState(() => _uploadingPhoto = true);
+                        final ok = await _apiService.removeProfilePicture(_employeeId);
+                        if (!mounted) return;
+                        setState(() {
+                          _uploadingPhoto = false;
+                          if (ok) _avatarUrl = null;
+                        });
+                        if (ok) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Photo removed')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.red500),
+                      label: Text(
+                        'Remove Photo',
+                        style: AppTypography.labelMd.copyWith(color: AppColors.red500, fontWeight: FontWeight.bold),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 20),

@@ -112,7 +112,6 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
               ],
             ),
           ),
-          _buildTrackingBanner(mapData, trackingState),
           _buildRouteStats(mapData),
           _buildStartNavigationButton(mapData),
         ],
@@ -445,108 +444,6 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
     );
   }
 
-  Widget _buildTrackingBanner(
-    _JourneyMapData mapData,
-    _RouteTrackingState trackingState,
-  ) {
-    final hasRoute = mapData.selectedRoutePoints.length >= 2;
-    final routeLabel = mapData.selectedSessionId == null
-        ? 'No route selected'
-        : 'Tracking ${mapData.selectedSessionTitle ?? 'selected route'}';
-
-    Color accentColor;
-    String statusText;
-    if (!trackingState.hasLocation) {
-      accentColor = AppColors.orange500;
-      statusText = _locationStatus;
-    } else if (!hasRoute) {
-      accentColor = AppColors.blue500;
-      statusText =
-          'Select a route to compare your live position against the path.';
-    } else if (trackingState.isOnRoute) {
-      accentColor = AppColors.green700;
-      statusText = _isNavigating
-          ? 'Navigating • ${trackingState.distanceMeters.round()} m from planned path'
-          : 'On route • ${trackingState.distanceMeters.round()} m from path';
-    } else {
-      accentColor = AppColors.red500;
-      statusText = _isNavigating
-          ? 'Off planned path • ${trackingState.distanceMeters.round()} m deviation'
-          : 'Off route • ${trackingState.distanceMeters.round()} m from path';
-    }
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentColor.withValues(alpha: 0.22)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: accentColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  routeLabel,
-                  style: const TextStyle(
-                    color: AppColors.grey900,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  trackingState.hasLocation
-                      ? 'Current location: ${trackingState.currentLocation!.latitude.toStringAsFixed(5)}, ${trackingState.currentLocation!.longitude.toStringAsFixed(5)}'
-                      : statusText,
-                  style: const TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (trackingState.hasLocation && hasRoute)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                statusText,
-                style: TextStyle(
-                  color: accentColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildRouteStats(_JourneyMapData mapData) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -588,7 +485,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
 
   Widget _buildStartNavigationButton(_JourneyMapData mapData) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       decoration: const BoxDecoration(color: Colors.white),
       child: SafeArea(
         top: false,

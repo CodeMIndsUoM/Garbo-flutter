@@ -16,7 +16,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           CitizenHeader(name: 'Home'),
@@ -34,7 +34,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   buildRecentActivity(),
                   const SizedBox(height: 24),
                   buildTipCard(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 140),
                 ],
               ),
             ),
@@ -176,6 +176,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             fontWeight: FontWeight.w700,
           ),
         ),
+        const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
@@ -189,28 +190,24 @@ class CitizenHomePageState extends State<CitizenHomePage> {
               title: 'Report Issue',
               subtitle: 'File a complaint',
               routeName: AppRouter.citizenReport,
-              hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.local_shipping_rounded,
               title: 'Request Pickup',
               subtitle: 'Schedule collection',
               routeName: AppRouter.citizenRequest,
-              hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.event_rounded,
               title: 'Browse Events',
               subtitle: 'Join community',
               routeName: AppRouter.citizenEvents,
-              hasGradient: true,
             ),
             buildActionCard(
               icon: Icons.bar_chart_rounded,
               title: 'My Activity',
               subtitle: 'Track progress',
               routeName: AppRouter.citizenProfile,
-              hasGradient: true,
             ),
           ],
         ),
@@ -223,12 +220,11 @@ class CitizenHomePageState extends State<CitizenHomePage> {
     required String title,
     required String subtitle,
     required String routeName,
-    bool hasGradient = false,
   }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           if (ModalRoute.of(context)?.settings.name != routeName) {
             Navigator.pushNamed(context, routeName);
@@ -248,7 +244,7 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

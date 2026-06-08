@@ -117,6 +117,7 @@ class WebSocketService {
     final userId = _userId;
     if (userId != null) {
       _subscribe('/topic/users/$userId', _handleUserMessageFrame);
+      _subscribe('/topic/users/$userId/marketplace', _handleUserMessageFrame);
       _subscribe('/topic/routes/users/$userId', _handleRouteSnapshotFrame);
       _requestAssignedRoutes(userId);
     }
