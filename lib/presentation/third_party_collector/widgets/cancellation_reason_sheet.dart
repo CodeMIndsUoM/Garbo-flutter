@@ -6,11 +6,9 @@ class CancellationReasonSheet extends StatelessWidget {
   const CancellationReasonSheet({super.key});
 
   static Future<String?> show(BuildContext context) {
-    return Navigator.of(context).push<String>(
-      _ReasonSheetRoute(
-        child: const CancellationReasonSheet(),
-      ),
-    );
+    return Navigator.of(
+      context,
+    ).push<String>(_ReasonSheetRoute(child: const CancellationReasonSheet()));
   }
 
   IconData _getReasonIcon(String reason) {
@@ -49,9 +47,7 @@ class CancellationReasonSheet extends StatelessWidget {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.shadowMd,
@@ -81,7 +77,7 @@ class CancellationReasonSheet extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 18),
-                        
+
                         // Header
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,11 +141,11 @@ class CancellationReasonSheet extends StatelessWidget {
                         const SizedBox(height: 18),
                         Container(height: 1, color: AppColors.grey100),
                         const SizedBox(height: 16),
-                        
+
                         // Reason Cards List
                         ...reasons.map((reason) {
                           final icon = _getReasonIcon(reason);
-                          
+
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Material(
@@ -158,8 +154,12 @@ class CancellationReasonSheet extends StatelessWidget {
                               child: InkWell(
                                 onTap: () => Navigator.of(context).pop(reason),
                                 borderRadius: BorderRadius.circular(16),
-                                splashColor: AppColors.green700.withOpacity(0.08),
-                                highlightColor: AppColors.green700.withOpacity(0.04),
+                                splashColor: AppColors.green700.withValues(
+                                  alpha: 0.08,
+                                ),
+                                highlightColor: AppColors.green700.withValues(
+                                  alpha: 0.04,
+                                ),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -169,8 +169,15 @@ class CancellationReasonSheet extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: AppColors.grey200,
-                                      width: 1,
+                                      width: 1.2,
                                     ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: AppColors.shadowSm,
+                                        blurRadius: 3,
+                                        offset: Offset(0, 1),
+                                      ),
+                                    ],
                                   ),
                                   child: Row(
                                     children: [
@@ -237,14 +244,17 @@ class _ReasonSheetRoute<T> extends PageRouteBuilder<T> {
         reverseTransitionDuration: const Duration(milliseconds: 850),
         pageBuilder: (context, animation, secondaryAnimation) => child,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final slide = Tween<Offset>(
-            begin: const Offset(0, 1.0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeOutCubic,
-          ));
+          final slide =
+              Tween<Offset>(
+                begin: const Offset(0, 1.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutCubic,
+                  reverseCurve: Curves.easeOutCubic,
+                ),
+              );
 
           final scrimFade = CurvedAnimation(
             parent: animation,
@@ -258,10 +268,7 @@ class _ReasonSheetRoute<T> extends PageRouteBuilder<T> {
                 opacity: scrimFade,
                 child: const SizedBox.expand(),
               ),
-              SlideTransition(
-                position: slide,
-                child: child,
-              ),
+              SlideTransition(position: slide, child: child),
             ],
           );
         },

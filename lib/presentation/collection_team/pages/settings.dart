@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 import 'package:provider/provider.dart';
@@ -17,14 +19,7 @@ class SettingsPage extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: const SizedBox.shrink(),
-        title: const Text(
-          'Settings',
-          style: TextStyle(
-            color: AppColors.grey900,
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+        title: Text('Settings', style: AppTypography.titleLg),
         centerTitle: false,
         actions: [
           IconButton(
@@ -42,19 +37,18 @@ class SettingsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Manage your account and app preferences',
-              style: TextStyle(
+              style: AppTypography.bodyLg.copyWith(
                 color: AppColors.grey500,
-                fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 24),
             SettingsMenuItem(
               icon: Icons.settings_outlined,
-              iconBgColor: const Color(0xFFEEF2FF),
-              iconColor: const Color(0xFF6366F1),
+              iconBgColor: AppColors.indigo50,
+              iconColor: AppColors.blue600,
               title: 'Account Settings',
               subtitle: 'Manage your profile and preferences',
               onTap: () {},
@@ -62,7 +56,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 12),
             SettingsMenuItem(
               icon: Icons.notifications_outlined,
-              iconBgColor: const Color(0xFFFFF7ED),
+              iconBgColor: AppColors.orange50,
               iconColor: AppColors.orange500,
               title: 'Notifications',
               subtitle: 'Configure notification preferences',
@@ -72,7 +66,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 12),
             SettingsMenuItem(
               icon: Icons.history_rounded,
-              iconBgColor: const Color(0xFFECFDF5),
+              iconBgColor: AppColors.emerald50,
               iconColor: AppColors.green700,
               title: 'History',
               subtitle: 'View your activity history',
@@ -81,7 +75,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 12),
             SettingsMenuItem(
               icon: Icons.shield_outlined,
-              iconBgColor: const Color(0xFFFEF2F2),
+              iconBgColor: AppColors.red50,
               iconColor: AppColors.red500,
               title: 'Privacy & Security',
               subtitle: 'Security settings and privacy controls',
@@ -90,7 +84,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 12),
             SettingsMenuItem(
               icon: Icons.help_outline_rounded,
-              iconBgColor: const Color(0xFFFEF2F2),
+              iconBgColor: AppColors.red50,
               iconColor: AppColors.red500,
               title: 'Help & Support',
               subtitle: 'Get help and contact support',
@@ -99,7 +93,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: 12),
             SettingsMenuItem(
               icon: Icons.logout_rounded,
-              iconBgColor: const Color(0xFFFEF2F2),
+              iconBgColor: AppColors.red50,
               iconColor: AppColors.red500,
               title: 'Log Out',
               subtitle: 'Sign out and return to login',
@@ -145,17 +139,13 @@ class SettingsMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.transparent),
-          ),
+          decoration: AppDecorations.card(),
           child: Row(
             children: [
               Container(
@@ -174,14 +164,7 @@ class SettingsMenuItem extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: AppColors.grey900,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        Text(title, style: AppTypography.titleSm),
                         if (badge != null) ...[
                           const SizedBox(width: 8),
                           Container(
@@ -195,9 +178,8 @@ class SettingsMenuItem extends StatelessWidget {
                             ),
                             child: Text(
                               badge!,
-                              style: const TextStyle(
+                              style: AppTypography.overline.copyWith(
                                 color: Colors.white,
-                                fontSize: 10,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -208,11 +190,7 @@ class SettingsMenuItem extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppColors.grey500,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
+                      style: AppTypography.caption,
                     ),
                   ],
                 ),

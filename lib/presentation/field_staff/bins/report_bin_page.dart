@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -42,16 +43,16 @@ class _ReportBinPageState extends State<ReportBinPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a Photo'),
+                leading: const Icon(Icons.camera_alt, color: AppColors.green700),
+                title: Text('Take a Photo', style: AppTypography.bodyMd),
                 onTap: () {
                   Navigator.pop(context);
                   _processImagePicker(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from Gallery'),
+                leading: const Icon(Icons.photo_library, color: AppColors.green700),
+                title: Text('Choose from Gallery', style: AppTypography.bodyMd),
                 onTap: () {
                   Navigator.pop(context);
                   _processImagePicker(ImageSource.gallery);
@@ -328,6 +329,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                   TextField(
                     controller: _notesController,
                     maxLines: 4,
+                    style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
                     decoration: InputDecoration(
                       hintText:
                           'Add notes about damage, overflow, or other issues...',
@@ -436,23 +438,13 @@ class _ReportBinPageState extends State<ReportBinPage> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? bgColor : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? color : color.withValues(alpha: 0.35),
-            width: isSelected ? 2 : 1.2,
-          ),
-          boxShadow: isSelected
-              ? []
-              : [
-                  const BoxShadow(
-                    color: AppColors.shadowXs,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-        ),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: color, width: 2),
+              )
+            : AppDecorations.card(),
         child: Row(
           children: [
             Container(
@@ -509,10 +501,9 @@ class _ReportBinPageState extends State<ReportBinPage> {
       child: Container(
         width: double.infinity,
         height: 160,
-        decoration: BoxDecoration(
-          color: _selectedImage == null ? Colors.white : Colors.black12,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
+        decoration: AppDecorations.card(
+          color: _selectedImage == null ? Colors.white : AppColors.grey100,
+        ).copyWith(
           image: _selectedImage != null
               ? DecorationImage(
                   image: FileImage(_selectedImage!),
@@ -557,7 +548,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.black54,
+                          color: AppColors.grey700,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

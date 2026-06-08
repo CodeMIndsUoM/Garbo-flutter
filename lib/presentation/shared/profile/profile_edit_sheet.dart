@@ -181,7 +181,12 @@ Future<void> showUserProfileEditSheet({
                         }
                       }
                     },
-                    child: const Text('Save Changes'),
+                    child: Text(
+                      'Save Changes',
+                      style: AppTypography.buttonLg.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],

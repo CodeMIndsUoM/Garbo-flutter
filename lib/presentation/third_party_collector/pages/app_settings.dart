@@ -213,13 +213,13 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 6,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -350,13 +350,13 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200, width: 1.2),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                offset: const Offset(0, 2),
-                blurRadius: 6,
-                spreadRadius: -1,
+                color: AppColors.shadowSm,
+                blurRadius: 3,
+                offset: Offset(0, 1),
               ),
             ],
           ),

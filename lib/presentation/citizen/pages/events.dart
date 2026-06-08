@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
@@ -247,26 +248,25 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Upcoming Events', style: theme.textTheme.titleMedium),
+          Text('Upcoming Events', style: AppTypography.titleLg),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              color: AppColors.greenSurface2,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               '${_events.length} events',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTypography.labelSm.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.primary,
+                color: AppColors.green700,
               ),
             ),
           ),
         ],
       ),
       const SizedBox(height: 16),
-      ..._events.map((e) => buildEventCardFromData(e, theme)),
+      ..._events.map((e) => buildEventCardFromData(e)),
     ];
   }
 
@@ -274,11 +274,11 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Suggest an Event', style: theme.textTheme.titleMedium),
+        Text('Suggest an Event', style: AppTypography.titleLg),
         const SizedBox(height: 8),
         Text(
           'Your council admin will review and approve your suggestion.',
-          style: theme.textTheme.bodySmall,
+          style: AppTypography.bodySm,
         ),
         const SizedBox(height: 24),
         TextField(
@@ -294,13 +294,16 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         const SizedBox(height: 20),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.calendar_today_outlined, color: theme.colorScheme.primary),
+          leading: Icon(Icons.calendar_today_outlined, color: AppColors.green700),
           title: Text(
             _selectedDate != null
                 ? _selectedDate!.toIso8601String().split('T').first
                 : 'Event date *',
+            style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
           ),
-          subtitle: _selectedDate == null ? const Text('Tap to select a date') : null,
+          subtitle: _selectedDate == null
+              ? Text('Tap to select a date', style: AppTypography.bodySm)
+              : null,
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
@@ -319,11 +322,9 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
           ),
           child: Text(
             _locationLabel ?? 'Pick on map or use current location',
-            style: TextStyle(
-              color: _locationLabel == null
-                  ? AppColors.grey500
-                  : AppColors.grey900,
-            ),
+            style: _locationLabel == null
+                ? AppTypography.bodyMd.copyWith(color: AppColors.grey500)
+                : AppTypography.bodyMd.copyWith(color: AppColors.grey900),
           ),
         ),
         const SizedBox(height: 12),
@@ -387,24 +388,24 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.event_outlined, color: theme.colorScheme.primary),
+              Icon(Icons.event_outlined, color: AppColors.green700),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.titleSmall),
+                    Text(title, style: AppTypography.titleSm),
                     if (date.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(date.split('T').first, style: theme.textTheme.bodySmall),
+                      Text(date.split('T').first, style: AppTypography.bodySm),
                     ],
                     if (location.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(location, style: theme.textTheme.bodySmall),
+                      Text(location, style: AppTypography.bodySm),
                     ],
                     if (reason.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text('Reason: $reason', style: theme.textTheme.bodySmall),
+                      Text('Reason: $reason', style: AppTypography.bodySm),
                     ],
                   ],
                 ),
@@ -412,15 +413,14 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  color: AppColors.greenSurface2,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: AppTypography.captionSm.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary,
+                    color: AppColors.green700,
                   ),
                 ),
               ),
@@ -431,7 +431,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     );
   }
 
-  Widget buildEventCardFromData(Map<String, dynamic> event, ThemeData theme) {
+  Widget buildEventCardFromData(Map<String, dynamic> event) {
     final id = (event['id'] as num?)?.toInt() ?? 0;
     final title = (event['title'] ?? 'Event').toString();
     final description = (event['description'] ?? '').toString();
@@ -452,9 +452,8 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         : 'Time TBA';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: buildEventCard(
-        theme: theme,
         eventId: id,
         badge: badge,
         title: title,
@@ -468,7 +467,6 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   }
 
   Widget buildEventCard({
-    required ThemeData theme,
     required int eventId,
     required String badge,
     required String title,
@@ -480,51 +478,55 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   }) {
     final enrolling = _enrollingIds.contains(eventId);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(8),
+    return CitizenSurfaceCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.green700,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  badge,
+                  style: AppTypography.captionSm.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              child: Text(
-                badge,
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(title, style: AppTypography.titleSm),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(title, style: theme.textTheme.titleSmall),
-            ),
-          ],
-        ),
-        if (description.isNotEmpty) ...[
-          const SizedBox(height: 6),
-          Text(description, style: theme.textTheme.bodySmall),
-        ],
-        const SizedBox(height: 12),
-        buildEventInfo(Icons.calendar_today_rounded, date),
-        const SizedBox(height: 8),
-        buildEventInfo(Icons.access_time_rounded, time),
-        const SizedBox(height: 8),
-        buildEventInfo(Icons.location_on_outlined, location),
-        const SizedBox(height: 8),
-        buildEventInfo(Icons.group_outlined, participants),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: enrolling ? null : () => _enroll(eventId),
-            child: Text(enrolling ? 'Enrolling...' : 'Enroll Now'),
+            ],
           ),
-        ),
-        const SizedBox(height: 8),
-        const Divider(height: 24),
-      ],
+          if (description.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(description, style: AppTypography.bodySm),
+          ],
+          const SizedBox(height: 12),
+          buildEventInfo(Icons.calendar_today_rounded, date),
+          const SizedBox(height: 8),
+          buildEventInfo(Icons.access_time_rounded, time),
+          const SizedBox(height: 8),
+          buildEventInfo(Icons.location_on_outlined, location),
+          const SizedBox(height: 8),
+          buildEventInfo(Icons.group_outlined, participants),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: enrolling ? null : () => _enroll(eventId),
+              child: Text(enrolling ? 'Enrolling...' : 'Enroll Now'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -533,7 +535,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       children: [
         Icon(icon, size: 16, color: AppColors.grey600),
         const SizedBox(width: 8),
-        Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+        Expanded(child: Text(text, style: AppTypography.labelMd)),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/leaderboard_content.dart';
 
 class LeaderboardPage extends StatelessWidget {
@@ -13,10 +14,7 @@ class LeaderboardPage extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.grey900,
         elevation: 0,
-        title: const Text(
-          'Leaderboard',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
+        title: Text('Leaderboard', style: AppTypography.titleLg),
       ),
       body: const LeaderboardContent(showHeader: false),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
@@ -160,16 +161,7 @@ class BinDetailsOverlay extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     height: 54,
-                    decoration: ShapeDecoration(
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        side: const BorderSide(
-                          width: 1.27,
-                          color: AppColors.grey200,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
+                    decoration: AppDecorations.card(),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

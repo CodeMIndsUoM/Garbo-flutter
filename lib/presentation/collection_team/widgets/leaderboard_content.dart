@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
@@ -75,34 +78,16 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (widget.showHeader) ...[
-                const Text(
-                  'Leaderboard',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.grey900,
-                  ),
-                ),
+                Text('Leaderboard', style: AppTypography.displayLg),
                 const SizedBox(height: 8),
                 Text(
                   'Current rankings by score',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: AppTypography.bodyMd.copyWith(color: AppColors.grey600),
                 ),
                 const SizedBox(height: 24),
               ],
-              Container(
+              CitizenSurfaceCard(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: userEntry != null
-                        ? [AppColors.blue50, AppColors.indigo50]
-                        : [Colors.grey[50]!, Colors.grey[100]!],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.transparent),
-                ),
                 child: Row(
                   children: [
                     Container(
@@ -111,15 +96,13 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                       decoration: BoxDecoration(
                         color: userEntry != null
                             ? AppColors.blue500
-                            : Colors.grey[400],
+                            : AppColors.grey400,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
                         child: Text(
                           userEntry != null ? '#${userEntry.rank}' : '—',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          style: AppTypography.displaySm.copyWith(
                             color: Colors.white,
                           ),
                         ),
@@ -132,9 +115,8 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                         children: [
                           Text(
                             'Your Rank',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.grey600,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -143,21 +125,17 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                             userEntry?.name ??
                                 authProvider.currentUser?.empName ??
                                 'Loading...',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTypography.titleLg,
                           ),
                           const SizedBox(height: 4),
                           Text(
                             userEntry != null
                                 ? '${userEntry.rewardPoints.toStringAsFixed(0)} points'
                                 : 'Calculating...',
-                            style: TextStyle(
-                              fontSize: 14,
+                            style: AppTypography.bodyMd.copyWith(
                               color: userEntry != null
                                   ? AppColors.green700
-                                  : Colors.grey[600],
+                                  : AppColors.grey600,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -168,14 +146,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
-                'Top 10 Earners',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
-                ),
-              ),
+              Text('Top 10 Earners', style: AppTypography.h3),
               const SizedBox(height: 16),
               if (leaderboardProvider.isLoadingSnapshot && entries.isEmpty)
                 const Center(
@@ -193,8 +164,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                       children: [
                         Text(
                           leaderboardProvider.errorMessage!,
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: AppTypography.bodyMd.copyWith(
                             color: AppColors.red500,
                           ),
                           textAlign: TextAlign.center,
@@ -214,9 +184,8 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Text(
                       'No earners available yet.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                      style: AppTypography.bodyMd.copyWith(
+                        color: AppColors.grey600,
                       ),
                     ),
                   ),
@@ -229,10 +198,8 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Container(
-                      decoration: BoxDecoration(
+                      decoration: AppDecorations.card(
                         color: isCurrentUser ? AppColors.blue50 : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.transparent),
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -250,9 +217,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                             child: Center(
                               child: Text(
                                 '${item.rank}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                style: AppTypography.titleLg.copyWith(
                                   color: Colors.white,
                                 ),
                               ),
@@ -263,22 +228,14 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  item.name,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.grey900,
-                                  ),
-                                ),
+                                Text(item.name, style: AppTypography.titleSm),
                                 const SizedBox(height: 2),
                                 Text(
                                   item.role == 'COLLECTOR'
                                       ? 'Bin Collector'
                                       : 'Field Mentor',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.grey600,
                                   ),
                                 ),
                               ],
@@ -289,9 +246,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                             children: [
                               Text(
                                 item.rewardPoints.toStringAsFixed(0),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                style: AppTypography.titleLg.copyWith(
                                   color: AppColors.green700,
                                 ),
                               ),
@@ -301,8 +256,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                                   leaderboardProvider.getRankChangeIndicator(
                                     item,
                                   ),
-                                  style: TextStyle(
-                                    fontSize: 14,
+                                  style: AppTypography.bodyMd.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: Color(
                                       leaderboardProvider.getRankChangeColor(
@@ -322,9 +276,8 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
               Center(
                 child: Text(
                   'Last updated: ${leaderboardProvider.lastUpdateFormatted}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.grey600,
                   ),
                 ),
               ),
@@ -338,11 +291,11 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
   Color _getRankColor(int index) {
     switch (index) {
       case 0:
-        return const Color(0xFFFFD700);
+        return AppColors.yellow400;
       case 1:
-        return const Color(0xFFC0C0C0);
+        return AppColors.grey400;
       case 2:
-        return const Color(0xFFCD7F32);
+        return AppColors.amber600;
       default:
         return AppColors.blue500;
     }

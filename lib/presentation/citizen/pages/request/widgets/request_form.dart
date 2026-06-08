@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_constants.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_helpers.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_dropdown_field.dart';
@@ -59,8 +61,6 @@ class _RequestFormState extends State<RequestForm> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -70,10 +70,10 @@ class _RequestFormState extends State<RequestForm> {
               : currentStep == 2
               ? 'Pickup Schedule'
               : 'Contact Details',
-          style: theme.textTheme.titleMedium,
+          style: AppTypography.titleLg,
         ),
         const SizedBox(height: 8),
-        Text('Step $currentStep of 3', style: theme.textTheme.bodySmall),
+        Text('Step $currentStep of 3', style: AppTypography.bodySm),
         const SizedBox(height: 12),
         LinearProgressIndicator(value: currentStep / 3),
         const SizedBox(height: 24),
@@ -167,15 +167,16 @@ class _RequestFormState extends State<RequestForm> {
         contentPadding: EdgeInsets.zero,
         leading: Icon(
           Icons.calendar_today_outlined,
-          color: Theme.of(context).colorScheme.primary,
+          color: AppColors.green700,
         ),
         title: Text(
           widget.selectedPickupDate != null
               ? formatRequestDate(widget.selectedPickupDate!)
               : 'Preferred pickup date *',
+          style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
         ),
         subtitle: widget.selectedPickupDate == null
-            ? const Text('Tap to select a date')
+            ? Text('Tap to select a date', style: AppTypography.bodySm)
             : null,
         onTap: () async {
           final picked = await showDatePicker(
@@ -220,7 +221,7 @@ class _RequestFormState extends State<RequestForm> {
         Text(
           'Lat ${widget.pickupLocation!.latitude.toStringAsFixed(5)}, '
           'Lng ${widget.pickupLocation!.longitude.toStringAsFixed(5)}',
-          style: Theme.of(context).textTheme.bodySmall,
+          style: AppTypography.bodySm,
         ),
       ],
     ];

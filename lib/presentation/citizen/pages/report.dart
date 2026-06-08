@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
@@ -220,9 +222,9 @@ class CitizenReportPageState extends State<CitizenReportPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Report Waste Issue', style: theme.textTheme.titleMedium),
+        Text('Report Waste Issue', style: AppTypography.titleLg),
         const SizedBox(height: 8),
-        Text('Step $currentStep of 3', style: theme.textTheme.bodySmall),
+        Text('Step $currentStep of 3', style: AppTypography.bodySm),
         const SizedBox(height: 12),
         LinearProgressIndicator(value: currentStep / 3),
         const SizedBox(height: 24),
@@ -268,14 +270,18 @@ class CitizenReportPageState extends State<CitizenReportPage> {
             contentPadding: EdgeInsets.zero,
             leading: Icon(
               _location != null ? Icons.location_on : Icons.location_off,
-              color: theme.colorScheme.primary,
+              color: AppColors.green700,
             ),
             title: Text(
               _location != null
                   ? 'Location captured (${_location!.latitude.toStringAsFixed(4)}, ${_location!.longitude.toStringAsFixed(4)})'
                   : 'Location required',
+              style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
             ),
-            subtitle: const Text('You must enable location services'),
+            subtitle: Text(
+              'You must enable location services',
+              style: AppTypography.bodySm,
+            ),
           ),
           FilledButton.icon(
             onPressed: _gettingLocation ? null : _captureLocation,
@@ -373,13 +379,13 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.titleSmall),
+                    Text(title, style: AppTypography.titleSm),
                     const SizedBox(height: 4),
-                    Text(location, style: theme.textTheme.bodySmall),
+                    Text(location, style: AppTypography.bodySm),
                     if (createdAt.isNotEmpty)
                       Text(
                         createdAt.split('T').first,
-                        style: theme.textTheme.bodySmall,
+                        style: AppTypography.bodySm,
                       ),
                   ],
                 ),
@@ -392,8 +398,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: AppTypography.captionSm.copyWith(
                     fontWeight: FontWeight.w600,
                     color: statusColors.tagText,
                   ),

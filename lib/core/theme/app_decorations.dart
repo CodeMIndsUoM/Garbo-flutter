@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/theme/typography.dart';
 
 /// Shared card and layout styles (field staff theme).
 abstract final class AppDecorations {
@@ -22,6 +23,32 @@ abstract final class AppDecorations {
           offset: Offset(0, 1),
         ),
       ],
+    );
+  }
+
+  /// Borderless input for search bars nested inside [card] containers.
+  static InputDecoration searchInput({
+    required String hintText,
+    TextStyle? hintStyle,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+    EdgeInsetsGeometry? contentPadding,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: hintStyle ??
+          AppTypography.bodyMd.copyWith(color: AppColors.grey500),
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      disabledBorder: InputBorder.none,
+      errorBorder: InputBorder.none,
+      focusedErrorBorder: InputBorder.none,
+      filled: false,
+      isDense: true,
+      contentPadding: contentPadding,
     );
   }
 

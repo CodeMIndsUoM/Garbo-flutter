@@ -8,6 +8,7 @@ import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card
 import 'package:garbo_swms/presentation/shared/profile/profile_edit_sheet.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 
 class CitizenProfilePage extends StatefulWidget {
   const CitizenProfilePage({super.key});
@@ -142,19 +143,8 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadowSm,
-                  blurRadius: 3,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
+          CitizenSurfaceCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
                 _detailRow('Account Type', 'Citizen'),

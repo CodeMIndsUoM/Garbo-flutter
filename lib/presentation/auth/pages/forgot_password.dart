@@ -8,7 +8,7 @@ class Forgotpassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.emerald50,
+      backgroundColor: AppColors.grey50,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -66,12 +66,13 @@ class Forgotpassword extends StatelessWidget {
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.grey200, width: 1.2),
+                    boxShadow: const [
                       BoxShadow(
                         color: AppColors.shadowSm,
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        blurRadius: 3,
+                        offset: Offset(0, 1),
                       ),
                     ],
                   ),

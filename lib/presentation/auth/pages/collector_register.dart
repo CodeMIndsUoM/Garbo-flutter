@@ -265,48 +265,27 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Collector Registration',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: Text('Collector Registration', style: AppTypography.titleLg),
       ),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Info card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.emerald50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.emerald200),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.info_outline,
-                        color: AppColors.green700,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Fill in your details below. Admin will review and approve your registration.',
-                          style: AppTypography.bodySm.copyWith(
-                            color: AppColors.green800,
-                          ),
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Fill in your details below. Admin will review and approve your registration.',
+                  style: AppTypography.bodySm.copyWith(
+                    color: AppColors.green700,
                   ),
                 ),
                 const SizedBox(height: 24),
