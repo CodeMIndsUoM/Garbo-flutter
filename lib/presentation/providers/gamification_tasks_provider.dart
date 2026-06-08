@@ -42,10 +42,15 @@ class GamificationTasksProvider extends ChangeNotifier {
   int get totalTasks => _userTasks.length;
 
   /// Load user's gamification tasks and progress
-  Future<void> loadUserTasks(int userId) async {
-    if (_activeUserId == userId && _userTasksLoadFuture != null) {
+  Future<void> loadUserTasks(int userId, {bool force = false}) async {
+    if (!force && _activeUserId == userId && _userTasksLoadFuture != null) {
       _queuedUserTasksReload = true;
       return _userTasksLoadFuture!;
+    }
+
+    if (force) {
+      _queuedUserTasksReload = false;
+      _userTasksLoadFuture = null;
     }
 
     _activeUserId = userId;
@@ -107,6 +112,8 @@ class GamificationTasksProvider extends ChangeNotifier {
       }
     }
   }
+
+  Future<void> reloadUserTasks(int userId) => loadUserTasks(userId, force: true);
 
   void attachWebSocket(WebSocketProvider webSocketProvider) {
     _taskProgressSubscription?.cancel();

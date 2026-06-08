@@ -149,7 +149,7 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
       if (role != null && role.isNotEmpty) {
         await gamificationProvider.loadAvailableTasks(role);
       }
-      await gamificationProvider.loadUserTasks(_activeUserId!);
+        await gamificationProvider.loadUserTasks(_activeUserId!);
       if (mounted) {
         setState(() {
           _achievementsLoaded = true;

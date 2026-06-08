@@ -14,17 +14,16 @@ class AchievementsPage extends StatefulWidget {
 }
 
 class _AchievementsPageState extends State<AchievementsPage> {
-  bool _loaded = false;
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAchievements());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAchievements(force: true));
   }
 
-  Future<void> _loadAchievements() async {
-    if (_loaded || _loading) {
+  Future<void> _loadAchievements({bool force = false}) async {
+    if (_loading) {
       return;
     }
 
@@ -42,14 +41,12 @@ class _AchievementsPageState extends State<AchievementsPage> {
       if (role != null && role.isNotEmpty) {
         await gamificationProvider.loadAvailableTasks(role);
       }
-      await gamificationProvider.loadUserTasks(userId);
-      if (mounted) {
-        setState(() {
-          _loaded = true;
-          _loading = false;
-        });
+      if (force) {
+        await gamificationProvider.reloadUserTasks(userId);
+      } else {
+        await gamificationProvider.loadUserTasks(userId);
       }
-    } catch (_) {
+    } finally {
       if (mounted) {
         setState(() => _loading = false);
       }
@@ -71,34 +68,45 @@ class _AchievementsPageState extends State<AchievementsPage> {
       ),
       body: Consumer<GamificationTasksProvider>(
         builder: (context, gamificationProvider, _) {
-          if (_loading || gamificationProvider.isLoading) {
+          if (_loading && gamificationProvider.userTasks.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (gamificationProvider.errorMessage != null) {
+          if (gamificationProvider.errorMessage != null &&
+              gamificationProvider.userTasks.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(
-                  gamificationProvider.errorMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.red500,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      gamificationProvider.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.red500,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: () => _loadAchievements(force: true),
+                      child: const Text('Retry'),
+                    ),
+                  ],
                 ),
               ),
             );
           }
 
-          if (!_loaded) {
-            return const SizedBox.shrink();
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-            child: _buildContent(gamificationProvider),
+          return RefreshIndicator(
+            onRefresh: () => _loadAchievements(force: true),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+              child: _buildContent(gamificationProvider),
+            ),
           );
         },
       ),
@@ -320,10 +328,12 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  '${task.pointsEarned.toStringAsFixed(0)} pts earned',
-                  style: const TextStyle(
+                  task.pointsStatusLabel,
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFFEAB308),
+                    color: task.isCompleted
+                        ? const Color(0xFFEAB308)
+                        : AppColors.green700,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -396,9 +406,13 @@ class _AchievementsPageState extends State<AchievementsPage> {
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.lock_outline_rounded,
-              color: AppColors.grey400,
+            child: Icon(
+              task.currentProgress > 0
+                  ? Icons.trending_up_rounded
+                  : Icons.lock_outline_rounded,
+              color: task.currentProgress > 0
+                  ? AppColors.green700
+                  : AppColors.grey400,
               size: 22,
             ),
           ),
@@ -443,10 +457,12 @@ class _AchievementsPageState extends State<AchievementsPage> {
                 ],
                 const SizedBox(height: 8),
                 Text(
-                  '${task.pointsEarned.toStringAsFixed(0)} pts earned',
-                  style: const TextStyle(
+                  task.pointsStatusLabel,
+                  style: TextStyle(
                     fontSize: 11,
-                    color: Color(0xFFEAB308),
+                    color: task.isCompleted
+                        ? const Color(0xFFEAB308)
+                        : AppColors.green700,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

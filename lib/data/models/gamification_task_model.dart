@@ -158,4 +158,21 @@ class UserTaskProgress {
   double get progressPercentage => targetProgress > 0
       ? (currentProgress / targetProgress * 100).clamp(0, 100)
       : 0;
+
+  /// Label for points on achievement cards.
+  String get pointsStatusLabel {
+    if (isCompleted) {
+      if (pointsEarned > 0) {
+        return '${pointsEarned.toStringAsFixed(0)} pts earned';
+      }
+      if (availablePoints > 0) {
+        return '${availablePoints.toStringAsFixed(0)} pts reward';
+      }
+      return 'Completed';
+    }
+    if (availablePoints > 0) {
+      return 'Reward: ${availablePoints.toStringAsFixed(0)} pts';
+    }
+    return 'Complete to earn points';
+  }
 }
