@@ -8,6 +8,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -82,10 +83,11 @@ class _ChangePasswordState extends State<ChangePassword> {
 
       if (response.statusCode == 200) {
         if (!mounted) return;
-        _showSnackBar('Password changed successfully!');
+        await showSubmissionSuccess(context, message: 'Password changed');
 
         final role = prefs.getString('role');
         final nextRoute = AppRouter.routeForRole(role) ?? AppRouter.login;
+        if (!mounted) return;
         Navigator.pushNamedAndRemoveUntil(context, nextRoute, (route) => false);
       } else {
         final body = json.decode(response.body);

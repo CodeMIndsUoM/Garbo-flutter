@@ -7,6 +7,7 @@ import 'package:garbo_swms/data/models/collection_offer_model.dart';
 import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
@@ -20,6 +21,7 @@ import 'package:garbo_swms/presentation/citizen/pages/request/widgets/requests_f
 import 'package:garbo_swms/presentation/citizen/pages/request/widgets/requests_list.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +46,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
   DateTime? selectedPickupDate;
   String? selectedTimeSlot;
   LatLng? _pickupLocation;
+  bool _resolvingLocation = false;
   bool showMyRequests = false;
   bool _submitting = false;
   bool _loadingRequests = false;
@@ -228,7 +231,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
         showMyRequests = true;
       });
       await _loadRequests();
-      _showSnackBar('Request submitted successfully.');
+      if (!mounted) return;
+      await showSubmissionSuccess(context, message: 'Request submitted');
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Could not submit request: $e', isError: true);
@@ -299,6 +303,21 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
     setState(() => _pickupLocation = selected);
   }
 
+  Future<void> _useCurrentLocation() async {
+    setState(() => _resolvingLocation = true);
+    try {
+      final position = await LocationHelper.getCurrentPositionOrNull(
+        onError: (message) => _showSnackBar(message, isError: true),
+      );
+      if (position == null || !mounted) return;
+      setState(
+        () => _pickupLocation = LatLng(position.latitude, position.longitude),
+      );
+    } finally {
+      if (mounted) setState(() => _resolvingLocation = false);
+    }
+  }
+
   Future<void> _openRequestDetail(CollectionRequestModel request) async {
     try {
       final detail = await _apiService.getCollectionRequestDetail(request.id);
@@ -366,7 +385,7 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
       if (!mounted) return;
       Navigator.of(sheetCtx).pop();
       _patchRequestStatus(requestId, status: 'CONFIRMED');
-      _showSnackBar('Thanks! Your rating was submitted.');
+      await showSubmissionSuccess(context, message: 'Rating submitted');
       unawaited(_loadRequests());
     } catch (e) {
       if (!mounted) return;
@@ -409,10 +428,9 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
           offersCount: (current.offersCount - 1).clamp(0, 1 << 30),
         );
       }
-      _showSnackBar(
-        accept
-            ? 'Offer accepted successfully.'
-            : 'Offer rejected successfully.',
+      await showSubmissionSuccess(
+        context,
+        message: accept ? 'Offer accepted' : 'Offer rejected',
       );
       unawaited(_loadRequests());
     } catch (e) {
@@ -538,6 +556,8 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
                           setState(() => selectedTimeSlot = v),
                       onPickPhoto: _pickRequestPhoto,
                       onPickLocation: _openPickupLocationPicker,
+                      onUseCurrentLocation: _useCurrentLocation,
+                      resolvingLocation: _resolvingLocation,
                       onSubmit: _submitRequest,
                       showSnackBar: _showSnackBar,
                     ),

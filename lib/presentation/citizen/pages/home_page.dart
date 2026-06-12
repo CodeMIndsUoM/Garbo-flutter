@@ -60,8 +60,6 @@ class CitizenHomePageState extends State<CitizenHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
-                    buildWelcomeCard(),
-                    const SizedBox(height: 24),
                     buildQuickActions(),
                     const SizedBox(height: 24),
                     buildRecentActivity(),
@@ -74,15 +72,6 @@ class CitizenHomePageState extends State<CitizenHomePage> {
         ],
       ),
       bottomNavigationBar: const CitizenBottomNavbar(currentIndex: 0),
-    );
-  }
-
-  Widget buildWelcomeCard() {
-    return CitizenSurfaceCard(
-      child: Text(
-        "Let's make our city cleaner",
-        style: AppTypography.displaySm,
-      ),
     );
   }
 

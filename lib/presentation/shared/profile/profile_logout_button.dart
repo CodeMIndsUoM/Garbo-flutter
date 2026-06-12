@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
@@ -163,7 +164,7 @@ class ProfileLogoutButton extends StatelessWidget {
         return;
       }
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const Login()),
+        AppPageRoute(page: const Login()),
         (route) => false,
       );
     }

@@ -3,6 +3,7 @@ import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/router/auth_routes.dart';
+import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,7 +19,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   late final AnimationController _introController;
   late final AnimationController _exitController;
-  late final AnimationController _ambientController;
+  late final Animation<double> _heroScale;
+  late final Animation<double> _heroOpacity;
 
   late final Animation<double> _logoOpacity;
   late final Animation<double> _logoScale;
@@ -28,10 +30,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _taglineOpacity;
   late final Animation<Offset> _taglineSlide;
   late final Animation<double> _loaderOpacity;
-  late final Animation<double> _topOrbDrift;
-  late final Animation<double> _bottomOrbDrift;
-  late final Animation<double> _topOrbOpacity;
-  late final Animation<double> _bottomOrbOpacity;
   late final Animation<double> _exitFade;
   late final Animation<Offset> _exitLogoShift;
 
@@ -43,11 +41,6 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: _introDuration,
     );
-
-    _ambientController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 4200),
-    )..repeat(reverse: true);
 
     const logoCurve = Curves.easeOutCubic;
     const detailCurve = Curves.easeInOutCubic;
@@ -114,25 +107,17 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _topOrbDrift = Tween<double>(begin: 0, end: 18).animate(
-      CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut),
-    );
-
-    _bottomOrbDrift = Tween<double>(begin: 0, end: -14).animate(
-      CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut),
-    );
-
-    _topOrbOpacity = Tween<double>(begin: 0.35, end: 0.55).animate(
+    _heroScale = Tween<double>(begin: 1.08, end: 1).animate(
       CurvedAnimation(
         parent: _introController,
-        curve: const Interval(0, 0.55, curve: Curves.easeOut),
+        curve: const Interval(0, 1, curve: Curves.easeOutCubic),
       ),
     );
 
-    _bottomOrbOpacity = Tween<double>(begin: 0.3, end: 0.5).animate(
+    _heroOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _introController,
-        curve: const Interval(0.08, 0.62, curve: Curves.easeOut),
+        curve: const Interval(0, 0.45, curve: Curves.easeOut),
       ),
     );
 
@@ -177,7 +162,6 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _introController.dispose();
     _exitController.dispose();
-    _ambientController.dispose();
     super.dispose();
   }
 
@@ -189,11 +173,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       body: AnimatedBuilder(
-        animation: Listenable.merge([
-          _introController,
-          _exitController,
-          _ambientController,
-        ]),
+        animation: Listenable.merge([_introController, _exitController]),
         builder: (context, child) {
           final logoShift = Offset.lerp(
             _logoSlide.value,
@@ -201,53 +181,14 @@ class _SplashScreenState extends State<SplashScreen>
             _exitFade.value,
           )!;
 
-          return Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.emerald900,
-                  AppColors.green800,
-                  AppColors.green700,
-                ],
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              AuthHeroBackground(
+                imageOpacity: _heroOpacity.value,
+                imageScale: _heroScale.value,
               ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: -80 + _topOrbDrift.value,
-                  right: -60 - _topOrbDrift.value * 0.4,
-                  child: Opacity(
-                    opacity: _topOrbOpacity.value * (1 - _exitFade.value),
-                    child: Container(
-                      width: 250,
-                      height: 250,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.white10,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: -100 + _bottomOrbDrift.value,
-                  left: -80 - _bottomOrbDrift.value * 0.35,
-                  child: Opacity(
-                    opacity: _bottomOrbOpacity.value * (1 - _exitFade.value),
-                    child: Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.white10,
-                      ),
-                    ),
-                  ),
-                ),
-                Center(
+              Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -322,8 +263,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-              ],
-            ),
+            ],
           );
         },
       ),

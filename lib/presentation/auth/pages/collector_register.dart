@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/auth/pages/registration_status.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Third Party Collector Registration Screen
@@ -229,13 +231,12 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       );
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RegistrationStatus(
-              empId: result['empId'],
-              email: result['email'],
-            ),
+        await showSubmissionSuccess(context, message: 'Registration submitted');
+        if (!mounted) return;
+        context.pushReplacementAppPage(
+          RegistrationStatus(
+            empId: result['empId'],
+            email: result['email'],
           ),
         );
       }

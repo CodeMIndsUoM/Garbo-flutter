@@ -179,7 +179,6 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
 
     if (sent == true && mounted) {
-      _showSnackBar('Offer sent successfully.');
       await _loadFeed();
     }
   }

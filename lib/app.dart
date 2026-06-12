@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/presentation/providers/theme_provider.dart';
 
 class NoScrollbarBehavior extends MaterialScrollBehavior {
@@ -83,6 +84,16 @@ class App extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AppPageTransitionsBuilder(),
+          TargetPlatform.iOS: AppPageTransitionsBuilder(),
+          TargetPlatform.macOS: AppPageTransitionsBuilder(),
+          TargetPlatform.linux: AppPageTransitionsBuilder(),
+          TargetPlatform.windows: AppPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: AppPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
       appBarTheme: AppBarTheme(

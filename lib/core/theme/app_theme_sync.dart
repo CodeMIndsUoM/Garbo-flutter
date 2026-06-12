@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/presentation/providers/theme_provider.dart';
 
@@ -56,9 +57,7 @@ class AppThemeSync extends StatelessWidget {
   }
 }
 
-/// Builds a [MaterialPageRoute] whose page rebuilds on theme changes.
-Route<T> themedMaterialRoute<T>(Widget page) {
-  return MaterialPageRoute<T>(
-    builder: (_) => AppThemeSync(child: page),
-  );
+/// Builds a route whose page rebuilds on theme changes.
+Route<T> themedMaterialRoute<T>(Widget page, {RouteSettings? settings}) {
+  return AppPageRoute<T>(page: page, settings: settings);
 }

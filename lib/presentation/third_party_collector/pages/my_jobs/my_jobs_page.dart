@@ -11,6 +11,7 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs/utils/my_jobs_helpers.dart';
@@ -655,7 +656,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             .where((o) => o.id != offerForCompletion.id)
             .toList(growable: false);
       });
-      _showSnackBar('Collection marked as completed.');
+      await showSubmissionSuccess(context, message: 'Collection completed');
       unawaited(_loadData());
     } catch (e) {
       if (!mounted) return;
