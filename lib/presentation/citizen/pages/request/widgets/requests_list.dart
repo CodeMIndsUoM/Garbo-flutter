@@ -6,12 +6,11 @@ import 'package:garbo_swms/data/models/collection_request_model.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_helpers.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 
-/// Displays the list of citizen collection requests with filter bar support.
+/// Displays the list of citizen collection requests.
 class RequestsList extends StatelessWidget {
   final bool loading;
   final List<CollectionRequestModel> allRequests;
   final List<CollectionRequestModel> filteredRequests;
-  final Widget filterBar;
   final ValueChanged<CollectionRequestModel> onRequestTap;
 
   const RequestsList({
@@ -19,7 +18,6 @@ class RequestsList extends StatelessWidget {
     required this.loading,
     required this.allRequests,
     required this.filteredRequests,
-    required this.filterBar,
     required this.onRequestTap,
   });
 
@@ -48,28 +46,21 @@ class RequestsList extends StatelessWidget {
     }
 
     if (filteredRequests.isEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          filterBar,
-          Padding(
-            padding: const EdgeInsets.all(32),
-            child: Center(
-              child: Text(
-                'No matching requests. Try changing your filters.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
-              ),
-            ),
+      return Padding(
+        padding: const EdgeInsets.all(32),
+        child: Center(
+          child: Text(
+            'No matching requests. Try changing your filters.',
+            textAlign: TextAlign.center,
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
           ),
-        ],
+        ),
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        filterBar,
         ...filteredRequests.map((request) {
           final style = statusStyle(request.status);
           final canOpenOffers =

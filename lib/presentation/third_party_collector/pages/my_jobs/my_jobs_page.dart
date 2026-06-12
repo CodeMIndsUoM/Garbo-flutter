@@ -11,6 +11,7 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_search_filter_bar.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
@@ -36,6 +37,7 @@ class ThirdPartyMyJobsPage extends StatefulWidget {
 
 class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   final ApiService _apiService = ApiService();
+  final _jobsSearchController = TextEditingController();
   Timer? _timeTicker;
 
   _TabType _tab = _TabType.offer;
@@ -86,7 +88,12 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
   void dispose() {
     _timeTicker?.cancel();
     _marketplaceSub?.cancel();
+    _jobsSearchController.dispose();
     super.dispose();
+  }
+
+  void _onJobsSearchChanged() {
+    setState(() => _searchQuery = _jobsSearchController.text);
   }
 
   // ─── Data loading ───────────────────────────────────────────────────
@@ -494,16 +501,12 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       SizedBox(
                         width: double.infinity,
                         height: 54,
-                        child: ElevatedButton(
+                        child: FilledButton(
                           onPressed: () => Navigator.of(ctx).pop(true),
-                          style: ElevatedButton.styleFrom(
+                          style: FilledButton.styleFrom(
                             backgroundColor: AppColors.green700,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
                           ),
                           child: Text(
                             'Apply Filters',
@@ -532,6 +535,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       _selectedWasteTypes = localWasteTypes;
       _createdWithinDays = localCreatedWithinDays;
       _searchQuery = appliedQuery;
+      _jobsSearchController.text = appliedQuery;
     });
   }
 
@@ -700,6 +704,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
       _selectedWasteTypes.clear();
       _searchQuery = '';
       _createdWithinDays = null;
+      _jobsSearchController.clear();
     });
   }
 
@@ -748,19 +753,33 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
         child: Column(
           children: [
             Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: CitizenSearchFilterBar(
+                searchController: _jobsSearchController,
+                hintText: 'Search citizens, addresses, #id',
+                onChanged: _onJobsSearchChanged,
+                onFilterTap: _openAdvancedFilters,
+                activeFilterCount: _activeFilterCount,
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
               child: JobsFilterBar(
                 offerTabs: _offerTabs,
                 offersByStatus: _offersByStatus,
                 activeFilterCount: _activeFilterCount,
                 onOpenFilters: _openAdvancedFilters,
+                showFilterButton: false,
               ),
             ),
             JobsActiveFiltersRail(
               searchQuery: _searchQuery,
               selectedWasteTypes: _selectedWasteTypes,
               createdWithinDays: _createdWithinDays,
-              onClearSearch: () => setState(() => _searchQuery = ''),
+              onClearSearch: () => setState(() {
+                _searchQuery = '';
+                _jobsSearchController.clear();
+              }),
               onRemoveWasteType: (type) =>
                   setState(() => _selectedWasteTypes.remove(type)),
               onClearDays: () => setState(() => _createdWithinDays = null),
