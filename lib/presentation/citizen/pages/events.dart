@@ -11,6 +11,8 @@ import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layou
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_search_filter_bar.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_status_filter_sheet.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -28,6 +30,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   final ApiService _apiService = ApiService();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _suggestionSearchController = TextEditingController();
 
   List<Map<String, dynamic>> _events = [];
   List<Map<String, dynamic>> _myEvents = [];
@@ -35,6 +38,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   bool _submitting = false;
   bool _resolvingLocation = false;
   _EventsView _view = _EventsView.browse;
+  String _suggestionStatusFilter = 'ALL';
   DateTime? _selectedDate;
   LatLng? _suggestLocation;
   final Set<int> _enrollingIds = {};
@@ -49,7 +53,54 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _suggestionSearchController.dispose();
     super.dispose();
+  }
+
+  int get _suggestionActiveFilterCount {
+    var count = 0;
+    if (_suggestionStatusFilter != 'ALL') count++;
+    if (_suggestionSearchController.text.trim().isNotEmpty) count++;
+    return count;
+  }
+
+  List<Map<String, dynamic>> get _filteredMyEvents {
+    final query = _suggestionSearchController.text.trim().toLowerCase();
+    return _myEvents.where((event) {
+      final status = (event['status'] ?? 'PENDING').toString();
+      if (_suggestionStatusFilter != 'ALL' &&
+          status != _suggestionStatusFilter) {
+        return false;
+      }
+      if (query.isEmpty) return true;
+      final haystack = [
+        event['title'],
+        event['location'],
+        event['id'],
+        status,
+      ].join(' ').toLowerCase();
+      return haystack.contains(query);
+    }).toList(growable: false);
+  }
+
+  Widget _buildSuggestionsFilterBar() {
+    return CitizenSearchFilterBar(
+      searchController: _suggestionSearchController,
+      hintText: 'Search events, locations, #id',
+      onChanged: () => setState(() {}),
+      onFilterTap: () => showCitizenStatusFilterSheet(
+        context: context,
+        currentStatus: _suggestionStatusFilter,
+        onApply: (status) => setState(() => _suggestionStatusFilter = status),
+        options: const [
+          ('ALL', 'All'),
+          ('PENDING', 'Pending'),
+          ('APPROVED', 'Approved'),
+          ('REJECTED', 'Rejected'),
+        ],
+      ),
+      activeFilterCount: _suggestionActiveFilterCount,
+    );
   }
 
   String? get _locationLabel {
@@ -196,6 +247,9 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
               tabBar: _buildViewToggle(theme),
               onRefresh: _loadEvents,
               isLoading: _loading && _events.isEmpty && _myEvents.isEmpty,
+              stickyBar: _view == _EventsView.mySuggestions
+                  ? _buildSuggestionsFilterBar()
+                  : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -356,9 +410,18 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       );
     }
 
+    if (_filteredMyEvents.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(
+          child: Text('No matching suggestions. Try changing your filters.'),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: _myEvents.map((event) {
+      children: _filteredMyEvents.map((event) {
         final title = (event['title'] ?? 'Event').toString();
         final status = (event['status'] ?? 'PENDING').toString();
         final date = (event['eventDate'] ?? '').toString();

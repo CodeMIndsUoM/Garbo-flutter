@@ -8,12 +8,14 @@ class CitizenStickyTabLayout extends StatelessWidget {
     super.key,
     required this.tabBar,
     required this.child,
+    this.stickyBar,
     this.onRefresh,
     this.isLoading = false,
   });
 
   final Widget tabBar;
   final Widget child;
+  final Widget? stickyBar;
   final Future<void> Function()? onRefresh;
   final bool isLoading;
 
@@ -21,7 +23,7 @@ class CitizenStickyTabLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget scrollContent = SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 140),
+      padding: EdgeInsets.fromLTRB(24, stickyBar == null ? 16 : 8, 24, 140),
       child: child,
     );
 
@@ -39,6 +41,11 @@ class CitizenStickyTabLayout extends StatelessWidget {
           padding: CitizenSegmentedTabs.sectionPadding,
           child: tabBar,
         ),
+        if (stickyBar != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            child: stickyBar,
+          ),
         Expanded(
           child: isLoading
               ? const Center(child: CircularProgressIndicator())
