@@ -95,6 +95,11 @@ class ApiService {
 
   Future<String> getStoredEmpName() => _profileApi.getStoredEmpName();
 
+  Future<String> getStoredCouncil() => _profileApi.getStoredCouncil();
+
+  Future<void> saveStoredCouncil(String council) =>
+      _profileApi.saveStoredCouncil(council);
+
   Future<Map<String, dynamic>?> getUserProfile(String userId) =>
       _profileApi.getUserProfile(userId);
 

@@ -156,7 +156,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   }
 
   void _handleLogin() async {
-    final email = _usernameController.text.trim();
+    final email = _usernameController.text.trim().toLowerCase();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {

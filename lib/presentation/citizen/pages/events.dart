@@ -95,6 +95,7 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         options: const [
           ('ALL', 'All'),
           ('PENDING', 'Pending'),
+          ('PENDING_APPROVAL', 'Pending approval'),
           ('APPROVED', 'Approved'),
           ('REJECTED', 'Rejected'),
         ],
@@ -165,12 +166,17 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
 
     setState(() => _submitting = true);
     try {
-      await _apiService.suggestEvent({
+      final council = await _apiService.getStoredCouncil();
+      final payload = <String, dynamic>{
         'title': _titleController.text.trim(),
         'description': _descriptionController.text.trim(),
         'eventDate': _selectedDate!.toIso8601String().split('T').first,
         'location': _locationLabel,
-      });
+      };
+      if (council.trim().isNotEmpty) {
+        payload['council'] = council.trim();
+      }
+      await _apiService.suggestEvent(payload);
       if (!mounted) return;
       await showSubmissionSuccess(context, message: 'Suggestion submitted');
       if (!mounted) return;
@@ -182,10 +188,11 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         _view = _EventsView.mySuggestions;
       });
       await _loadEvents();
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        final message = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit suggestion')),
+          SnackBar(content: Text(message)),
         );
       }
     } finally {
@@ -287,7 +294,11 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
       ],
       selected: {_view},
       onSelectionChanged: (selection) {
-        setState(() => _view = selection.first);
+        final next = selection.first;
+        setState(() => _view = next);
+        if (next == _EventsView.browse) {
+          _loadEvents();
+        }
       },
     );
   }

@@ -28,6 +28,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
   String _phone = '-';
   String _address = '-';
   String _joinedDate = '-';
+  String _council = 'Your local council';
   String? _avatarUrl;
   bool _loading = true;
 
@@ -51,12 +52,16 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         return;
       }
 
+      final storedCouncil = await _apiService.getStoredCouncil();
+      if (!mounted) return;
+
       setState(() {
         _employeeId = empId;
         _name = (profile['empName'] ?? 'Citizen').toString();
         _email = (profile['email'] ?? '-').toString();
         _phone = (profile['phone'] ?? '-').toString();
         _address = (profile['defaultAddress'] ?? '-').toString();
+        _council = _resolveCouncilName(profile, storedCouncil);
         final avatar = (profile['avatarUrl'] ?? '').toString();
         _avatarUrl = avatar.isEmpty ? null : avatar;
         _joinedDate = _formatJoinedDate(profile['createdAt']);
@@ -65,6 +70,17 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  String _resolveCouncilName(
+    Map<String, dynamic> profile,
+    String storedCouncil,
+  ) {
+    final fromProfile = (profile['council'] ?? '').toString().trim();
+    if (fromProfile.isNotEmpty) return fromProfile;
+    final stored = storedCouncil.trim();
+    if (stored.isNotEmpty) return stored;
+    return 'Your local council';
   }
 
   String _formatJoinedDate(dynamic rawCreatedAt) {
@@ -156,7 +172,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
               children: [
                 _detailRow('Account Type', 'Citizen'),
                 const _DetailDivider(),
-                _detailRow('Council', 'Your local council'),
+                _detailRow('Council', _council),
                 const _DetailDivider(),
                 _detailRow('Full Name', _name),
                 const _DetailDivider(),
