@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -161,6 +162,8 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final routeProvider = context.watch<RouteProvider>();
     final today = DateTime.now();
     final activeRoutes = routes
@@ -329,7 +332,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
 
       if (mounted) {
         messenger.showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Bin skipped'),
             duration: Duration(seconds: 1),
             backgroundColor: AppColors.grey600,
@@ -475,7 +478,7 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Collection undone'),
             duration: Duration(seconds: 1),
             backgroundColor: AppColors.grey600,

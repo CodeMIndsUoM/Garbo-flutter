@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/presentation/auth/pages/login.dart';
 import 'package:garbo_swms/presentation/auth/pages/change_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/splash_screen.dart';
@@ -108,15 +109,19 @@ class AppRouter {
         final empId = args['empId'];
         final email = args['email']?.toString() ?? '';
         final parsedId = empId is int ? empId : int.tryParse('$empId') ?? 0;
-        return MaterialPageRoute(
-          builder: (_) => ThirdPartySetPasswordPage(
+        return AppPageRoute(
+          page: ThirdPartySetPasswordPage(
             empId: parsedId,
             email: email,
           ),
+          settings: settings,
         );
       }
     }
 
-    return MaterialPageRoute(builder: (_) => pageForRoute(routeName));
+    return AppPageRoute(
+      page: pageForRoute(routeName),
+      settings: settings,
+    );
   }
 }

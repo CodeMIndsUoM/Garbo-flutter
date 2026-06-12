@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
@@ -109,6 +112,8 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     if (_loading) {
       return Scaffold(
         extendBody: true,
@@ -179,6 +184,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                   subtitle: 'Jobs, ratings & response metrics',
                   child: _buildCollectorDetailsCard(),
                 ),
+                const ProfileAppearanceSection(),
               ],
               footer: const ProfileLogoutButton(
                 dialogMessage:
@@ -196,18 +202,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -305,18 +300,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
   Widget _buildCollectorDetailsCard() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         children: [
           _buildDetailRow(

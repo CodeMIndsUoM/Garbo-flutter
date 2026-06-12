@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -182,8 +183,8 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
               onTap: () {},
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                   boxShadow: [
                     BoxShadow(
@@ -348,7 +349,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
               color: AppColors.grey600,
               size: 18,
@@ -365,31 +366,16 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       decoration: BoxDecoration(
         color: AppColors.emerald50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: AppDecorations.cardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.emerald100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.inventory_2_outlined,
-              color: AppColors.green800,
-              size: 20,
-            ),
+          const Icon(
+            Icons.inventory_2_outlined,
+            color: AppColors.green800,
+            size: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -466,7 +452,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: focused ? AppColors.green700 : AppColors.grey200,
@@ -520,7 +506,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
       decoration: BoxDecoration(
         color: AppColors.grey50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,12 +515,12 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             width: 22,
             height: 22,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
+              border: Border.all(color: AppColors.border, width: 1),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.info_outline_rounded,
               color: AppColors.grey500,
               size: 13,
@@ -621,9 +607,9 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.grey200, width: 1.2),
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,7 +617,7 @@ class _CompleteCollectionSheetState extends State<CompleteCollectionSheet> {
             if (_photoPath == null)
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.camera_alt_outlined,
                     color: AppColors.grey500,
                   ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
@@ -10,6 +11,7 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/marketplace/marketplace_realtime_listener.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/leaflet_navigation_page.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs/utils/my_jobs_helpers.dart';
@@ -296,7 +298,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
     final shouldApply = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -419,9 +421,9 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                       const SizedBox(height: 8),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.grey200, width: 1.2),
+                          border: Border.all(color: AppColors.border, width: 1),
                         ),
                         child: TextField(
                           controller: queryController,
@@ -431,7 +433,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
                             hintStyle: AppTypography.bodyMd.copyWith(
                               color: AppColors.grey400,
                             ),
-                            prefixIcon: const Icon(
+                            prefixIcon: Icon(
                               Icons.search_rounded,
                               color: AppColors.grey400,
                               size: 22,
@@ -654,7 +656,7 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
             .where((o) => o.id != offerForCompletion.id)
             .toList(growable: false);
       });
-      _showSnackBar('Collection marked as completed.');
+      await showSubmissionSuccess(context, message: 'Collection completed');
       unawaited(_loadData());
     } catch (e) {
       if (!mounted) return;
@@ -705,6 +707,8 @@ class _ThirdPartyMyJobsPageState extends State<ThirdPartyMyJobsPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       extendBody: true,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -28,6 +30,8 @@ class ProfileStatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -49,23 +53,12 @@ class ProfileStatsSection extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200, width: 1.2),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadowSm,
-                  blurRadius: 3,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
+            decoration: AppDecorations.card(),
             child: Column(
               children: [
                 for (int i = 0; i < rows.length; i++) ...[
                   if (i > 0)
-                    const Divider(height: 1, color: AppColors.grey100),
+                    Divider(height: 1, color: AppColors.grey100),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,

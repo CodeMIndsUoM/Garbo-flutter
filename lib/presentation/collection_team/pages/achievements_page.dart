@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -56,10 +57,11 @@ class _AchievementsPageState extends State<AchievementsPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         foregroundColor: AppColors.grey900,
         elevation: 0,
         title: Text('Achievements', style: AppTypography.titleLg),
@@ -213,7 +215,7 @@ class _AchievementsPageState extends State<AchievementsPage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
+            Icon(Icons.stars_outlined, color: AppColors.grey900, size: 24),
             const SizedBox(width: 8),
             Text('Achievements', style: AppTypography.titleLg),
           ],
@@ -246,18 +248,10 @@ class _AchievementsPageState extends State<AchievementsPage> {
       decoration: AppDecorations.card(),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.star_rounded,
-              color: AppColors.green700,
-              size: 24,
-            ),
+          const Icon(
+            Icons.star_rounded,
+            color: AppColors.green700,
+            size: 24,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -323,18 +317,10 @@ class _AchievementsPageState extends State<AchievementsPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            width: 28,
-            height: 28,
-            decoration: const BoxDecoration(
-              color: AppColors.emerald50,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check_circle,
-              color: AppColors.green700,
-              size: 20,
-            ),
+          const Icon(
+            Icons.check_circle,
+            color: AppColors.green700,
+            size: 20,
           ),
         ],
       ),
@@ -349,22 +335,14 @@ class _AchievementsPageState extends State<AchievementsPage> {
       decoration: AppDecorations.card(),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              task.currentProgress > 0
-                  ? Icons.trending_up_rounded
-                  : Icons.lock_outline_rounded,
-              color: task.currentProgress > 0
-                  ? AppColors.green700
-                  : AppColors.grey400,
-              size: 22,
-            ),
+          Icon(
+            task.currentProgress > 0
+                ? Icons.trending_up_rounded
+                : Icons.lock_outline_rounded,
+            color: task.currentProgress > 0
+                ? AppColors.green700
+                : AppColors.grey400,
+            size: 22,
           ),
           const SizedBox(width: 14),
           Expanded(

@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:garbo_swms/core/router/page_transitions.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
@@ -8,13 +11,19 @@ import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/pages/forgot_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/register.dart';
 import 'package:garbo_swms/presentation/auth/pages/collector_register.dart';
+import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({super.key, this.enterAnimation});
+
+  /// When set, the login sheet motion is driven by the route transition
+  /// (splash → login handoff).
+  final Animation<double>? enterAnimation;
 
   @override
   State<Login> createState() => _LoginState();
@@ -35,6 +44,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   late final Animation<double> _overlayFade;
   late final AnimationController _checkController;
   late final Animation<double> _checkScale;
+
+  AnimationController? _sheetController;
+  late final Animation<Offset> _sheetSlide;
+  late final Animation<double> _sheetFade;
+  late final Animation<double> _headerFade;
 
   @override
   void initState() {
@@ -57,6 +71,53 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     _checkScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _checkController, curve: Curves.elasticOut),
     );
+
+    final enterAnimation = widget.enterAnimation;
+    if (enterAnimation != null) {
+      final sheetMotion = CurvedAnimation(
+        parent: enterAnimation,
+        curve: const Interval(0.06, 1.0, curve: Curves.easeOutCubic),
+      );
+      _sheetSlide = Tween<Offset>(
+        begin: const Offset(0, 1),
+        end: Offset.zero,
+      ).animate(sheetMotion);
+      _sheetFade = Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: enterAnimation,
+          curve: const Interval(0.06, 0.88, curve: Curves.easeOut),
+        ),
+      );
+      _headerFade = Tween<double>(begin: 0.9, end: 1).animate(
+        CurvedAnimation(
+          parent: enterAnimation,
+          curve: const Interval(0, 0.5, curve: Curves.easeOut),
+        ),
+      );
+    } else {
+      _sheetController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 720),
+      );
+      _sheetSlide = Tween<Offset>(
+        begin: const Offset(0, 1),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: _sheetController!,
+          curve: Curves.easeOutCubic,
+        ),
+      );
+      _sheetFade = CurvedAnimation(
+        parent: _sheetController!,
+        curve: const Interval(0, 0.75, curve: Curves.easeOut),
+      );
+      _headerFade = const AlwaysStoppedAnimation(1);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _sheetController?.forward();
+      });
+    }
   }
 
   @override
@@ -65,6 +126,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     _passwordController.dispose();
     _overlayController.dispose();
     _checkController.dispose();
+    _sheetController?.dispose();
     super.dispose();
   }
 
@@ -217,188 +279,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     }
   }
 
-  // Interactive mock Google OAuth chooser
-  void _handleGoogleOAuth() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Image.network(
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
-                        width: 24,
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: AppColors.blue500),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Sign in with Google',
-                        style: AppTypography.h4,
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Choose a Google account to continue to Garbo',
-                style: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
-              ),
-              const SizedBox(height: 20),
-              _buildGoogleAccountItem(
-                name: 'Thanoj Buddhima (Citizen)',
-                email: 'thanoj.citizen@gmail.com',
-                role: 'CITIZEN',
-              ),
-              const Divider(),
-              _buildGoogleAccountItem(
-                name: 'Saman Perera (Collector)',
-                email: 'saman.collector@gmail.com',
-                role: 'COLLECTOR',
-              ),
-              const Divider(),
-              _buildGoogleAccountItem(
-                name: 'Nimal Silva (Field Staff)',
-                email: 'nimal.fieldstaff@gmail.com',
-                role: 'FIELD_STAFF',
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGoogleAccountItem({
-    required String name,
-    required String email,
-    required String role,
-  }) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppColors.green700.withAlpha(26),
-        child: Text(
-          name[0],
-          style: AppTypography.titleSm.copyWith(color: AppColors.green700),
-        ),
-      ),
-      title: Text(name, style: AppTypography.titleMd),
-      subtitle: Text(email, style: AppTypography.bodySm),
-      onTap: () async {
-        Navigator.pop(context); // Close bottom sheet
-        setState(() => _isLoading = true);
-        
-        // Simulate google sign in API delay
-        await Future.delayed(const Duration(seconds: 1));
-
-        // Create mock response body based on selected role
-        final mockResponse = {
-          'empId': role == 'CITIZEN' ? 101 : (role == 'COLLECTOR' ? 102 : 103),
-          'empName': name.split(' (')[0],
-          'email': email,
-          'token': 'mock-google-oauth-token-xyz',
-          'role': role,
-          'onDuty': true,
-          'rewardPoints': 150.0,
-          'mustChangePassword': false,
-        };
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('empId', mockResponse['empId'].toString());
-        await prefs.setString('empName', mockResponse['empName'].toString());
-        await prefs.setString('email', email);
-        await prefs.setString('token', mockResponse['token'].toString());
-        await prefs.setString('role', role);
-
-        if (mounted) {
-          try {
-            final authProvider = context.read<AuthProvider>();
-            authProvider.setUserFromLoginResponse(mockResponse);
-          } catch (e) {
-            debugPrint('AuthProvider bridge failed: $e');
-          }
-        }
-
-        final nextRoute = AppRouter.routeForRole(role);
-        if (nextRoute != null) {
-          await _playSuccessTransition();
-          if (mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, nextRoute, (route) => false);
-          }
-        } else {
-          setState(() => _isLoading = false);
-        }
-      },
-    );
-  }
-
   Future<void> _playSuccessTransition() async {
     setState(() => _showSuccessOverlay = true);
     _overlayController.forward();
     await Future.delayed(const Duration(milliseconds: 200));
     _checkController.forward();
     await Future.delayed(const Duration(milliseconds: 1000));
-  }
-
-  Widget _buildSocialButton({
-    required Widget icon,
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Material(
-        color: Colors.white,
-        elevation: 2,
-        shadowColor: AppColors.green700.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(28),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(28),
-          child: Container(
-            width: double.infinity,
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: AppColors.green700.withValues(alpha: 0.25),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                icon,
-                const SizedBox(width: 12),
-                Text(
-                  text,
-                  style: AppTypography.buttonMd.copyWith(
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildRegisterCard({
@@ -412,26 +298,20 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.border,
             width: 1.2,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowSm,
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
+          boxShadow: AppDecorations.cardShadow,
         ),
         child: Row(
           children: [
             SizedBox(
               width: 44,
               height: 44,
-              child: Icon(icon, size: 28, color: Colors.black),
+              child: Icon(icon, size: 28, color: AppColors.textPrimary),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -441,14 +321,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                   Text(
                     title,
                     style: AppTypography.titleLg.copyWith(
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
                     style: AppTypography.bodySm.copyWith(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -456,10 +336,47 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.black.withValues(alpha: 0.35),
+              color: AppColors.grey400,
               size: 16,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return Material(
+      elevation: 4,
+      shadowColor: AppColors.green700.withValues(alpha: 0.35),
+      borderRadius: BorderRadius.circular(28),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton(
+          onPressed: _isLoading ? null : _handleLogin,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.green700,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.green700.withValues(alpha: 0.45),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            elevation: 0,
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Text(
+                  'Log in',
+                  style: AppTypography.buttonLg.copyWith(color: Colors.white),
+                ),
         ),
       ),
     );
@@ -469,27 +386,27 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     required String label,
     Widget? suffixIcon,
   }) {
-    const fieldBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(28)),
-      borderSide: BorderSide(color: Colors.black, width: 1),
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(28)),
+      borderSide: BorderSide(color: AppColors.textPrimary, width: 1),
     );
 
     return InputDecoration(
       labelText: label,
       labelStyle: AppTypography.bodyMd.copyWith(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: AppColors.textSecondary,
       ),
       floatingLabelStyle: AppTypography.labelMd.copyWith(
-        color: Colors.black,
+        color: AppColors.textPrimary,
       ),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.surface,
       border: fieldBorder,
       enabledBorder: fieldBorder,
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(28)),
-        borderSide: BorderSide(color: Colors.black, width: 1.2),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(28)),
+        borderSide: BorderSide(color: AppColors.textPrimary, width: 1.2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     );
@@ -504,12 +421,14 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             Text(
               label,
               style: AppTypography.titleSm.copyWith(
-                color: selected ? Colors.black : Colors.black.withValues(alpha: 0.45),
+                color: selected ? AppColors.textPrimary : AppColors.textSecondary,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
             const SizedBox(height: 12),
-            Container(
+            AnimatedContainer(
+              duration: AppTransitions.tab,
+              curve: AppTransitions.enter,
               height: 3,
               decoration: BoxDecoration(
                 color: selected ? AppColors.green700 : Colors.transparent,
@@ -525,12 +444,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget _buildFormCard({required Widget child}) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(28, 36, 28, 32),
+        padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
         child: child,
       ),
     );
@@ -538,40 +457,64 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final headerHeight = MediaQuery.of(context).size.height * 0.34;
 
     return Scaffold(
-      backgroundColor: AppColors.green700,
+      backgroundColor: AppColors.emerald900,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
+          const Positioned.fill(
+            child: AuthHeroBackground(
+              imageAlignment: Alignment(0, -0.45),
+            ),
+          ),
           Column(
             children: [
               SizedBox(
                 height: headerHeight,
                 width: double.infinity,
-                child: SafeArea(
-                  bottom: false,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'GARBO',
-                          style: AppTypography.displayLg.copyWith(
-                            color: Colors.white,
-                            letterSpacing: 6,
+                child: FadeTransition(
+                  opacity: _headerFade,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'GARBO',
+                            style: AppTypography.displayLg.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 6,
+                              shadows: const [
+                                Shadow(
+                                  color: Color(0x59000000),
+                                  blurRadius: 16,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Smart Waste Management',
-                          style: AppTypography.bodySm.copyWith(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            letterSpacing: 1,
+                          const SizedBox(height: 6),
+                          Text(
+                            'Smart Waste Management',
+                            style: AppTypography.bodySm.copyWith(
+                              color: Colors.white.withValues(alpha: 0.92),
+                              letterSpacing: 1,
+                              shadows: const [
+                                Shadow(
+                                  color: Color(0x4D000000),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -583,29 +526,44 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             right: 0,
             top: headerHeight - 28,
             bottom: 0,
-            child: _buildFormCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+            child: SlideTransition(
+              position: _sheetSlide,
+              child: FadeTransition(
+                opacity: _sheetFade,
+                child: _buildFormCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildTabLabel(
-                        'Log in',
-                        _selectedTab == 0,
-                        () => setState(() => _selectedTab = 0),
+                      Row(
+                        children: [
+                          _buildTabLabel(
+                            'Log in',
+                            _selectedTab == 0,
+                            () => setState(() => _selectedTab = 0),
+                          ),
+                          _buildTabLabel(
+                            'Register',
+                            _selectedTab == 1,
+                            () => setState(() => _selectedTab = 1),
+                          ),
+                        ],
                       ),
-                      _buildTabLabel(
-                        'Register',
-                        _selectedTab == 1,
-                        () => setState(() => _selectedTab = 1),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _selectedTab == 0
-                        ? Column(
+                      const SizedBox(height: 36),
+                      AnimatedSwitcher(
+                        duration: AppTransitions.tab,
+                        switchInCurve: AppTransitions.enter,
+                        switchOutCurve: AppTransitions.exit,
+                        transitionBuilder: (child, animation) {
+                          final isLogin = (child.key as ValueKey<String>?)?.value ==
+                              'login_form_view';
+                          return AppTransitions.buildTabSwitch(
+                            animation: animation,
+                            child: child,
+                            slideFromLeft: isLogin,
+                          );
+                        },
+                        child: _selectedTab == 0
+                            ? Column(
                             key: const ValueKey('login_form_view'),
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -613,16 +571,16 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 controller: _usernameController,
                                 keyboardType: TextInputType.emailAddress,
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                                 decoration: _loginFieldDecoration(label: 'Email'),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
                               TextField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                                 decoration: _loginFieldDecoration(
                                   label: 'Password',
@@ -631,7 +589,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
-                                      color: Colors.black.withValues(alpha: 0.45),
+                                      color: AppColors.textSecondary,
                                     ),
                                     onPressed: () => setState(
                                       () => _obscurePassword = !_obscurePassword,
@@ -639,11 +597,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 24),
                               RichText(
                                 text: TextSpan(
                                   style: AppTypography.bodyMd.copyWith(
-                                    color: Colors.black,
+                                    color: AppColors.textPrimary,
                                   ),
                                   children: [
                                     const TextSpan(text: 'Forget password? '),
@@ -655,100 +613,17 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                       ),
                                       recognizer: TapGestureRecognizer()
                                         ..onTap = () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const Forgotpassword(),
-                                            ),
+                                          context.pushAppPage(
+                                            const Forgotpassword(),
                                           );
                                         },
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 28),
-                              Material(
-                                elevation: 4,
-                                shadowColor:
-                                    AppColors.green700.withValues(alpha: 0.35),
-                                borderRadius: BorderRadius.circular(28),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 54,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        _isLoading ? null : _handleLogin,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.green700,
-                                      foregroundColor: Colors.white,
-                                      disabledBackgroundColor: AppColors.green700
-                                          .withValues(alpha: 0.45),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(28),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                    child: _isLoading
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2.5,
-                                            ),
-                                          )
-                                        : Text(
-                                            'Log in',
-                                            style: AppTypography.buttonLg
-                                                .copyWith(color: Colors.white),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 28),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Divider(
-                                      color: Colors.black.withValues(alpha: 0.12),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: Text(
-                                      'or',
-                                      style: AppTypography.bodyMd.copyWith(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.45,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(
-                                      color: Colors.black.withValues(alpha: 0.12),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              const SizedBox(height: 32),
+                              _buildLoginButton(),
                               const SizedBox(height: 24),
-                              _buildSocialButton(
-                                icon: Image.network(
-                                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png',
-                                  width: 20,
-                                  height: 20,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(
-                                    Icons.g_mobiledata,
-                                    color: AppColors.green700,
-                                  ),
-                                ),
-                                text: 'Continue with Google',
-                                onTap: _handleGoogleOAuth,
-                              ),
                             ],
                           )
                         : Column(
@@ -758,7 +633,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                               Text(
                                 'Select your role to start registration',
                                 style: AppTypography.bodyMd.copyWith(
-                                  color: Colors.black,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -768,12 +643,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 description:
                                     'Report waste items and request waste pickups in your area.',
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const Register(),
-                                    ),
-                                  );
+                                  context.pushAppPage(const Register());
                                 },
                               ),
                               const SizedBox(height: 16),
@@ -783,11 +653,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                                 description:
                                     'Offer waste collection services for citizens and local authorities.',
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const CollectorRegister(),
-                                    ),
+                                  context.pushAppPage(
+                                    const CollectorRegister(),
                                   );
                                 },
                               ),
@@ -795,6 +662,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                           ),
                   ),
                 ],
+              ),
+            ),
               ),
             ),
           ),
@@ -813,19 +682,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                     children: [
                       ScaleTransition(
                         scale: _checkScale,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check_rounded,
-                            color: AppColors.green700,
-                            size: 44,
-                          ),
-                        ),
+                        child: const SubmissionSuccessBadge(size: 80, iconSize: 44),
                       ),
                       const SizedBox(height: 20),
                       FadeTransition(

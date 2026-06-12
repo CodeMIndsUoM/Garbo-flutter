@@ -199,7 +199,7 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Container(
                       decoration: AppDecorations.card(
-                        color: isCurrentUser ? AppColors.blue50 : Colors.white,
+                        color: isCurrentUser ? AppColors.blue50 : AppColors.surface,
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,

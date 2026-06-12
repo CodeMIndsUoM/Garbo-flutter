@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -29,6 +31,8 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final sheetStatus = _toSheetStatus(offer.status);
     final (
       Color badgeBg,
@@ -55,18 +59,7 @@ class OfferCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.emerald50,
         child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
+          decoration: AppDecorations.card(),
           padding: const EdgeInsets.all(14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +109,7 @@ class OfferCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           color: AppColors.green700,
                           size: 13,
@@ -181,18 +174,7 @@ class ActiveJobCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,7 +196,7 @@ class ActiveJobCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           color: AppColors.green700,
                           size: 13,
@@ -399,7 +381,7 @@ Widget buildImageSlot(String? imageUrl) {
       color: AppColors.grey100,
       alignment: Alignment.center,
       child: imageUrl == null
-          ? const Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
+          ? Icon(Icons.image_rounded, color: AppColors.grey300, size: 28)
           : Image.network(
               imageUrl,
               fit: BoxFit.cover,
@@ -409,7 +391,7 @@ Widget buildImageSlot(String? imageUrl) {
               cacheHeight: 216,
               gaplessPlayback: true,
               filterQuality: FilterQuality.low,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, __, ___) => Icon(
                 Icons.broken_image_rounded,
                 color: AppColors.grey300,
                 size: 28,

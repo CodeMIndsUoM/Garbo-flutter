@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821311546484",
+    "project_id": "garbo-7391f",
+    "storage_bucket": "garbo-7391f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821311546484:android:63f9f27a310aee1da55d21",
+        "android_client_info": {
+          "package_name": "com.garbo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHrbES4dbLZYXClpnvmrQF4LMi8Tn1-rQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

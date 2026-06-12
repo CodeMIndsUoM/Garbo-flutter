@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -22,6 +23,8 @@ class JobsFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final controller = DefaultTabController.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 4, bottom: 12),
@@ -116,7 +119,7 @@ class JobsFilterBar extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        color: hasFilters ? AppColors.green700 : Colors.white,
+        color: hasFilters ? AppColors.green700 : AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: hasFilters ? AppColors.green700 : AppColors.grey200,
@@ -131,7 +134,7 @@ class JobsFilterBar extends StatelessWidget {
                   spreadRadius: -1,
                 ),
               ]
-            : const [
+            : [
                 BoxShadow(
                   color: AppColors.shadowSm,
                   offset: Offset(0, 1),
@@ -331,7 +334,7 @@ class JobsActiveFiltersRail extends StatelessWidget {
                 width: 18,
                 height: 18,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.green700,
                   shape: BoxShape.circle,
                 ),
@@ -388,11 +391,11 @@ class ClearRejectedBar extends StatelessWidget {
               ? Container(
                   key: const ValueKey('clear-rejected-bar'),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     border: Border(
                       top: BorderSide(color: AppColors.grey100, width: 1),
                     ),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
                         color: AppColors.shadowSm,
                         offset: Offset(0, -2),
@@ -456,7 +459,7 @@ class ClearRejectedBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (clearing)
-                const SizedBox(
+                SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
@@ -538,7 +541,7 @@ class EmptyOffers extends StatelessWidget {
               onPressed: onClearFilters,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.green800,
-                side: const BorderSide(color: AppColors.green700, width: 1),
+                side: BorderSide(color: AppColors.green700, width: 1),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -570,7 +573,7 @@ class EmptyActiveJobs extends StatelessWidget {
               color: AppColors.grey100,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.playlist_add_check_rounded,
               color: AppColors.grey400,
               size: 30,

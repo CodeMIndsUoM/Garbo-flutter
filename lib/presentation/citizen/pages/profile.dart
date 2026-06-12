@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -6,6 +7,7 @@ import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_edit_sheet.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
@@ -96,12 +98,14 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          CitizenHeader(name: _loading ? 'Profile' : _name),
+          CitizenHeader(name: 'Profile'),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -116,7 +120,10 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                       onEditTap: _openEditSheet,
                       showInfoChips: false,
                     ),
-                    sections: [buildProfileDetailsSection()],
+                    sections: [
+                      buildProfileDetailsSection(),
+                      const ProfileAppearanceSection(),
+                    ],
                     footer: const ProfileLogoutButton(
                       dialogMessage:
                           "You'll need to sign in again to access your dashboard.",
@@ -137,7 +144,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.person_outline, color: AppColors.grey900, size: 20),
+              Icon(Icons.person_outline, color: AppColors.grey900, size: 20),
               const SizedBox(width: 8),
               Text('Profile Details', style: AppTypography.titleLg),
             ],
@@ -205,6 +212,6 @@ class _DetailDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(height: 1, color: AppColors.grey100);
+    return Divider(height: 1, color: AppColors.grey100);
   }
 }

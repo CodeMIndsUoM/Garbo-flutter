@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -82,6 +83,8 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final routeProvider = context.watch<RouteProvider>();
     final today = DateTime.now();
     final sessions = routeProvider.routeHistory
@@ -284,11 +287,11 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: AppColors.shadowSm,
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -320,7 +323,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.blue200),
                 ),
@@ -350,7 +353,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.emerald200),
                   ),
@@ -398,7 +401,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(
                                 color: selected
@@ -445,8 +448,8 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   Widget _buildRouteStats(_JourneyMapData mapData) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.grey200, width: 1)),
       ),
       child: Row(
@@ -481,7 +484,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
   Widget _buildStartNavigationButton(_JourneyMapData mapData) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-      decoration: const BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: AppColors.surface),
       child: SafeArea(
         top: false,
         child: SizedBox(
@@ -508,7 +511,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text('Navigation stopped.'),
                       backgroundColor: AppColors.grey600,
                     ),
@@ -596,7 +599,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
     return showModalBottomSheet<_SessionMapEntry>(
       context: context,
       showDragHandle: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       builder: (context) {
         return SafeArea(
           child: Padding(
@@ -1362,7 +1365,7 @@ class CollectionTeamMapState extends State<CollectionTeamMap> {
           return;
         }
         messenger.showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Bin marked as skipped.'),
             duration: Duration(seconds: 1),
             backgroundColor: AppColors.grey600,

@@ -9,7 +9,7 @@ import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_details_ove
 ///
 /// Features:
 /// - Colored left border accent based on status
-/// - Category badge (green pill)
+/// - Category badge (muted blue pill)
 /// - Status label (colored text, top-right)
 /// - Bin code, address, time-ago
 /// - "Report Fill Level" button for unchecked bins
@@ -85,14 +85,14 @@ class BinCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.grey200,
+            color: AppColors.chipFill,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             bin.id,
             style: AppTypography.overline.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.grey700,
+              color: AppColors.chipText,
             ),
           ),
         ),
@@ -101,14 +101,15 @@ class BinCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.grey600,
+            color: AppColors.surfaceVariant,
             borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: AppColors.grey300, width: 1),
           ),
           child: Text(
             bin.displayCategory,
             style: AppTypography.overline.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.blue500,
             ),
           ),
         ),
@@ -149,7 +150,7 @@ class BinCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.green700,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
               color: AppColors.shadowSm,
               blurRadius: 4,
@@ -184,18 +185,12 @@ class BinCard extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: AppDecorations.cardShadow,
           ),
-          child: const Icon(Icons.more_vert, color: AppColors.grey700, size: 20),
+          child: Icon(Icons.more_vert, color: AppColors.grey700, size: 20),
         ),
       ),
     );

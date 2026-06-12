@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_segmented_tabs.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
@@ -12,8 +15,11 @@ import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/citizen/pages/report/report_status_helpers.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_dropdown_field.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:garbo_swms/presentation/shared/widgets/location_map_preview.dart';
+import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 
 class CitizenReportPage extends StatefulWidget {
   const CitizenReportPage({super.key});
@@ -35,7 +41,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   bool _submitting = false;
   bool _loadingReports = false;
   bool _gettingLocation = false;
-  Position? _location;
+  LatLng? _reportLocation;
   File? _photoFile;
   List<Map<String, dynamic>> _reports = [];
 
@@ -94,10 +100,25 @@ class CitizenReportPageState extends State<CitizenReportPage> {
     );
     if (mounted) {
       setState(() {
-        _location = position;
+        _reportLocation = position == null
+            ? null
+            : LatLng(position.latitude, position.longitude);
         _gettingLocation = false;
       });
     }
+  }
+
+  Future<void> _openLocationPicker() async {
+    final selected = await context.pushAppPage<LatLng>(
+      PickupLocationPickerPage(
+        initialLocation: _reportLocation ?? const LatLng(6.9271, 79.8612),
+        appBarTitle: 'Report Location',
+        instructions: 'Place the pin where the waste issue is located.',
+        confirmLabel: 'Confirm Report Location',
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() => _reportLocation = selected);
   }
 
   Future<void> _pickPhoto() async {
@@ -118,7 +139,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
       );
       return;
     }
-    if (_location == null) {
+    if (_reportLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Location is required. Enable location services.')),
       );
@@ -141,14 +162,13 @@ class CitizenReportPageState extends State<CitizenReportPage> {
             ? 'Report submitted via mobile app'
             : _descriptionController.text.trim(),
         'location':
-            '${_location!.latitude.toStringAsFixed(6)}, ${_location!.longitude.toStringAsFixed(6)}',
+            '${_reportLocation!.latitude.toStringAsFixed(6)}, ${_reportLocation!.longitude.toStringAsFixed(6)}',
         if (imageUrl != null) 'imageUrl': imageUrl,
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Report submitted successfully')),
-      );
+      await showSubmissionSuccess(context, message: 'Report submitted');
+      if (!mounted) return;
       setState(() {
         currentStep = 1;
         selectedIssueType = null;
@@ -156,7 +176,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
         selectedWasteType = null;
         _descriptionController.clear();
         _photoFile = null;
-        _location = null;
+        _reportLocation = null;
         showMyReports = true;
       });
       await _loadReports();
@@ -173,11 +193,13 @@ class CitizenReportPageState extends State<CitizenReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final theme = Theme.of(context);
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const CitizenHeader(name: 'Reports'),
@@ -266,37 +288,35 @@ class CitizenReportPageState extends State<CitizenReportPage> {
             label: Text(_photoFile == null ? 'Add Photo (Optional)' : 'Photo Selected'),
           ),
         ] else ...[
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(
-              _location != null ? Icons.location_on : Icons.location_off,
-              color: AppColors.green700,
-            ),
-            title: Text(
-              _location != null
-                  ? 'Location captured (${_location!.latitude.toStringAsFixed(4)}, ${_location!.longitude.toStringAsFixed(4)})'
-                  : 'Location required',
-              style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-            ),
-            subtitle: Text(
-              'You must enable location services',
-              style: AppTypography.bodySm,
-            ),
+          Text(
+            'Report location *',
+            style: AppTypography.titleSm.copyWith(fontWeight: FontWeight.w600),
           ),
-          FilledButton.icon(
-            onPressed: _gettingLocation ? null : _captureLocation,
-            icon: _gettingLocation
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  )
-                : const Icon(Icons.my_location),
-            label: Text(_gettingLocation ? 'Getting location...' : 'Use Current Location'),
+          const SizedBox(height: 12),
+          LocationSubmitActions(
+            onChooseOnMap: _openLocationPicker,
+            onUseCurrentLocation: _captureLocation,
+            resolvingLocation: _gettingLocation,
           ),
+          if (_reportLocation != null) ...[
+            const SizedBox(height: 16),
+            LocationMapPreview(
+              location: _reportLocation!,
+              onTap: _openLocationPicker,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Lat ${_reportLocation!.latitude.toStringAsFixed(5)}, '
+              'Lng ${_reportLocation!.longitude.toStringAsFixed(5)}',
+              style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+            ),
+          ] else ...[
+            const SizedBox(height: 12),
+            Text(
+              'Choose on map or use your current location.',
+              style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+            ),
+          ],
         ],
         const SizedBox(height: 32),
         SizedBox(
