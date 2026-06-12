@@ -16,7 +16,11 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({super.key, this.enterAnimation});
+
+  /// When set, the login sheet motion is driven by the route transition
+  /// (splash → login handoff).
+  final Animation<double>? enterAnimation;
 
   @override
   State<Login> createState() => _LoginState();
@@ -37,6 +41,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   late final Animation<double> _overlayFade;
   late final AnimationController _checkController;
   late final Animation<double> _checkScale;
+
+  AnimationController? _sheetController;
+  late final Animation<Offset> _sheetSlide;
+  late final Animation<double> _sheetFade;
+  late final Animation<double> _headerFade;
 
   @override
   void initState() {
@@ -59,6 +68,53 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     _checkScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _checkController, curve: Curves.elasticOut),
     );
+
+    final enterAnimation = widget.enterAnimation;
+    if (enterAnimation != null) {
+      final sheetMotion = CurvedAnimation(
+        parent: enterAnimation,
+        curve: const Interval(0.06, 1.0, curve: Curves.easeOutCubic),
+      );
+      _sheetSlide = Tween<Offset>(
+        begin: const Offset(0, 1),
+        end: Offset.zero,
+      ).animate(sheetMotion);
+      _sheetFade = Tween<double>(begin: 0, end: 1).animate(
+        CurvedAnimation(
+          parent: enterAnimation,
+          curve: const Interval(0.06, 0.88, curve: Curves.easeOut),
+        ),
+      );
+      _headerFade = Tween<double>(begin: 0.9, end: 1).animate(
+        CurvedAnimation(
+          parent: enterAnimation,
+          curve: const Interval(0, 0.5, curve: Curves.easeOut),
+        ),
+      );
+    } else {
+      _sheetController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 720),
+      );
+      _sheetSlide = Tween<Offset>(
+        begin: const Offset(0, 1),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: _sheetController!,
+          curve: Curves.easeOutCubic,
+        ),
+      );
+      _sheetFade = CurvedAnimation(
+        parent: _sheetController!,
+        curve: const Interval(0, 0.75, curve: Curves.easeOut),
+      );
+      _headerFade = const AlwaysStoppedAnimation(1);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _sheetController?.forward();
+      });
+    }
   }
 
   @override
@@ -67,6 +123,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     _passwordController.dispose();
     _overlayController.dispose();
     _checkController.dispose();
+    _sheetController?.dispose();
     super.dispose();
   }
 
@@ -548,28 +605,31 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
               SizedBox(
                 height: headerHeight,
                 width: double.infinity,
-                child: SafeArea(
-                  bottom: false,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'GARBO',
-                          style: AppTypography.displayLg.copyWith(
-                            color: Colors.white,
-                            letterSpacing: 6,
+                child: FadeTransition(
+                  opacity: _headerFade,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'GARBO',
+                            style: AppTypography.displayLg.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 6,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Smart Waste Management',
-                          style: AppTypography.bodySm.copyWith(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            letterSpacing: 1,
+                          const SizedBox(height: 6),
+                          Text(
+                            'Smart Waste Management',
+                            style: AppTypography.bodySm.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              letterSpacing: 1,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -581,29 +641,33 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             right: 0,
             top: headerHeight - 28,
             bottom: 0,
-            child: _buildFormCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+            child: SlideTransition(
+              position: _sheetSlide,
+              child: FadeTransition(
+                opacity: _sheetFade,
+                child: _buildFormCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildTabLabel(
-                        'Log in',
-                        _selectedTab == 0,
-                        () => setState(() => _selectedTab = 0),
+                      Row(
+                        children: [
+                          _buildTabLabel(
+                            'Log in',
+                            _selectedTab == 0,
+                            () => setState(() => _selectedTab = 0),
+                          ),
+                          _buildTabLabel(
+                            'Register',
+                            _selectedTab == 1,
+                            () => setState(() => _selectedTab = 1),
+                          ),
+                        ],
                       ),
-                      _buildTabLabel(
-                        'Register',
-                        _selectedTab == 1,
-                        () => setState(() => _selectedTab = 1),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _selectedTab == 0
-                        ? Column(
+                      const SizedBox(height: 28),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: _selectedTab == 0
+                            ? Column(
                             key: const ValueKey('login_form_view'),
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -791,6 +855,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                           ),
                   ),
                 ],
+              ),
+            ),
               ),
             ),
           ),
