@@ -6,6 +6,9 @@ import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/core/utils/location_helper.dart';
+import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +33,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  Position? _reportLocation;
+  bool _gettingLocation = false;
 
   Future<void> _pickImage() async {
     showModalBottomSheet(
@@ -94,12 +99,19 @@ class _ReportBinPageState extends State<ReportBinPage> {
       return;
     }
 
-    // TODO: Re-enable GPS requirement for production.
-    // Currently using a default location as fallback so the flow works on
-    // simulators without location services.
-    final position = await _tryGetCurrentPosition();
-    final double reportLat = position?.latitude ?? 6.9271;
-    final double reportLng = position?.longitude ?? 79.8612;
+    // Use captured location, or try GPS at submit time as fallback.
+    final position = _reportLocation ?? await _tryGetCurrentPosition();
+    if (!mounted) return;
+    if (position == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location is required. Tap "Current location" first.'),
+        ),
+      );
+      return;
+    }
+    final double reportLat = position.latitude;
+    final double reportLng = position.longitude;
 
     setState(() => _isSubmitting = true);
 
@@ -121,15 +133,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
       if (mounted) {
         if (success) {
           await _updateDayStreak();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Report submitted for ${widget.bin.id}'),
-              backgroundColor: AppColors.green700,
-            ),
-          );
-          Navigator.of(
-            context,
-          ).pop(true); // Return true to indicate refresh needed
+          if (!mounted) return;
+          setState(() => _isSubmitting = false);
+          await showSubmissionSuccess(context, message: 'Report submitted');
+          if (!mounted) return;
+          Navigator.of(context).pop(true);
         } else {
           _showError('Failed to submit report. Please try again.');
         }
@@ -149,6 +157,18 @@ class _ReportBinPageState extends State<ReportBinPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.red500),
     );
+  }
+
+  Future<void> _captureLocation() async {
+    setState(() => _gettingLocation = true);
+    final position = await LocationHelper.getCurrentPositionOrNull(
+      onError: _showError,
+    );
+    if (!mounted) return;
+    setState(() {
+      _reportLocation = position;
+      _gettingLocation = false;
+    });
   }
 
   Future<Position?> _tryGetCurrentPosition() async {
@@ -251,14 +271,13 @@ class _ReportBinPageState extends State<ReportBinPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Report Bin Status', style: AppTypography.h3),
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.grey900),
+          icon: Icon(Icons.close, color: AppColors.grey900),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -340,11 +359,11 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       fillColor: AppColors.grey50,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.grey200),
+                        borderSide: BorderSide(color: AppColors.grey200),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.grey200),
+                        borderSide: BorderSide(color: AppColors.grey200),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -353,6 +372,42 @@ class _ReportBinPageState extends State<ReportBinPage> {
                           width: 1.5,
                         ),
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  _buildSectionTitle('Report Location *'),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      _reportLocation != null
+                          ? Icons.location_on
+                          : Icons.location_off,
+                      color: AppColors.green700,
+                    ),
+                    title: Text(
+                      _reportLocation != null
+                          ? 'Location captured (${_reportLocation!.latitude.toStringAsFixed(4)}, ${_reportLocation!.longitude.toStringAsFixed(4)})'
+                          : 'Location required',
+                      style: AppTypography.bodyMd.copyWith(
+                        color: AppColors.grey900,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Use your current GPS position for this report',
+                      style: AppTypography.bodySm,
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: LocationActionButton(
+                      onPressed: _captureLocation,
+                      loading: _gettingLocation,
+                      label: _gettingLocation
+                          ? 'Getting location...'
+                          : 'Current location',
                     ),
                   ),
 
@@ -447,18 +502,10 @@ class _ReportBinPageState extends State<ReportBinPage> {
             : AppDecorations.card(),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isSelected ? color : color.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: isSelected ? Colors.white : color,
-                size: 26,
-              ),
+            Icon(
+              icon,
+              color: isSelected ? color : color,
+              size: 26,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -502,7 +549,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
         width: double.infinity,
         height: 160,
         decoration: AppDecorations.card(
-          color: _selectedImage == null ? Colors.white : AppColors.grey100,
+          color: _selectedImage == null ? AppColors.surface : AppColors.grey100,
         ).copyWith(
           image: _selectedImage != null
               ? DecorationImage(
@@ -515,7 +562,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.camera_alt_outlined,
                     size: 36,
                     color: AppColors.grey500,
@@ -547,7 +594,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       },
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: AppColors.grey700,
                           shape: BoxShape.circle,
                         ),

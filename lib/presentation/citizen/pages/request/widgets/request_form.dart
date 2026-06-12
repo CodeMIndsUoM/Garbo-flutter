@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -7,6 +8,7 @@ import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_cons
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_helpers.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_dropdown_field.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_waste_type_checklist.dart';
+import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
 import 'package:latlong2/latlong.dart';
 
 /// The multi-step collection request form (3 steps).
@@ -27,6 +29,8 @@ class RequestForm extends StatefulWidget {
   final ValueChanged<String?> onTimeSlotChanged;
   final VoidCallback onPickPhoto;
   final VoidCallback onPickLocation;
+  final VoidCallback onUseCurrentLocation;
+  final bool resolvingLocation;
   final VoidCallback onSubmit;
   final void Function(String message, {bool isError}) showSnackBar;
 
@@ -48,6 +52,8 @@ class RequestForm extends StatefulWidget {
     required this.onTimeSlotChanged,
     required this.onPickPhoto,
     required this.onPickLocation,
+    required this.onUseCurrentLocation,
+    this.resolvingLocation = false,
     required this.onSubmit,
     required this.showSnackBar,
   });
@@ -61,6 +67,8 @@ class _RequestFormState extends State<RequestForm> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,14 +215,13 @@ class _RequestFormState extends State<RequestForm> {
         ),
       ),
       const SizedBox(height: 12),
-      OutlinedButton.icon(
-        onPressed: widget.onPickLocation,
-        icon: const Icon(Icons.map_outlined),
-        label: Text(
-          widget.pickupLocation == null
-              ? 'Choose on map'
-              : 'Change pickup location',
-        ),
+      LocationSubmitActions(
+        onChooseOnMap: widget.onPickLocation,
+        onUseCurrentLocation: widget.onUseCurrentLocation,
+        resolvingLocation: widget.resolvingLocation,
+        mapButtonLabel: widget.pickupLocation == null
+            ? 'Choose on map'
+            : 'Change on map',
       ),
       if (widget.pickupLocation != null) ...[
         const SizedBox(height: 8),

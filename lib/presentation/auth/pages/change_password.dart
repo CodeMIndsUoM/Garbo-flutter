@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
@@ -6,6 +8,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -80,10 +83,11 @@ class _ChangePasswordState extends State<ChangePassword> {
 
       if (response.statusCode == 200) {
         if (!mounted) return;
-        _showSnackBar('Password changed successfully!');
+        await showSubmissionSuccess(context, message: 'Password changed');
 
         final role = prefs.getString('role');
         final nextRoute = AppRouter.routeForRole(role) ?? AppRouter.login;
+        if (!mounted) return;
         Navigator.pushNamedAndRemoveUntil(context, nextRoute, (route) => false);
       } else {
         final body = json.decode(response.body);
@@ -120,11 +124,11 @@ class _ChangePasswordState extends State<ChangePassword> {
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.grey200),
+        borderSide: BorderSide(color: AppColors.grey200),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.grey200),
+        borderSide: BorderSide(color: AppColors.grey200),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -138,6 +142,8 @@ class _ChangePasswordState extends State<ChangePassword> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       resizeToAvoidBottomInset: true,
@@ -163,18 +169,7 @@ class _ChangePasswordState extends State<ChangePassword> {
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey200, width: 1.2),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: AppColors.shadowSm,
-                      blurRadius: 3,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
+                decoration: AppDecorations.card(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/home.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/browse.dart';
 import 'package:garbo_swms/presentation/third_party_collector/pages/my_jobs.dart';
@@ -22,7 +23,7 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
 
     final page = pages[index];
     if (page != null) {
-      Navigator.of(context).pushReplacement(SmoothPageRoute(page: page));
+      context.pushFadeReplacement(page);
     }
   }
 
@@ -55,24 +56,4 @@ class ThirdPartyBottomNavbar extends StatelessWidget {
       ],
     );
   }
-}
-
-class SmoothPageRoute<T> extends PageRouteBuilder<T> {
-  final Widget page;
-
-  SmoothPageRoute({required this.page})
-    : super(
-        pageBuilder: (context, animation, secondaryAnimation) => page,
-        transitionDuration: const Duration(milliseconds: 350),
-        reverseTransitionDuration: const Duration(milliseconds: 350),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: const Cubic(0.22, 1, 0.36, 1),
-            ),
-            child: child,
-          );
-        },
-      );
 }

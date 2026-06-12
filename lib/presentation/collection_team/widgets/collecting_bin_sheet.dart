@@ -60,9 +60,9 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomPadding),
@@ -137,7 +137,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
               color: AppColors.grey100,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.close,
               size: 16,
               color: AppColors.grey600,
@@ -255,7 +255,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.green700.withValues(alpha: 0.08)
-                      : Colors.white,
+                      : AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
@@ -289,7 +289,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.edit_note_rounded,
               size: 16,
               color: AppColors.grey600,
@@ -304,7 +304,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.grey200),
           ),
@@ -341,7 +341,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
         },
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.grey700,
-          side: const BorderSide(color: AppColors.grey200),
+          side: BorderSide(color: AppColors.grey200),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

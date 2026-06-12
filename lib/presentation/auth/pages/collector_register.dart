@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:garbo_swms/core/router/page_transitions.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/auth/pages/registration_status.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Third Party Collector Registration Screen
@@ -228,13 +231,12 @@ class _CollectorRegisterState extends State<CollectorRegister> {
       );
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RegistrationStatus(
-              empId: result['empId'],
-              email: result['email'],
-            ),
+        await showSubmissionSuccess(context, message: 'Registration submitted');
+        if (!mounted) return;
+        context.pushReplacementAppPage(
+          RegistrationStatus(
+            empId: result['empId'],
+            email: result['email'],
           ),
         );
       }
@@ -260,16 +262,17 @@ class _CollectorRegisterState extends State<CollectorRegister> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
+          icon: Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Collector Registration', style: AppTypography.titleLg),
@@ -557,7 +560,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
               onPressed: () => setState(() => _currentStep--),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                side: const BorderSide(color: AppColors.grey300),
+                side: BorderSide(color: AppColors.grey300),
                 foregroundColor: AppColors.grey700,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -676,7 +679,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.emerald50 : Colors.white,
+                        color: isSelected ? AppColors.emerald50 : AppColors.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: isSelected
@@ -697,7 +700,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                             size: 20,
                           ),
                           const SizedBox(width: 12),
-                          const Icon(
+                          Icon(
                             Icons.location_city_outlined,
                             color: AppColors.grey400,
                             size: 18,
@@ -821,7 +824,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.add_photo_alternate_outlined,
                         size: 36,
                         color: AppColors.grey400,
@@ -881,14 +884,14 @@ class _CollectorRegisterState extends State<CollectorRegister> {
             hintStyle: AppTypography.bodySm.copyWith(color: AppColors.grey400),
             prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -929,20 +932,20 @@ class _CollectorRegisterState extends State<CollectorRegister> {
             hintText: hint,
             hintStyle: AppTypography.bodySm.copyWith(color: AppColors.grey400),
             prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
-            suffixIcon: const Icon(
+            suffixIcon: Icon(
               Icons.calendar_today_outlined,
               color: AppColors.grey400,
               size: 16,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.surface,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

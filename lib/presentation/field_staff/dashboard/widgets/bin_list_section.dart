@@ -29,7 +29,7 @@ class BinListSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.delete_outline,
                   color: AppColors.grey900,
                   size: 24,
@@ -121,7 +121,7 @@ class BinListSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.green700,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     color: AppColors.shadowSm,
                     blurRadius: 4,

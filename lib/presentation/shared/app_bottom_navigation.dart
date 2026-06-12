@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -18,14 +19,19 @@ class AppBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+    final isDark = AppColors.brightness == Brightness.dark;
+
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.85),
-            border: const Border(
-              top: BorderSide(color: AppColors.grey200, width: 1),
+            color: isDark
+                ? AppColors.background
+                : AppColors.surface.withValues(alpha: 0.85),
+            border: Border(
+              top: BorderSide(color: AppColors.border, width: 1),
             ),
           ),
           child: SafeArea(

@@ -13,7 +13,7 @@ class AchievementListSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.emoji_events_outlined,
               color: AppColors.grey900,
               size: 24,
@@ -55,14 +55,7 @@ class AchievementListSection extends StatelessWidget {
       decoration: AppDecorations.card(),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: AppDecorations.metricIconBox(),
-            child: Center(
-              child: Icon(icon, color: AppColors.green700, size: 24),
-            ),
-          ),
+          Icon(icon, color: AppColors.green700, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

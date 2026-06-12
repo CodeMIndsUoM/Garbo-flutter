@@ -172,14 +172,14 @@ class _HeaderRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(14),
             ),
             child: AnimatedRotation(
               turns: isExpanded ? 0.5 : 0,
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeInOut,
-              child: const Icon(
+              child: Icon(
                 Icons.keyboard_arrow_down,
                 color: AppColors.grey600,
                 size: 20,
@@ -266,7 +266,7 @@ class _ProgressSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -390,7 +390,7 @@ class _NavigateCollectButtons extends StatelessWidget {
               onPressed: onCollectNext,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.green700,
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.surface,
                 elevation: 0,
                 minimumSize: Size.zero,
                 padding: const EdgeInsets.symmetric(horizontal: 8),

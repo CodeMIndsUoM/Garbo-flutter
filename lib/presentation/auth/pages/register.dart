@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -70,12 +72,8 @@ class _CitizenRegisterState extends State<Register> {
         council: _selectedCouncil!,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully! Please log in.'),
-          backgroundColor: AppColors.green700,
-        ),
-      );
+      await showSubmissionSuccess(context, message: 'Account created');
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
       if (mounted) {
@@ -122,14 +120,14 @@ class _CitizenRegisterState extends State<Register> {
       prefixIcon: Icon(icon, color: AppColors.grey400, size: 18),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: BorderSide(color: AppColors.grey300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: BorderSide(color: AppColors.grey300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -202,8 +200,8 @@ class _CitizenRegisterState extends State<Register> {
             DropdownButtonFormField<String>(
               value: _selectedCouncil,
               style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-              dropdownColor: Colors.white,
-              icon: const Icon(
+              dropdownColor: AppColors.surface,
+              icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
                 color: AppColors.grey400,
               ),
@@ -228,16 +226,17 @@ class _CitizenRegisterState extends State<Register> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.grey900),
+          icon: Icon(Icons.arrow_back, color: AppColors.grey900),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Create Account', style: AppTypography.titleLg),

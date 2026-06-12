@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
@@ -9,6 +10,8 @@ import 'package:garbo_swms/presentation/citizen/widgets/citizen_segmented_tabs.d
 import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
+import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:latlong2/latlong.dart';
 
 enum _EventsView { browse, suggest, mySuggestions }
@@ -84,9 +87,8 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
     try {
       await _apiService.enrollInEvent(eventId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enrolled successfully')),
-        );
+        await showSubmissionSuccess(context, message: 'Enrolled successfully');
+        if (!mounted) return;
         await _loadEvents();
       }
     } catch (_) {
@@ -119,9 +121,8 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
         'location': _locationLabel,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event suggestion submitted for approval')),
-      );
+      await showSubmissionSuccess(context, message: 'Suggestion submitted');
+      if (!mounted) return;
       _titleController.clear();
       _descriptionController.clear();
       setState(() {
@@ -180,11 +181,13 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     final theme = Theme.of(context);
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const CitizenHeader(name: 'Events'),
@@ -328,30 +331,10 @@ class CitizenPublicEventsPageState extends State<CitizenPublicEventsPage> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _openLocationPicker,
-                icon: const Icon(Icons.map_outlined),
-                label: const Text('Choose on map'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _resolvingLocation ? null : _useCurrentLocation,
-                icon: _resolvingLocation
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location),
-                label: const Text('Current location'),
-              ),
-            ),
-          ],
+        LocationSubmitActions(
+          onChooseOnMap: _openLocationPicker,
+          onUseCurrentLocation: _useCurrentLocation,
+          resolvingLocation: _resolvingLocation,
         ),
         const SizedBox(height: 32),
         SizedBox(

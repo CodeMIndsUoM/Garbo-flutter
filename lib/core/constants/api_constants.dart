@@ -20,6 +20,13 @@ class ApiConstants {
   // User endpoints
   static const String users = '/users';
 
+  // Push notification endpoints (relative to baseUrl)
+  static String deviceTokens(int empId) => '/users/$empId/device-tokens';
+  static String userNotifications(int empId) => '/users/$empId/notifications';
+  static String notificationRead(String id) => '/notifications/$id/read';
+  static String markAllNotificationsRead(int empId) =>
+      '/users/$empId/notifications/read-all';
+
   // Third-party collector registration (public, no auth)
   static const String thirdPartyRegister = '/auth/thirdparty-register';
 }

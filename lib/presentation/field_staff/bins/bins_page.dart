@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -230,6 +231,8 @@ class _BinsPageState extends State<BinsPage> {
   // Coordinates the search bar, filter chips, list structure, and pull-to-refresh mechanism.
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -385,7 +388,7 @@ class _BinsPageState extends State<BinsPage> {
       context: context,
       barrierColor: AppColors.scrim,
       builder: (context) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
         ),

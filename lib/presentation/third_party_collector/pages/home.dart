@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/collection_offer_model.dart';
@@ -136,6 +139,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       extendBody: true,
@@ -203,18 +208,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -279,18 +273,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -351,9 +334,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'See nearby requests to offer on',
           primary: true,
           onTap: () {
-            Navigator.of(
-              context,
-            ).pushReplacement(SmoothPageRoute(page: ThirdPartyBrowsePage()));
+            context.pushFadeReplacement(const ThirdPartyBrowsePage());
           },
         ),
         const SizedBox(height: 10),
@@ -363,9 +344,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'Track pending and accepted offers',
           primary: false,
           onTap: () {
-            Navigator.of(
-              context,
-            ).pushReplacement(SmoothPageRoute(page: ThirdPartyMyJobsPage()));
+            context.pushFadeReplacement(const ThirdPartyMyJobsPage());
           },
         ),
       ],
@@ -379,7 +358,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     required bool primary,
     required VoidCallback onTap,
   }) {
-    final bgColor = Colors.white;
+    final bgColor = AppColors.surface;
     final titleColor = AppColors.grey900;
     final subColor = AppColors.grey600;
     final iconColor = AppColors.green700;
@@ -393,14 +372,8 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.grey200, width: 1.2),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowSm,
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
+            border: Border.all(color: AppColors.border, width: 1),
+            boxShadow: AppDecorations.cardShadow,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
@@ -439,18 +412,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   Widget _buildPerformanceMetrics() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         children: [
           _buildMetricRow(
@@ -509,18 +471,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
   Widget _buildCollectionCard(_Collection c) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -563,7 +514,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.format_quote_rounded,
                 size: 14,
                 color: AppColors.grey400,
@@ -586,7 +537,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
         color: AppColors.grey100,
         alignment: Alignment.center,
         child: imageUrl == null
-            ? const Icon(
+            ? Icon(
                 Icons.image_rounded,
                 color: AppColors.grey300,
                 size: 28,
@@ -600,7 +551,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
                 cacheHeight: 216,
                 gaplessPlayback: true,
                 filterQuality: FilterQuality.low,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (_, __, ___) => Icon(
                   Icons.broken_image_rounded,
                   color: AppColors.grey300,
                   size: 28,
@@ -662,21 +613,10 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200, width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadowSm,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.card(),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.assignment_turned_in_outlined,
             color: AppColors.grey400,
             size: 34,
@@ -791,10 +731,9 @@ class _AllCompletedCollectionsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         foregroundColor: AppColors.grey900,
         elevation: 0,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: AppColors.surface,
         title: Text(
           'Completed Collections',
           style: AppTypography.h3.copyWith(color: AppColors.grey900),
@@ -807,7 +746,7 @@ class _AllCompletedCollectionsPage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.assignment_turned_in_outlined,
                       color: AppColors.grey400,
                       size: 40,

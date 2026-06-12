@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -12,10 +13,11 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
+
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: const SizedBox.shrink(),
@@ -24,7 +26,7 @@ class SettingsPage extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: AppColors.grey700, size: 22),
+            icon: Icon(Icons.close, color: AppColors.grey700, size: 22),
           ),
         ],
         bottom: PreferredSize(
@@ -148,15 +150,7 @@ class SettingsMenuItem extends StatelessWidget {
           decoration: AppDecorations.card(),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
+              Icon(icon, color: iconColor, size: 22),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -195,7 +189,7 @@ class SettingsMenuItem extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 color: AppColors.grey400,
                 size: 22,

@@ -33,7 +33,7 @@ class CitizenWasteTypeChecklist extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Material(
-              color: checked ? AppColors.greenSurface2 : Colors.white,
+              color: checked ? AppColors.greenSurface2 : AppColors.surface,
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),

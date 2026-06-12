@@ -20,15 +20,10 @@ class LevelProgressCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: AppDecorations.metricIconBox(),
-                    child: const Icon(
-                      Icons.emoji_events,
-                      color: AppColors.green700,
-                      size: 24,
-                    ),
+                  const Icon(
+                    Icons.emoji_events,
+                    color: AppColors.green700,
+                    size: 24,
                   ),
                   const SizedBox(width: 12),
                   Column(
