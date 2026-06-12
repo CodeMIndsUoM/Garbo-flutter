@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -61,10 +62,7 @@ class RoleSelection extends StatelessWidget {
                   description:
                       'Register as a citizen to report waste and request collections',
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const Register()),
-                    );
+                    context.pushAppPage(const Register());
                   },
                 ),
                 const SizedBox(height: 24),
@@ -75,12 +73,7 @@ class RoleSelection extends StatelessWidget {
                   title: 'Third Party Collector',
                   description: 'Register as a third-party waste collector',
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CollectorRegister(),
-                      ),
-                    );
+                    context.pushAppPage(const CollectorRegister());
                   },
                 ),
               ],

@@ -3,6 +3,7 @@ import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -71,12 +72,8 @@ class _CitizenRegisterState extends State<Register> {
         council: _selectedCouncil!,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully! Please log in.'),
-          backgroundColor: AppColors.green700,
-        ),
-      );
+      await showSubmissionSuccess(context, message: 'Account created');
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
       if (mounted) {

@@ -5,6 +5,7 @@ import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 
 /// Shown after admin approves a third-party collector registration.
 class ThirdPartySetPasswordPage extends StatefulWidget {
@@ -62,7 +63,8 @@ class _ThirdPartySetPasswordPageState extends State<ThirdPartySetPasswordPage> {
         password: password,
       );
       if (!mounted) return;
-      _showSnackBar('Password set successfully. You can log in now.');
+      await showSubmissionSuccess(context, message: 'Password set');
+      if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.login,
         (route) => false,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/utils/notification_provider_access.dart';
@@ -22,11 +23,7 @@ class NotificationBellButton extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const NotificationsPage(),
-          ),
-        );
+        context.pushAppPage(const NotificationsPage());
       },
       child: SizedBox(
         width: 48,

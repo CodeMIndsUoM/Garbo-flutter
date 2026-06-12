@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/page_transitions.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -333,9 +334,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'See nearby requests to offer on',
           primary: true,
           onTap: () {
-            Navigator.of(
-              context,
-            ).pushReplacement(SmoothPageRoute(page: ThirdPartyBrowsePage()));
+            context.pushFadeReplacement(const ThirdPartyBrowsePage());
           },
         ),
         const SizedBox(height: 10),
@@ -345,9 +344,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
           subtitle: 'Track pending and accepted offers',
           primary: false,
           onTap: () {
-            Navigator.of(
-              context,
-            ).pushReplacement(SmoothPageRoute(page: ThirdPartyMyJobsPage()));
+            context.pushFadeReplacement(const ThirdPartyMyJobsPage());
           },
         ),
       ],

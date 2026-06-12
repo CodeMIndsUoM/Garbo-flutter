@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 
@@ -142,6 +143,8 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
         proposedPickupAt: _proposedPickupAt!,
         messageToCitizen: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
+      if (!mounted) return;
+      await showSubmissionSuccess(context, message: 'Offer sent');
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {

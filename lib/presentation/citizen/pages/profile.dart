@@ -105,7 +105,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
       backgroundColor: AppColors.grey50,
       body: Column(
         children: [
-          CitizenHeader(name: _loading ? 'Profile' : _name),
+          CitizenHeader(name: 'Profile'),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
