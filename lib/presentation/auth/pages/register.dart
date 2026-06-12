@@ -64,13 +64,15 @@ class _CitizenRegisterState extends State<Register> {
 
     setState(() => _submitting = true);
     try {
-      await _apiService.registerCitizen(
+      final result = await _apiService.registerCitizen(
         fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim(),
+        email: _emailController.text.trim().toLowerCase(),
         phone: _phoneController.text.trim(),
         password: _passwordController.text,
         council: _selectedCouncil!,
       );
+      final council = (result['council'] ?? _selectedCouncil ?? '').toString();
+      await _apiService.saveStoredCouncil(council);
       if (!mounted) return;
       await showSubmissionSuccess(context, message: 'Account created');
       if (!mounted) return;

@@ -53,6 +53,18 @@ class ProfileApi {
     return prefs.getString('empName') ?? 'Collector';
   }
 
+  Future<String> getStoredCouncil() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('council') ?? '';
+  }
+
+  Future<void> saveStoredCouncil(String council) async {
+    final trimmed = council.trim();
+    if (trimmed.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('council', trimmed);
+  }
+
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     if (userId.isEmpty) return null;
     final url = Uri.parse(
