@@ -10,6 +10,8 @@ import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReportBinPage extends StatefulWidget {
@@ -140,6 +142,12 @@ class _ReportBinPageState extends State<ReportBinPage> {
       if (mounted) {
         if (result.success) {
           await _updateDayStreak();
+          final userId = int.tryParse(widget.empId);
+          if (userId != null && mounted) {
+            await context.read<GamificationTasksProvider>().reloadUserTasks(
+              userId,
+            );
+          }
           if (!mounted) return;
           setState(() => _isSubmitting = false);
           final message = result.discrepancy
