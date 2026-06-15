@@ -41,8 +41,8 @@ void main() {
 
       expect(offer.collectorName, 'Collector');
       expect(offer.collectorCompany, isNull);
-      expect(offer.pricePerUnit, 0);
-      expect(offer.priceUnit, 'FIXED');
+      expect(offer.pricePerUnit, isNull);
+      expect(offer.priceUnit, isNull);
       expect(offer.messageToCitizen, isNull);
       expect(offer.completedAt, isNull);
       expect(offer.createdAt, isNull);

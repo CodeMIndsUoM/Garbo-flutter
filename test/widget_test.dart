@@ -14,6 +14,7 @@ import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/providers/route_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
+import 'package:garbo_swms/presentation/providers/theme_provider.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
 
 void main() {
@@ -22,6 +23,7 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProxyProvider<AuthProvider, WebSocketProvider>(
             create: (context) => WebSocketProvider(context.read<AuthProvider>()),
