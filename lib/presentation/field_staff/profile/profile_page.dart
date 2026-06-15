@@ -17,7 +17,6 @@ import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
-import 'package:garbo_swms/presentation/shared/profile/profile_app_update_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_nav_button.dart';
@@ -524,7 +523,6 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: ProfileAchievementList(),
         ),
-        const ProfileAppUpdateSection(),
         const ProfileAppearanceSection(),
       ],
       footer: const ProfileLogoutButton(),
