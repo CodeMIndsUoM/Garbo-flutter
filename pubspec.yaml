@@ -52,5 +52,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/login-hero.jpg
+    - assets/images/login-hero-community.png
     - assets/images/garbo-logo.png
