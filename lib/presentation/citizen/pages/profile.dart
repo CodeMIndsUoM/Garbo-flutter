@@ -7,6 +7,7 @@ import 'package:garbo_swms/presentation/citizen/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/citizen/widgets/header.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_edit_sheet.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_app_update_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
@@ -138,6 +139,7 @@ class CitizenProfilePageState extends State<CitizenProfilePage> {
                     ),
                     sections: [
                       buildProfileDetailsSection(),
+                      const ProfileAppUpdateSection(),
                       const ProfileAppearanceSection(),
                     ],
                     footer: const ProfileLogoutButton(
