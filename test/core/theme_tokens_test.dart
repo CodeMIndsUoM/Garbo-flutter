@@ -6,8 +6,8 @@ import 'package:garbo_swms/core/theme/typography.dart';
 void main() {
   group('AppColors palette', () {
     test('primary brand greens use the canonical hex values', () {
-      expect(AppColors.green700, const Color(0xFF03824B));
-      expect(AppColors.green800, const Color(0xFF026639));
+      expect(AppColors.green700, const Color(0xFF17A34A));
+      expect(AppColors.green800, const Color(0xFF17A34A));
     });
 
     test('shadow tokens use black with documented opacity', () {
