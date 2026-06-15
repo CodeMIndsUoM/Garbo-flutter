@@ -1,11 +1,12 @@
 class ApiConstants {
-  // Host options:
-  //   • USB-connected Android (adb reverse tcp:8081 tcp:8081) : http://127.0.0.1:8081/api
-  //   • Android Emulator                                      : http://10.0.2.2:8081/api
-  //   • iOS Simulator                                         : http://127.0.0.1:8081/api
-  //   • Physical device over Wi-Fi                            : http://<mac-lan-ip>:8081/api
-  //   • Flutter Web (local)                                   : http://127.0.0.1:8081/api
-  static const String baseUrl = 'http://127.0.0.1:8081/api';
+  // Override at build time: --dart-define=API_BASE=http://13.233.77.40/api
+  // Local dev defaults:
+  //   USB Android (adb reverse) : http://127.0.0.1:8081/api
+  //   Android Emulator        : http://10.0.2.2:8081/api
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE',
+    defaultValue: 'http://127.0.0.1:8081/api',
+  );
 
   // Field Mentor Endpoints
   static const String fieldMentors = '/fieldmentors';
