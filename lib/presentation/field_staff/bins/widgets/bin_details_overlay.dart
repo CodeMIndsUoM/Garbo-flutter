@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/bin_map_page.dart';
 
@@ -69,7 +70,7 @@ class BinDetailsOverlay extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: ShapeDecoration(
-                          color: _getBadgeBgColor(bin.displayStatus),
+                          color: BinStatusTheme.surface(bin.displayStatus),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -78,7 +79,7 @@ class BinDetailsOverlay extends StatelessWidget {
                           bin.displayStatus.label.toUpperCase(),
                           style: AppTypography.captionSm.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: _getStatusTextColor(bin.displayStatus),
+                            color: BinStatusTheme.text(bin.displayStatus),
                           ),
                         ),
                       ),
@@ -144,9 +145,9 @@ class BinDetailsOverlay extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: ShapeDecoration(
-                  color: _getCardBgColor(bin.displayStatus),
+                  color: BinStatusTheme.cardBackground(bin.displayStatus),
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1.27, color: _getCardBorderColor(bin.displayStatus)),
+                    side: BorderSide(width: 1.27, color: BinStatusTheme.cardBorder(bin.displayStatus)),
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
@@ -156,7 +157,7 @@ class BinDetailsOverlay extends StatelessWidget {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _getCardTextColor(bin.displayStatus),
+                        color: BinStatusTheme.cardText(bin.displayStatus),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
@@ -170,7 +171,7 @@ class BinDetailsOverlay extends StatelessWidget {
                     Text(
                       bin.displayStatus.label,
                       style: AppTypography.h1.copyWith(
-                        color: _getCardTextColor(bin.displayStatus),
+                        color: BinStatusTheme.cardText(bin.displayStatus),
                       ),
                     ),
                   ],
@@ -290,73 +291,6 @@ class BinDetailsOverlay extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  // --- Theme Helpers based on Status ---
-
-  Color _getBadgeBgColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey100; // Grey
-      case BinStatus.full:
-        return AppColors.redSurface2; // Light Red
-      case BinStatus.half:
-        return AppColors.yellow; // Light Yellow
-      case BinStatus.empty:
-        return AppColors.greenSurface2; // Light Green
-    }
-  }
-
-  Color _getStatusTextColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey600; // Dark Grey
-      case BinStatus.full:
-        return AppColors.redDark; // Dark Red
-      case BinStatus.half:
-        return AppColors.yellowDark; // Dark Yellow
-      case BinStatus.empty:
-        return AppColors.greenDark; // Dark Green
-    }
-  }
-
-  Color _getCardBgColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey50;
-      case BinStatus.full:
-        return AppColors.redSurface2;
-      case BinStatus.half:
-        return AppColors.yellow;
-      case BinStatus.empty:
-        return AppColors.greenSurface3;
-    }
-  }
-
-  Color _getCardBorderColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey200;
-      case BinStatus.full:
-        return AppColors.red100;
-      case BinStatus.half:
-        return AppColors.yellow400.withValues(alpha: 0.3);
-      case BinStatus.empty:
-        return AppColors.greenBorder2;
-    }
-  }
-
-  Color _getCardTextColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.citizenGrey500;
-      case BinStatus.full:
-        return AppColors.redDark2;
-      case BinStatus.half:
-        return AppColors.yellowDark;
-      case BinStatus.empty:
-        return AppColors.greenDark2;
-    }
   }
 
   IconData _getStatusIcon(BinStatus status) {

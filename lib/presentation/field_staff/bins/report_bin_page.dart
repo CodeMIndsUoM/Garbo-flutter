@@ -9,6 +9,7 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
 import 'package:provider/provider.dart';
@@ -369,8 +370,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.empty,
                     label: 'Empty',
                     description: 'Bin is empty or near empty',
-                    color: AppColors.green700,
-                    bgColor: AppColors.emerald50,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.empty),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.empty),
                     icon: Icons.sentiment_satisfied_alt,
                   ),
                   const SizedBox(height: 12),
@@ -378,8 +379,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.half,
                     label: 'Half Full',
                     description: 'Bin is about halfway filled',
-                    color: AppColors.amber600,
-                    bgColor: AppColors.amberSurface,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.half),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.half),
                     icon: Icons.sentiment_neutral,
                   ),
                   const SizedBox(height: 12),
@@ -387,8 +388,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.full,
                     label: 'Full',
                     description: 'Bin is full or overflowing',
-                    color: AppColors.red500,
-                    bgColor: AppColors.red50,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.full),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.full),
                     icon: Icons.sentiment_very_dissatisfied,
                   ),
 
@@ -615,18 +616,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
     }
   }
 
-  Color _statusColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.full:
-        return AppColors.red500;
-      case BinStatus.half:
-        return AppColors.amber600;
-      case BinStatus.empty:
-        return AppColors.green700;
-      case BinStatus.notChecked:
-        return AppColors.grey600;
-    }
-  }
+  Color _statusColor(BinStatus status) => BinStatusTheme.reportOptionColor(status);
 
   Widget _buildStatusOption({
     required BinStatus status,

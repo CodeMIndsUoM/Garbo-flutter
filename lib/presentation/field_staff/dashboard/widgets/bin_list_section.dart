@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class BinListSection extends StatelessWidget {
@@ -93,14 +94,14 @@ class BinListSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.blue50,
+                  color: BinStatusTheme.badgeBackground(bin.displayStatus),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   bin.displayStatus.label.toUpperCase(),
                   style: AppTypography.overline.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: _statusColor(bin.displayStatus),
+                    color: BinStatusTheme.text(bin.displayStatus),
                   ),
                 ),
               ),
@@ -156,18 +157,5 @@ class BinListSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Color _statusColor(BinStatus status) {
-    switch (status) {
-      case BinStatus.full:
-        return AppColors.red500;
-      case BinStatus.half:
-        return AppColors.yellowDark;
-      case BinStatus.empty:
-        return AppColors.green700;
-      case BinStatus.notChecked:
-        return AppColors.blue600;
-    }
   }
 }
