@@ -231,7 +231,7 @@ class _CitizenRegisterState extends State<Register> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,

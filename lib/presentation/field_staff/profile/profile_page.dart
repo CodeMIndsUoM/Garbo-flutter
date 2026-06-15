@@ -1,15 +1,25 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/achievements_page.dart';
+import 'package:garbo_swms/presentation/collection_team/pages/leaderboard.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_performance_grid.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_achievement_list.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
+import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
+import 'package:garbo_swms/presentation/shared/profile/profile_nav_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_page_body.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -30,11 +40,90 @@ class _ProfilePageState extends State<ProfilePage> {
   String _joinedDate = '-';
   String? _avatarUrl;
   bool _uploadingPhoto = false;
+  bool _didInitProviders = false;
+  bool _achievementsLoaded = false;
+  int? _activeUserId;
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
+  _gamificationSocketSubscription;
+  Timer? _gamificationRefreshDebounce;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didInitProviders) {
+      return;
+    }
+    _didInitProviders = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _initGamificationProviders();
+      _attachGamificationRealtimeRefresh(context.read<WebSocketProvider>());
+    });
+  }
+
+  void _initGamificationProviders() {
+    final authProvider = context.read<AuthProvider>();
+    final userId = authProvider.currentUser?.empId ?? int.tryParse(_employeeId);
+    final role = authProvider.currentUser?.role ?? 'FIELD_STAFF';
+
+    if (userId == null) {
+      return;
+    }
+
+    _activeUserId = userId;
+    context.read<LeaderboardProvider>().trackUser(userId, role: role);
+    context.read<GamificationTasksProvider>().loadUserTasks(userId);
+    if (role.isNotEmpty) {
+      context.read<GamificationTasksProvider>().loadAvailableTasks(role);
+    }
+    setState(() => _achievementsLoaded = true);
+  }
+
+  void _attachGamificationRealtimeRefresh(WebSocketProvider webSocketProvider) {
+    _gamificationSocketSubscription?.cancel();
+    _gamificationSocketSubscription = webSocketProvider.messageStream.listen((
+      message,
+    ) {
+      if (_activeUserId == null) {
+        return;
+      }
+
+      final type = message.type.toUpperCase();
+      if (type != 'TASK_PROGRESS_UPDATE' && type != 'LEADERBOARD_UPDATE') {
+        return;
+      }
+
+      final messageUserId = message.userId;
+      if (messageUserId != null && messageUserId != _activeUserId) {
+        return;
+      }
+
+      _gamificationRefreshDebounce?.cancel();
+      _gamificationRefreshDebounce = Timer(const Duration(milliseconds: 600), () {
+        if (!mounted || _activeUserId == null) {
+          return;
+        }
+        context.read<GamificationTasksProvider>().reloadUserTasks(_activeUserId!);
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _gamificationRefreshDebounce?.cancel();
+    _gamificationSocketSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadProfile() async {
@@ -50,6 +139,13 @@ class _ProfilePageState extends State<ProfilePage> {
         }
         _employeeId = empId.trim().isNotEmpty ? empId : '-';
       });
+
+      if (empId.trim().isNotEmpty && mounted) {
+        _activeUserId = int.tryParse(empId);
+        if (_didInitProviders) {
+          _initGamificationProviders();
+        }
+      }
 
       if (empId.trim().isEmpty) {
         return;
@@ -304,7 +400,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   hintText: 'Enter your name',
                   hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
                   filled: true,
-                  fillColor: AppColors.grey50,
+                  fillColor: AppColors.inputFill,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
@@ -410,18 +506,71 @@ class _ProfilePageState extends State<ProfilePage> {
         avatarUrl: _avatarUrl,
         onEditTap: _openEditProfileSheet,
       ),
-      sections: const [
-        Padding(
+      sections: [
+        const Padding(
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: ProfilePerformanceGrid(),
         ),
         Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _buildLeaderboardSection(),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _buildAchievementsSection(),
+        ),
+        const Padding(
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: ProfileAchievementList(),
         ),
-        ProfileAppearanceSection(),
+        const ProfileAppearanceSection(),
       ],
       footer: const ProfileLogoutButton(),
+    );
+  }
+
+  Widget _buildLeaderboardSection() {
+    return Consumer<LeaderboardProvider>(
+      builder: (context, leaderboardProvider, _) {
+        final userEntry = leaderboardProvider.userRankEntry;
+        final subtitle = userEntry != null
+            ? 'Rank #${userEntry.rank} • ${userEntry.rewardPoints.toStringAsFixed(0)} pts'
+            : 'Top earners and your rank';
+
+        return ProfileNavButton(
+          title: 'Leaderboard',
+          icon: Icons.emoji_events_outlined,
+          subtitle: subtitle,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LeaderboardPage()),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAchievementsSection() {
+    return Consumer<GamificationTasksProvider>(
+      builder: (context, gamificationProvider, _) {
+        final totalTasks = gamificationProvider.totalTasks;
+        final totalCompleted = gamificationProvider.totalCompleted;
+        final subtitle = _achievementsLoaded && totalTasks > 0
+            ? '$totalCompleted of $totalTasks completed'
+            : 'Completed & in-progress tasks';
+
+        return ProfileNavButton(
+          title: 'Achievements',
+          icon: Icons.stars_outlined,
+          subtitle: subtitle,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AchievementsPage()),
+            );
+          },
+        );
+      },
     );
   }
 }

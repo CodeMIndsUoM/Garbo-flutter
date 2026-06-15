@@ -265,7 +265,7 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,

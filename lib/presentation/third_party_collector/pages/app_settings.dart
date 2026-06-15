@@ -23,7 +23,7 @@ class _ThirdPartyAppSettingsPageState extends State<ThirdPartyAppSettingsPage> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHeader(context),

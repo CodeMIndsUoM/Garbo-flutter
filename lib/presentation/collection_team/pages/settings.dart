@@ -16,7 +16,7 @@ class SettingsPage extends StatelessWidget {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
         elevation: 0,

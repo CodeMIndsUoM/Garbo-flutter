@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/router/app_navigator.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -54,6 +55,7 @@ class App extends StatelessWidget {
 
     return MaterialApp(
       title: 'Garbo SWMS',
+      navigatorKey: appNavigatorKey,
       debugShowCheckedModeBanner: false,
       themeAnimationDuration: Duration.zero,
       themeAnimationCurve: Curves.linear,
@@ -118,15 +120,64 @@ class App extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
+        fillColor: AppColors.inputFill,
+        labelStyle: TextStyle(color: AppColors.textSecondary),
+        hintStyle: TextStyle(color: AppColors.grey500),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: _green.withValues(alpha: 0.35)),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: _green, width: 1.5),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.red500),
+        ),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.inputFill,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.border),
+          ),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: AppColors.surface,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        textStyle: TextStyle(color: AppColors.textPrimary),
+      ),
+      dividerTheme: DividerThemeData(color: AppColors.divider),
+      listTileTheme: ListTileThemeData(
+        iconColor: AppColors.textSecondary,
+        textColor: AppColors.textPrimary,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.surfaceVariant,
+        disabledColor: AppColors.surfaceVariant,
+        selectedColor: AppColors.emerald100,
+        labelStyle: TextStyle(color: AppColors.textPrimary),
+        secondaryLabelStyle: TextStyle(color: AppColors.textSecondary),
+        side: BorderSide(color: AppColors.border),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.surface,
+        contentTextStyle: TextStyle(color: AppColors.textPrimary),
+        actionTextColor: _green,
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: _green,
+        selectionColor: _green.withValues(alpha: 0.25),
+        selectionHandleColor: _green,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(

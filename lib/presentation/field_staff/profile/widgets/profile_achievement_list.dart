@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
+import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 class ProfileAchievementList extends StatefulWidget {
   const ProfileAchievementList({super.key});
@@ -15,15 +19,51 @@ class ProfileAchievementList extends StatefulWidget {
 }
 
 class _ProfileAchievementListState extends State<ProfileAchievementList> {
+  StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
+  _taskProgressSubscription;
+  Timer? _refreshDebounce;
+  int? _activeUserId;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = context.read<AuthProvider>().currentUser?.empId;
       if (userId != null) {
+        _activeUserId = userId;
         context.read<GamificationTasksProvider>().loadUserTasks(userId);
       }
+      _attachWebSocketRefresh(context.read<WebSocketProvider>());
     });
+  }
+
+  void _attachWebSocketRefresh(WebSocketProvider webSocketProvider) {
+    _taskProgressSubscription?.cancel();
+    _taskProgressSubscription = webSocketProvider.messageStream.listen((message) {
+      if (message.type != 'TASK_PROGRESS_UPDATE' || _activeUserId == null) {
+        return;
+      }
+
+      final messageUserId = message.userId;
+      if (messageUserId != null && messageUserId != _activeUserId) {
+        return;
+      }
+
+      _refreshDebounce?.cancel();
+      _refreshDebounce = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted || _activeUserId == null) {
+          return;
+        }
+        context.read<GamificationTasksProvider>().reloadUserTasks(_activeUserId!);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshDebounce?.cancel();
+    _taskProgressSubscription?.cancel();
+    super.dispose();
   }
 
   @override

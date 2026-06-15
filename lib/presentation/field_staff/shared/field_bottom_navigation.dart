@@ -28,6 +28,11 @@ class FieldBottomNavigation extends StatelessWidget {
           label: 'Bins',
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.add_location_alt_outlined),
+          activeIcon: Icon(Icons.add_location_alt),
+          label: 'Suggest',
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
           label: 'Profile',

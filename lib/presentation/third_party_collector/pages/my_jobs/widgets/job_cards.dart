@@ -247,7 +247,7 @@ class ActiveJobCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
