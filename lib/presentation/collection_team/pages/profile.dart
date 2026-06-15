@@ -13,7 +13,6 @@ import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/header_reduced.dart';
 import 'package:garbo_swms/presentation/collection_team/widgets/bottom_navigation.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
-import 'package:garbo_swms/presentation/shared/profile/profile_app_update_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_nav_button.dart';
@@ -323,7 +322,6 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
                 _buildPerformanceStatsSection(status),
                 _buildLeaderboardSection(),
                 _buildAchievementsSection(),
-                const ProfileAppUpdateSection(),
                 const ProfileAppearanceSection(),
               ],
               footer: const ProfileLogoutButton(),
