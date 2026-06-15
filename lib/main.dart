@@ -5,13 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:garbo_swms/app.dart';
 import 'package:garbo_swms/core/services/firebase_bootstrap.dart';
 import 'package:garbo_swms/data/sources/notification_api.dart';
-import 'package:garbo_swms/data/sources/app_version_api.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/providers/route_provider.dart';
 import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
-import 'package:garbo_swms/presentation/providers/app_update_provider.dart';
 import 'package:garbo_swms/presentation/providers/theme_provider.dart';
 import 'package:garbo_swms/presentation/providers/notification_provider.dart';
 
@@ -27,11 +25,6 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(
-          create: (_) => AppUpdateProvider(
-            api: AppVersionApi(client: http.Client()),
-          )..initialize(),
-        ),
         ChangeNotifierProvider.value(value: authProvider),
 
         ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
