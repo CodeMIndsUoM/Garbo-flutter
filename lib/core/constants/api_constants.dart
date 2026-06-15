@@ -30,4 +30,7 @@ class ApiConstants {
 
   // Third-party collector registration (public, no auth)
   static const String thirdPartyRegister = '/auth/thirdparty-register';
+
+  // App version check (public, no auth)
+  static const String appVersion = '/app/version';
 }
