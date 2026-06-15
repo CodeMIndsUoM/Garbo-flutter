@@ -517,22 +517,24 @@ class CitizenRequestPageState extends State<CitizenRequestPage>
               ),
               onRefresh: _loadRequests,
               isLoading: _loadingRequests && showMyRequests && _requests.isEmpty,
+              stickyBar: showMyRequests
+                  ? RequestsFilterBar(
+                      statusFilter: _statusFilter,
+                      wasteTypeFilter: _wasteTypeFilter,
+                      searchController: _requestSearchController,
+                      availableWasteTypes: _availableWasteTypesForFilter,
+                      onStatusFilterChanged: (v) =>
+                          setState(() => _statusFilter = v),
+                      onWasteTypeFilterChanged: (v) =>
+                          setState(() => _wasteTypeFilter = v),
+                      onChanged: () => setState(() {}),
+                    )
+                  : null,
               child: showMyRequests
                   ? RequestsList(
                       loading: false,
                       allRequests: _requests,
                       filteredRequests: _filteredRequests,
-                      filterBar: RequestsFilterBar(
-                        statusFilter: _statusFilter,
-                        wasteTypeFilter: _wasteTypeFilter,
-                        searchController: _requestSearchController,
-                        availableWasteTypes: _availableWasteTypesForFilter,
-                        onStatusFilterChanged: (v) =>
-                            setState(() => _statusFilter = v),
-                        onWasteTypeFilterChanged: (v) =>
-                            setState(() => _wasteTypeFilter = v),
-                        onChanged: () => setState(() {}),
-                      ),
                       onRequestTap: _openRequestDetail,
                     )
                   : RequestForm(

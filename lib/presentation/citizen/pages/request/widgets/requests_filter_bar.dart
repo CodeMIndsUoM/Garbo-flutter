@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
-import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/citizen/pages/request/utils/request_constants.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_filter_chip.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_search_filter_bar.dart';
 
 /// Search bar, filter icon, active-filter rail, and the filter bottom sheet.
 class RequestsFilterBar extends StatelessWidget {
@@ -42,105 +43,18 @@ class RequestsFilterBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 48,
-                decoration: AppDecorations.card(),
-                child: TextField(
-                  controller: searchController,
-                  onChanged: (_) => onChanged(),
-                  style: AppTypography.bodyMd.copyWith(color: AppColors.grey900),
-                  decoration: AppDecorations.searchInput(
-                    hintText: 'Search requests, addresses, #id',
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: AppColors.grey500,
-                    ),
-                    suffixIcon: searchController.text.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () {
-                              searchController.clear();
-                              onChanged();
-                            },
-                          ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            _buildFilterIconButton(context, activeCount),
-          ],
+        CitizenSearchFilterBar(
+          searchController: searchController,
+          hintText: 'Search requests, addresses, #id',
+          onChanged: onChanged,
+          onFilterTap: () => _openFilterSheet(context),
+          activeFilterCount: activeCount,
         ),
         if (activeCount > 0) ...[
           const SizedBox(height: 10),
           _buildActiveFilterRail(),
         ],
-        const SizedBox(height: 12),
       ],
-    );
-  }
-
-  Widget _buildFilterIconButton(BuildContext context, int activeCount) {
-    final hasFilters = activeCount > 0;
-    return Material(
-      color: hasFilters ? AppColors.emerald600 : AppColors.surface,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => _openFilterSheet(context),
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: hasFilters ? AppColors.emerald600 : AppColors.grey300,
-            ),
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Center(
-                child: Icon(
-                  Icons.tune_rounded,
-                  color: hasFilters ? Colors.white : AppColors.grey700,
-                  size: 20,
-                ),
-              ),
-              if (hasFilters)
-                Positioned(
-                  right: 4,
-                  top: 4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '$activeCount',
-                      style: AppTypography.overline.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.emerald700,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -310,24 +224,11 @@ class RequestsFilterBar extends StatelessWidget {
                         runSpacing: 8,
                         children: [
                           for (final (value, label) in statusFilterOptions)
-                            ChoiceChip(
-                              label: Text(label),
+                            CitizenFilterChip(
+                              label: label,
                               selected: localStatus == value,
                               onSelected: (_) =>
                                   setSheetState(() => localStatus = value),
-                              selectedColor: AppColors.emerald600,
-                              labelStyle: AppTypography.labelSm.copyWith(
-                                color: localStatus == value
-                                    ? Colors.white
-                                    : AppColors.grey700,
-                                fontWeight: FontWeight.w600,
-                              ),
-              backgroundColor: AppColors.surface,
-              side: BorderSide(
-                color: localStatus == value
-                                    ? AppColors.emerald600
-                                    : AppColors.grey300,
-                              ),
                             ),
                         ],
                       ),
@@ -344,45 +245,19 @@ class RequestsFilterBar extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            ChoiceChip(
-                              label: const Text('All types'),
+                            CitizenFilterChip(
+                              label: 'All types',
                               selected: localWasteType == 'ALL',
                               onSelected: (_) => setSheetState(
                                 () => localWasteType = 'ALL',
                               ),
-                              selectedColor: AppColors.emerald600,
-                              labelStyle: AppTypography.labelSm.copyWith(
-                                color: localWasteType == 'ALL'
-                                    ? Colors.white
-                                    : AppColors.grey700,
-                                fontWeight: FontWeight.w600,
-                              ),
-              backgroundColor: AppColors.surface,
-              side: BorderSide(
-                color: localWasteType == 'ALL'
-                                    ? AppColors.emerald600
-                                    : AppColors.grey300,
-                              ),
                             ),
                             for (final type in wasteTypes)
-                              ChoiceChip(
-                                label: Text(type.replaceAll('_', ' ')),
+                              CitizenFilterChip(
+                                label: type.replaceAll('_', ' '),
                                 selected: localWasteType == type,
                                 onSelected: (_) => setSheetState(
                                   () => localWasteType = type,
-                                ),
-                                selectedColor: AppColors.emerald600,
-                                labelStyle: AppTypography.labelSm.copyWith(
-                                  color: localWasteType == type
-                                      ? Colors.white
-                                      : AppColors.grey700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                backgroundColor: AppColors.surface,
-                side: BorderSide(
-                  color: localWasteType == type
-                                      ? AppColors.emerald600
-                                      : AppColors.grey300,
                                 ),
                               ),
                           ],
@@ -390,17 +265,14 @@ class RequestsFilterBar extends StatelessWidget {
                       const SizedBox(height: 22),
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
+                        child: FilledButton.icon(
                           onPressed: () => Navigator.of(ctx).pop(true),
                           icon: const Icon(Icons.check_rounded, size: 18),
                           label: const Text('Apply Filters'),
-                          style: ElevatedButton.styleFrom(
+                          style: FilledButton.styleFrom(
                             backgroundColor: AppColors.emerald600,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
                           ),
                         ),
                       ),

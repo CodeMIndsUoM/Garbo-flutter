@@ -17,6 +17,8 @@ import 'package:garbo_swms/presentation/citizen/widgets/citizen_dropdown_field.d
 import 'package:garbo_swms/presentation/shared/widgets/citizen_surface_card.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_map_preview.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_search_filter_bar.dart';
+import 'package:garbo_swms/presentation/shared/widgets/citizen_status_filter_sheet.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -31,6 +33,7 @@ class CitizenReportPage extends StatefulWidget {
 class CitizenReportPageState extends State<CitizenReportPage> {
   final ApiService _apiService = ApiService();
   final _descriptionController = TextEditingController();
+  final _reportSearchController = TextEditingController();
   final _picker = ImagePicker();
 
   int currentStep = 1;
@@ -41,6 +44,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   bool _submitting = false;
   bool _loadingReports = false;
   bool _gettingLocation = false;
+  String _reportStatusFilter = 'ALL';
   LatLng? _reportLocation;
   File? _photoFile;
   List<Map<String, dynamic>> _reports = [];
@@ -70,6 +74,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   @override
   void dispose() {
     _descriptionController.dispose();
+    _reportSearchController.dispose();
     super.dispose();
   }
 
@@ -191,6 +196,53 @@ class CitizenReportPageState extends State<CitizenReportPage> {
     }
   }
 
+  int get _reportActiveFilterCount {
+    var count = 0;
+    if (_reportStatusFilter != 'ALL') count++;
+    if (_reportSearchController.text.trim().isNotEmpty) count++;
+    return count;
+  }
+
+  List<Map<String, dynamic>> get _filteredReports {
+    final query = _reportSearchController.text.trim().toLowerCase();
+    return _reports.where((report) {
+      final status = (report['status'] ?? 'PENDING').toString();
+      if (_reportStatusFilter != 'ALL' && status != _reportStatusFilter) {
+        return false;
+      }
+      if (query.isEmpty) return true;
+      final haystack = [
+        report['title'],
+        report['issueType'],
+        report['location'],
+        report['id'],
+        status,
+      ].join(' ').toLowerCase();
+      return haystack.contains(query);
+    }).toList(growable: false);
+  }
+
+  Widget _buildReportsFilterBar() {
+    return CitizenSearchFilterBar(
+      searchController: _reportSearchController,
+      hintText: 'Search reports, locations, #id',
+      onChanged: () => setState(() {}),
+      onFilterTap: () => showCitizenStatusFilterSheet(
+        context: context,
+        currentStatus: _reportStatusFilter,
+        onApply: (status) => setState(() => _reportStatusFilter = status),
+        options: const [
+          ('ALL', 'All'),
+          ('PENDING', 'Pending'),
+          ('APPROVED', 'Approved'),
+          ('REJECTED', 'Rejected'),
+          ('RESOLVED', 'Resolved'),
+        ],
+      ),
+      activeFilterCount: _reportActiveFilterCount,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     syncAppColorsFromContext(context);
@@ -208,6 +260,7 @@ class CitizenReportPageState extends State<CitizenReportPage> {
               tabBar: buildActionButtons(theme),
               onRefresh: _loadReports,
               isLoading: _loadingReports && _reports.isEmpty && showMyReports,
+              stickyBar: showMyReports ? _buildReportsFilterBar() : null,
               child: showMyReports ? buildReportsList(theme) : buildReportForm(theme),
             ),
           ),
@@ -379,8 +432,15 @@ class CitizenReportPageState extends State<CitizenReportPage> {
       );
     }
 
+    if (_filteredReports.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: Text('No matching reports. Try changing your filters.')),
+      );
+    }
+
     return Column(
-      children: _reports.map((report) {
+      children: _filteredReports.map((report) {
         final title = (report['title'] ?? report['issueType'] ?? 'Report').toString();
         final location = (report['location'] ?? '-').toString();
         final status = (report['status'] ?? 'PENDING').toString();

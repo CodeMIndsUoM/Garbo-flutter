@@ -13,7 +13,25 @@ import 'package:garbo_swms/firebase_options.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('FCM background: ${message.messageId}');
+
+  final notification = message.notification;
+  final data = Map<String, dynamic>.from(message.data);
+  final title = notification?.title ?? data['title']?.toString() ?? 'Garbo';
+  final body = notification?.body ?? data['body']?.toString() ?? '';
+
+  if (title.isEmpty && body.isEmpty) {
+    debugPrint('FCM background: ${message.messageId} (no content)');
+    return;
+  }
+
+  final local = LocalNotificationService();
+  await local.initialize();
+  await local.show(
+    id: message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
+    title: title,
+    body: body,
+    payload: data.isEmpty ? null : jsonEncode(data),
+  );
 }
 
 typedef RemoteNotificationHandler = void Function(AppNotificationModel model);
@@ -34,6 +52,7 @@ class FirebaseMessagingService {
       _incomingController.stream;
 
   StreamSubscription<RemoteMessage>? _foregroundSub;
+  StreamSubscription<RemoteMessage>? _openedSub;
   StreamSubscription<String>? _tokenRefreshSub;
 
   bool _initialized = false;
@@ -74,6 +93,20 @@ class FirebaseMessagingService {
     });
 
     _initialized = true;
+  }
+
+  Future<void> setupOpenedMessageHandlers(
+    void Function(RemoteMessage message) onOpened,
+  ) async {
+    if (kIsWeb) return;
+
+    _openedSub?.cancel();
+    _openedSub = FirebaseMessaging.onMessageOpenedApp.listen(onOpened);
+
+    final initial = await _messaging.getInitialMessage();
+    if (initial != null) {
+      onOpened(initial);
+    }
   }
 
   Future<bool> requestPermission() async {
@@ -124,6 +157,7 @@ class FirebaseMessagingService {
 
   void dispose() {
     _foregroundSub?.cancel();
+    _openedSub?.cancel();
     _tokenRefreshSub?.cancel();
     _incomingController.close();
   }

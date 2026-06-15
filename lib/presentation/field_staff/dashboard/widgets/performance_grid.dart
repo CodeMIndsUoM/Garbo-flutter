@@ -7,12 +7,14 @@ class PerformanceGrid extends StatelessWidget {
   final int totalBins;
   final int pendingBins;
   final int? avgResponseMinutes;
+  final double pointsToday;
 
   const PerformanceGrid({
     super.key,
     required this.totalBins,
     required this.pendingBins,
     this.avgResponseMinutes,
+    this.pointsToday = 0,
   });
 
   @override
@@ -54,7 +56,7 @@ class PerformanceGrid extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _buildCardItem(
-                title: '--',
+                title: pointsToday.toStringAsFixed(0),
                 subtitle: 'Points Today',
                 icon: Icons.emoji_events_outlined,
               ),

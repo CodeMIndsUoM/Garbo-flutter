@@ -14,6 +14,8 @@ class BinModel {
   final double? latitude;
   final double? longitude;
   final String? assignedToName;
+  final bool hasDiscrepancy;
+  final String? discrepancyStatus;
 
   const BinModel({
     required this.id,
@@ -27,6 +29,8 @@ class BinModel {
     this.latitude,
     this.longitude,
     this.assignedToName,
+    this.hasDiscrepancy = false,
+    this.discrepancyStatus,
   });
 
   BinModel copyWith({
@@ -43,6 +47,9 @@ class BinModel {
     double? latitude,
     double? longitude,
     String? assignedToName,
+    bool? hasDiscrepancy,
+    String? discrepancyStatus,
+    bool clearDiscrepancyStatus = false,
   }) {
     return BinModel(
       id: id ?? this.id,
@@ -56,7 +63,33 @@ class BinModel {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       assignedToName: assignedToName ?? this.assignedToName,
+      hasDiscrepancy: hasDiscrepancy ?? this.hasDiscrepancy,
+      discrepancyStatus: clearDiscrepancyStatus
+          ? null
+          : (discrepancyStatus ?? this.discrepancyStatus),
     );
+  }
+
+  /// Status shown in UI while a discrepancy is active (mentor-reported level).
+  BinStatus get displayStatus {
+    if (hasDiscrepancy &&
+        discrepancyStatus != null &&
+        discrepancyStatus!.trim().isNotEmpty) {
+      return _parseStatus(discrepancyStatus);
+    }
+    return status;
+  }
+
+  /// Bins that still need a mentor check (never checked or marked empty after collection).
+  bool get needsStatusCheck =>
+      !hasDiscrepancy &&
+      (status == BinStatus.notChecked || status == BinStatus.empty);
+
+  /// Whether reporting [newStatus] conflicts with the system empty/collected state.
+  bool wouldReportDiscrepancy(BinStatus newStatus) {
+    final systemStatus = hasDiscrepancy ? BinStatus.empty : status;
+    return systemStatus == BinStatus.empty &&
+        (newStatus == BinStatus.half || newStatus == BinStatus.full);
   }
 
   String get displayCategory =>
@@ -87,6 +120,8 @@ class BinModel {
           (json['lng'] as num?)?.toDouble() ??
           (json['longitude'] as num?)?.toDouble(),
       assignedToName: json['assignedToName'] as String?,
+      hasDiscrepancy: json['hasDiscrepancy'] == true,
+      discrepancyStatus: json['discrepancyStatus'] as String?,
     );
   }
 

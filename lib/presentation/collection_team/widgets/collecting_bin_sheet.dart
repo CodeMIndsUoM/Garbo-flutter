@@ -191,7 +191,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isFull ? AppColors.red500 : AppColors.orange600,
+                  color: isFull ? AppColors.red500 : AppColors.yellow400,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
