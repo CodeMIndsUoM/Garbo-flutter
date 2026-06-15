@@ -7,7 +7,6 @@ import 'package:garbo_swms/presentation/third_party_collector/pages/edit_profile
 import 'package:garbo_swms/presentation/third_party_collector/widgets/bottom_navbar.dart';
 import 'package:garbo_swms/presentation/third_party_collector/widgets/header.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/widgets/profile_card.dart';
-import 'package:garbo_swms/presentation/shared/profile/profile_app_update_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_appearance_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_expandable_section.dart';
 import 'package:garbo_swms/presentation/shared/profile/profile_logout_button.dart';
@@ -185,7 +184,6 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
                   subtitle: 'Jobs, ratings & response metrics',
                   child: _buildCollectorDetailsCard(),
                 ),
-                const ProfileAppUpdateSection(),
                 const ProfileAppearanceSection(),
               ],
               footer: const ProfileLogoutButton(
