@@ -9,6 +9,7 @@ import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/data/models/websocket_message_model.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/citizen/pages/pickup_location_picker_page.dart';
+import 'package:garbo_swms/presentation/citizen/widgets/citizen_sticky_tab_layout.dart';
 import 'package:garbo_swms/presentation/field_staff/suggestions/models/bin_suggestion_model.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
@@ -215,30 +216,29 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    return CitizenStickyTabLayout(
       onRefresh: _loadSuggestions,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 140),
-        children: [
-          SegmentedButton<_SuggestView>(
-            segments: const [
-              ButtonSegment(
-                value: _SuggestView.suggest,
-                label: Text('Suggest'),
-                icon: Icon(Icons.add_location_alt_outlined),
-              ),
-              ButtonSegment(
-                value: _SuggestView.mySuggestions,
-                label: Text('My Suggestions'),
-                icon: Icon(Icons.list_alt_rounded),
-              ),
-            ],
-            selected: {_view},
-            onSelectionChanged: (selection) {
-              setState(() => _view = selection.first);
-            },
+      tabBar: SegmentedButton<_SuggestView>(
+        segments: const [
+          ButtonSegment(
+            value: _SuggestView.suggest,
+            label: Text('Suggest'),
+            icon: Icon(Icons.add_location_alt_outlined),
           ),
-          const SizedBox(height: 20),
+          ButtonSegment(
+            value: _SuggestView.mySuggestions,
+            label: Text('My Suggestions'),
+            icon: Icon(Icons.list_alt_rounded),
+          ),
+        ],
+        selected: {_view},
+        onSelectionChanged: (selection) {
+          setState(() => _view = selection.first);
+        },
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           if (_view == _SuggestView.suggest) _buildSuggestForm(),
           if (_view == _SuggestView.mySuggestions) _buildMySuggestions(),
         ],
