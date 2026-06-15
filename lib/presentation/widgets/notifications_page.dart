@@ -6,6 +6,8 @@ import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/models/app_notification_model.dart';
 import 'package:garbo_swms/core/utils/notification_provider_access.dart';
 import 'package:garbo_swms/presentation/providers/notification_provider.dart';
+import 'package:garbo_swms/presentation/widgets/notification_detail_page.dart';
+import 'package:garbo_swms/presentation/widgets/notification_ui.dart';
 import 'package:provider/provider.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -121,9 +123,7 @@ class _NotificationsScaffold extends StatelessWidget {
                   return _NotificationTile(
                     notification: notifications[index],
                     onTap: () {
-                      if (!notifications[index].read) {
-                        provider.markAsRead(notifications[index].id);
-                      }
+                      openNotificationDetail(context, notifications[index]);
                     },
                   );
                 },
@@ -181,11 +181,7 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dt = notification.createdAt.toLocal();
-    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
-    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
-    final timeLabel =
-        '${_month(dt.month)} ${dt.day}, $hour:${dt.minute.toString().padLeft(2, '0')} $amPm';
+    final timeLabel = NotificationUi.formatTimestamp(notification.createdAt);
 
     return Material(
       color: Colors.transparent,
@@ -206,12 +202,12 @@ class _NotificationTile extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: _iconBg(notification.type),
+                  color: NotificationUi.iconBackground(notification.type),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  _iconForType(notification.type),
-                  color: _iconColor(notification.type),
+                  NotificationUi.iconForType(notification.type),
+                  color: NotificationUi.iconColor(notification.type),
                   size: 20,
                 ),
               ),
@@ -266,63 +262,5 @@ class _NotificationTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _iconForType(String type) {
-    switch (type.toUpperCase()) {
-      case 'ROUTE_UPDATE':
-      case 'ROUTE':
-        return Icons.route_outlined;
-      case 'BIN':
-      case 'BIN_STATUS_UPDATED':
-        return Icons.delete_outline;
-      case 'JOB':
-      case 'OFFER':
-        return Icons.work_outline;
-      case 'LEADERBOARD':
-        return Icons.emoji_events_outlined;
-      default:
-        return Icons.notifications_outlined;
-    }
-  }
-
-  Color _iconBg(String type) {
-    switch (type.toUpperCase()) {
-      case 'ROUTE_UPDATE':
-      case 'ROUTE':
-        return AppColors.blue50;
-      case 'BIN':
-      case 'BIN_STATUS_UPDATED':
-        return AppColors.amberSurface;
-      case 'JOB':
-      case 'OFFER':
-        return AppColors.emerald50;
-      default:
-        return AppColors.grey100;
-    }
-  }
-
-  Color _iconColor(String type) {
-    switch (type.toUpperCase()) {
-      case 'ROUTE_UPDATE':
-      case 'ROUTE':
-        return AppColors.blue500;
-      case 'BIN':
-      case 'BIN_STATUS_UPDATED':
-        return AppColors.amber600;
-      case 'JOB':
-      case 'OFFER':
-        return AppColors.green700;
-      default:
-        return AppColors.grey600;
-    }
-  }
-
-  static String _month(int m) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return months[m - 1];
   }
 }

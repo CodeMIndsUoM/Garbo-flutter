@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/theme/colors.dart';
 
 /// Shared durations and curves for app navigation.
 abstract final class AppTransitions {
@@ -80,7 +81,12 @@ class AppPageRoute<T> extends PageRouteBuilder<T> {
   }) : super(
           settings: settings,
           pageBuilder: (context, animation, secondaryAnimation) =>
-              AppThemeSync(child: page),
+              AppThemeSync(
+                child: Material(
+                  color: AppColors.background,
+                  child: page,
+                ),
+              ),
           transitionDuration: AppTransitions.page,
           reverseTransitionDuration: AppTransitions.reverse,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -101,7 +107,12 @@ class AppFadeRoute<T> extends PageRouteBuilder<T> {
   }) : super(
           settings: settings,
           pageBuilder: (context, animation, secondaryAnimation) =>
-              AppThemeSync(child: page),
+              AppThemeSync(
+                child: Material(
+                  color: AppColors.background,
+                  child: page,
+                ),
+              ),
           transitionDuration: AppTransitions.tab,
           reverseTransitionDuration: AppTransitions.tab,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {

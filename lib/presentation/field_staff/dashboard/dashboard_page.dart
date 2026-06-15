@@ -26,14 +26,16 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:provider/provider.dart';
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({super.key});
+  final int initialTabIndex;
+
+  const Dashboard({super.key, this.initialTabIndex = 0});
 
   @override
   State<Dashboard> createState() => _DashboardState();
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   final ApiService _apiService = ApiService();
   List<BinModel> _bins = [];
   String _empId = '';
@@ -48,6 +50,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTabIndex.clamp(0, 3);
     _loadEmpIdAndFetch();
   }
 
