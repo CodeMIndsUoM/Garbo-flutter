@@ -185,6 +185,15 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     _isAuthenticated = false;
     _errorMessage = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('empId');
+    await prefs.remove('empName');
+    await prefs.remove('email');
+    await prefs.remove('role');
+    await prefs.remove('council');
+
     notifyListeners();
   }
 

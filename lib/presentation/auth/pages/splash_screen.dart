@@ -3,7 +3,6 @@ import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/router/auth_routes.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/shared/widgets/garbo_logo.dart';
@@ -32,8 +31,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<Offset> _logoSlide;
   late final Animation<double> _lineOpacity;
   late final Animation<double> _lineWidth;
-  late final Animation<double> _taglineOpacity;
-  late final Animation<Offset> _taglineSlide;
   late final Animation<double> _loaderOpacity;
   late final Animation<double> _exitFade;
   late final Animation<Offset> _exitLogoShift;
@@ -85,23 +82,6 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(
         parent: _introController,
         curve: const Interval(0.32, 0.56, curve: detailCurve),
-      ),
-    );
-
-    _taglineOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.48, 0.72, curve: detailCurve),
-      ),
-    );
-
-    _taglineSlide = Tween<Offset>(
-      begin: const Offset(0, 0.18),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.48, 0.72, curve: detailCurve),
       ),
     );
 
@@ -237,24 +217,6 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             color: AppColors.emerald200,
                             borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FadeTransition(
-                        opacity: _taglineOpacity,
-                        child: SlideTransition(
-                          position: _taglineSlide,
-                          child: Opacity(
-                            opacity: 1 - _exitFade.value,
-                            child: Text(
-                              'Smart Waste Management',
-                              style: AppTypography.bodyMd.copyWith(
-                                color: AppColors.white70,
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
                           ),
                         ),
                       ),

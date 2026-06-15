@@ -486,21 +486,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const GarboLogo(height: 108),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Smart Waste Management',
-                            style: AppTypography.bodySm.copyWith(
-                              color: Colors.white.withValues(alpha: 0.92),
-                              letterSpacing: 1,
-                              shadows: const [
-                                Shadow(
-                                  color: Color(0x4D000000),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),

@@ -82,16 +82,6 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Center(
-                  child: Text(
-                    'Smart Waste Management',
-                    style: AppTypography.bodySm.copyWith(
-                      color: AppColors.grey500,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 20),
                 TextButton.icon(
                   onPressed: () {
