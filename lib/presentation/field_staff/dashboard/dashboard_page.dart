@@ -12,6 +12,7 @@ import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/achievemen
 import 'package:garbo_swms/presentation/field_staff/shared/field_bottom_navigation.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/bins_page.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/profile_page.dart';
+import 'package:garbo_swms/presentation/field_staff/suggestions/suggest_bin_page.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/report_bin_page.dart';
 import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
@@ -58,6 +59,16 @@ class _DashboardState extends State<Dashboard> {
     _binStatusSocketSubscription = webSocketProvider.messageStream.listen((
       message,
     ) {
+      if (message.type == 'BIN_ASSIGNED') {
+        _dashboardRefreshDebounce?.cancel();
+        _dashboardRefreshDebounce = Timer(const Duration(milliseconds: 300), () {
+          if (mounted && _empId.isNotEmpty) {
+            _fetchDashboardData();
+          }
+        });
+        return;
+      }
+
       if (message.type != 'BIN_STATUS_UPDATED') {
         return;
       }
@@ -175,6 +186,8 @@ class _DashboardState extends State<Dashboard> {
       case 1:
         return 'Bins';
       case 2:
+        return 'Suggest Bin';
+      case 3:
         return 'Profile';
       default:
         return 'Dashboard';
@@ -188,6 +201,8 @@ class _DashboardState extends State<Dashboard> {
       case 1:
         return const BinsPage();
       case 2:
+        return const SuggestBinPage();
+      case 3:
         return const ProfilePage();
       default:
         return _buildDashboardContent();

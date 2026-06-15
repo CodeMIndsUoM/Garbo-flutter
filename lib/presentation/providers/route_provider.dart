@@ -106,6 +106,13 @@ class RouteProvider extends ChangeNotifier {
         } catch (e) {
           debugPrint('Error parsing route optimize ack: $e');
         }
+      } else if (message.type == 'ROUTE_ASSIGNED') {
+        _errorMessage = null;
+        notifyListeners();
+        final userId = _boundUserId ?? message.userId;
+        if (userId != null) {
+          unawaited(loadAssignedRouteForCollector(userId));
+        }
       } else if (message.type == 'BIN_COLLECTION_ACK' ||
           message.type == 'TASK_PROGRESS_UPDATE') {
         final payload = message.payload;

@@ -63,6 +63,16 @@ class _BinsPageState extends State<BinsPage> {
     _binStatusSocketSubscription = webSocketProvider.messageStream.listen((
       message,
     ) {
+      if (message.type == 'BIN_ASSIGNED') {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('New bin assigned to you')),
+          );
+        }
+        _fetchBins();
+        return;
+      }
+
       if (message.type != 'BIN_STATUS_UPDATED') {
         return;
       }
@@ -97,9 +107,9 @@ class _BinsPageState extends State<BinsPage> {
     final status = _parseBinStatus(payload['status']);
     final fillLevel = _parseInt(payload['fillLevel']);
     final lastChecked = _parseDateTime(payload['lastChecked']);
-    final isUndo =
-        payload['changeType']?.toString().toUpperCase() == 'STATUS_UNDONE' ||
-        status == BinStatus.notChecked;
+    final changeType = payload['changeType']?.toString().toUpperCase();
+    final isCollected = changeType == 'COLLECTED';
+    final reportedDiscrepancy = payload['discrepancy'] == true;
 
     final index = _bins.indexWhere((bin) => _isSameBin(bin, binId));
     if (index < 0) {
@@ -111,14 +121,31 @@ class _BinsPageState extends State<BinsPage> {
 
     setState(() {
       final current = _bins[index];
+      final nextStatus = reportedDiscrepancy ? status : status;
       _bins[index] = current.copyWith(
-        status: status,
+        status: nextStatus,
         fillLevel: fillLevel,
-        clearFillLevel: isUndo && fillLevel == null,
+        clearFillLevel: !reportedDiscrepancy && fillLevel == null,
         lastChecked: lastChecked,
-        clearLastChecked: isUndo,
+        clearLastChecked: changeType == 'STATUS_UNDONE',
+        hasDiscrepancy: isCollected ? false : (reportedDiscrepancy ? true : current.hasDiscrepancy),
+        discrepancyStatus: isCollected ? null : (reportedDiscrepancy ? _statusToString(nextStatus) : current.discrepancyStatus),
+        clearDiscrepancyStatus: isCollected,
       );
     });
+  }
+
+  String _statusToString(BinStatus status) {
+    switch (status) {
+      case BinStatus.empty:
+        return 'empty';
+      case BinStatus.half:
+        return 'half';
+      case BinStatus.full:
+        return 'full';
+      case BinStatus.notChecked:
+        return 'notChecked';
+    }
   }
 
   Future<void> _loadEmpIdAndFetch() async {

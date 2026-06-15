@@ -28,19 +28,23 @@ class BinCard extends StatelessWidget {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (context) => BinDetailsOverlay(bin: bin),
+          builder: (context) => BinDetailsOverlay(bin: bin, onUpdateStatus: onReport),
         );
       },
       child: Container(
         clipBehavior: Clip.antiAlias,
-        decoration: AppDecorations.card(),
+        decoration: AppDecorations.card().copyWith(
+          border: bin.hasDiscrepancy
+              ? Border.all(color: AppColors.amber600.withValues(alpha: 0.45), width: 1.5)
+              : null,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               height: 4,
               width: double.infinity,
-              color: _statusLineColor,
+              color: _statusLineColorFor(bin.displayStatus),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -62,11 +66,14 @@ class BinCard extends StatelessWidget {
                       Text(bin.timeAgo, style: AppTypography.caption),
                     ],
                   ),
-                  if (bin.status == BinStatus.notChecked) ...[
-                    const SizedBox(height: 12),
-                    _buildReportButton(),
-                  ] else ...[
-                    const SizedBox(height: 12),
+                  if (bin.hasDiscrepancy) ...[
+                    const SizedBox(height: 8),
+                    _buildDiscrepancyBadge(),
+                  ],
+                  const SizedBox(height: 12),
+                  _buildUpdateButton(),
+                  if (bin.status != BinStatus.notChecked) ...[
+                    const SizedBox(height: 8),
                     _buildUndoButton(),
                   ],
                 ],
@@ -118,22 +125,22 @@ class BinCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: bin.status == BinStatus.notChecked
+            color: bin.displayStatus == BinStatus.notChecked
                 ? Colors.transparent
-                : _statusTextColor.withValues(alpha: 0.05),
+                : _statusTextColorFor(bin.displayStatus).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: bin.status == BinStatus.notChecked
+              color: bin.displayStatus == BinStatus.notChecked
                   ? Colors.transparent
-                  : _statusTextColor.withValues(alpha: 0.2),
+                  : _statusTextColorFor(bin.displayStatus).withValues(alpha: 0.2),
               width: 1.2,
             ),
           ),
           child: Text(
-            bin.status.label,
+            bin.displayStatus.label,
             style: AppTypography.labelSm.copyWith(
               fontWeight: FontWeight.bold,
-              color: _statusTextColor,
+              color: _statusTextColorFor(bin.displayStatus),
             ),
           ),
         ),
@@ -141,7 +148,40 @@ class BinCard extends StatelessWidget {
     );
   }
 
-  Widget _buildReportButton() {
+  Widget _buildDiscrepancyBadge() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.amberSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.amber600.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.amberDark),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Status discrepancy flagged for admin',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.amberDark,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpdateButton() {
+    final label = switch (bin.status) {
+      BinStatus.notChecked => 'Report Fill Level',
+      BinStatus.empty => 'Verify Fill Level',
+      _ => 'Update Status',
+    };
+
     return GestureDetector(
       onTap: onReport,
       child: Container(
@@ -164,7 +204,7 @@ class BinCard extends StatelessWidget {
             const Icon(Icons.send_outlined, color: Colors.white, size: 16),
             const SizedBox(width: 8),
             Text(
-              'Report Fill Level',
+              label,
               style: AppTypography.titleSm.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -182,15 +222,27 @@ class BinCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onUndo,
         child: Container(
-          width: 40,
-          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.border, width: 1),
             boxShadow: AppDecorations.cardShadow,
           ),
-          child: Icon(Icons.more_vert, color: AppColors.grey700, size: 20),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.undo_rounded, color: AppColors.grey700, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Undo report',
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.grey700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -198,8 +250,8 @@ class BinCard extends StatelessWidget {
 
   // ── Status-based colors ──
 
-  Color get _statusLineColor {
-    switch (bin.status) {
+  Color _statusLineColorFor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey300;
       case BinStatus.full:
@@ -211,8 +263,8 @@ class BinCard extends StatelessWidget {
     }
   }
 
-  Color get _statusTextColor {
-    switch (bin.status) {
+  Color _statusTextColorFor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey500;
       case BinStatus.full:
