@@ -462,14 +462,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
     final headerHeight = MediaQuery.of(context).size.height * 0.34;
 
     return Scaffold(
-      backgroundColor: AppColors.emerald900,
+      backgroundColor: AuthHeroBackground.backgroundColor,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           const Positioned.fill(
-            child: AuthHeroBackground(
-              imageAlignment: Alignment(0, -0.45),
-            ),
+            child: AuthHeroBackground(),
           ),
           Column(
             children: [

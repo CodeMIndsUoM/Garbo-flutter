@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:garbo_swms/core/theme/colors.dart';
 
-/// Full-bleed auth hero photo with brand overlay — matches web dashboard login.
+/// Full-bleed auth hero with community illustration on brand-green background.
 class AuthHeroBackground extends StatelessWidget {
   const AuthHeroBackground({
     super.key,
     this.imageOpacity = 1,
     this.imageScale = 1,
-    this.imageAlignment = Alignment.center,
+    this.imageAlignment = Alignment.bottomCenter,
+    this.imageFit = BoxFit.contain,
   });
 
-  static const assetPath = 'assets/images/login-hero.jpg';
+  static const assetPath = 'assets/images/login-hero-community.png';
+
+  /// Dark brand green behind the cutout hero illustration.
+  static const backgroundColor = Color(0xFF0F3D22);
 
   final double imageOpacity;
   final double imageScale;
   final Alignment imageAlignment;
+  final BoxFit imageFit;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.emerald900,
+      color: backgroundColor,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -29,7 +33,7 @@ class AuthHeroBackground extends StatelessWidget {
               scale: imageScale,
               child: Image.asset(
                 assetPath,
-                fit: BoxFit.cover,
+                fit: imageFit,
                 alignment: imageAlignment,
               ),
             ),
@@ -37,14 +41,14 @@ class AuthHeroBackground extends StatelessWidget {
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: const [
-                  Color(0x4716A34A),
-                  Color(0x6B0F172A),
-                  Color(0x940F172A),
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.08),
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.12),
                 ],
-                stops: const [0, 0.5, 1],
+                stops: const [0, 0.45, 1],
               ),
             ),
           ),
