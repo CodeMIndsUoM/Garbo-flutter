@@ -119,6 +119,7 @@ class WebSocketService {
       _subscribe('/topic/users/$userId', _handleUserMessageFrame);
       _subscribe('/topic/users/$userId/tasks', _handleTaskAlertFrame);
       _subscribe('/topic/users/$userId/marketplace', _handleUserMessageFrame);
+      _subscribe('/topic/users/$userId/notifications', _handleNotificationFrame);
       _subscribe('/topic/routes/users/$userId', _handleRouteSnapshotFrame);
       _requestAssignedRoutes(userId);
     }
@@ -150,6 +151,42 @@ class WebSocketService {
       );
     } catch (e) {
       debugPrint('Failed to request assigned routes: $e');
+    }
+  }
+
+  void _handleNotificationFrame(StompFrame frame) {
+    final body = frame.body;
+    if (body == null || body.isEmpty) {
+      return;
+    }
+
+    try {
+      final jsonData = jsonDecode(body);
+      if (jsonData is! Map<String, dynamic>) {
+        return;
+      }
+
+      final type = jsonData['type']?.toString() ?? 'NOTIFICATION_CREATED';
+      if (type != 'NOTIFICATION_CREATED') {
+        return;
+      }
+
+      final notification = jsonData['notification'];
+      if (notification is! Map<String, dynamic>) {
+        return;
+      }
+
+      final message = WebSocketMessage<Map<String, dynamic>>(
+        type: 'NOTIFICATION_CREATED',
+        userId: _userId,
+        timestamp: jsonData['updatedAt'] is int
+            ? jsonData['updatedAt'] as int
+            : DateTime.now().millisecondsSinceEpoch,
+        payload: notification,
+      );
+      _emitMessage(message);
+    } catch (e) {
+      debugPrint('Error parsing notification frame: $e');
     }
   }
 
