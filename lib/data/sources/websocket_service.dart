@@ -117,6 +117,7 @@ class WebSocketService {
     final userId = _userId;
     if (userId != null) {
       _subscribe('/topic/users/$userId', _handleUserMessageFrame);
+      _subscribe('/topic/users/$userId/tasks', _handleTaskAlertFrame);
       _subscribe('/topic/users/$userId/marketplace', _handleUserMessageFrame);
       _subscribe('/topic/routes/users/$userId', _handleRouteSnapshotFrame);
       _requestAssignedRoutes(userId);
@@ -171,6 +172,31 @@ class WebSocketService {
     }
   }
 
+  void _handleTaskAlertFrame(StompFrame frame) {
+    final body = frame.body;
+    if (body == null || body.isEmpty) {
+      return;
+    }
+
+    try {
+      final jsonData = jsonDecode(body);
+      if (jsonData is! Map<String, dynamic>) {
+        return;
+      }
+
+      final type = jsonData['type']?.toString() ?? 'BIN_ASSIGNED';
+      final message = WebSocketMessage<Map<String, dynamic>>(
+        type: type,
+        userId: _userId,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        payload: jsonData,
+      );
+      _emitMessage(message);
+    } catch (e) {
+      debugPrint('Error parsing task alert: $e');
+    }
+  }
+
   void _handleRouteSnapshotFrame(StompFrame frame) {
     final body = frame.body;
     if (body == null || body.isEmpty) {
@@ -180,6 +206,18 @@ class WebSocketService {
     try {
       final jsonData = jsonDecode(body);
       if (jsonData is! Map<String, dynamic>) {
+        return;
+      }
+
+      final alertType = jsonData['type']?.toString();
+      if (alertType == 'ROUTE_ASSIGNED') {
+        final message = WebSocketMessage<Map<String, dynamic>>(
+          type: 'ROUTE_ASSIGNED',
+          userId: _userId,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          payload: jsonData,
+        );
+        _emitMessage(message);
         return;
       }
 

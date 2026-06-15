@@ -12,6 +12,8 @@ import 'package:garbo_swms/data/sources/field_staff_api.dart';
 import 'package:garbo_swms/data/sources/profile_api.dart';
 import 'package:garbo_swms/data/sources/third_party_collector_api.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/models/bin_report_result.dart';
+import 'package:garbo_swms/presentation/field_staff/suggestions/models/bin_suggestion_model.dart';
 
 class ApiService {
   final http.Client client;
@@ -75,7 +77,7 @@ class ApiService {
 
   Future<List<BinModel>> getAssignedBins() => _fieldStaffApi.getAssignedBins();
 
-  Future<bool> reportBinStatus({
+  Future<BinReportResult> reportBinStatus({
     required String binId,
     required Map<String, dynamic> reportData,
     String? photoPath,
@@ -87,6 +89,15 @@ class ApiService {
 
   Future<bool> undoBinReport(String binId) =>
       _fieldStaffApi.undoBinReport(binId);
+
+  Future<List<BinSuggestionModel>> getMyBinSuggestions() =>
+      _fieldStaffApi.getMyBinSuggestions();
+
+  Future<Map<String, dynamic>> createBinSuggestion(Map<String, dynamic> payload) =>
+      _fieldStaffApi.createBinSuggestion(payload);
+
+  Future<String> uploadBinSuggestionImage(File imageFile) =>
+      _fieldStaffApi.uploadBinSuggestionImage(imageFile);
 
   Future<String> getFieldMentorName(String empId) =>
       _profileApi.getFieldMentorName(empId);

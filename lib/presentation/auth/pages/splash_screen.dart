@@ -4,6 +4,7 @@ import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/router/auth_routes.dart';
 import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
+import 'package:garbo_swms/presentation/shared/widgets/garbo_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -198,15 +199,7 @@ class _SplashScreenState extends State<SplashScreen>
                           position: AlwaysStoppedAnimation(logoShift),
                           child: ScaleTransition(
                             scale: _logoScale,
-                            child: Text(
-                              'GARBO',
-                              style: AppTypography.displayLg.copyWith(
-                                color: Colors.white,
-                                fontSize: 52,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 10,
-                              ),
-                            ),
+                            child: const GarboLogo(height: 132),
                           ),
                         ),
                       ),

@@ -77,6 +77,34 @@ class AuthApi {
     }
     return body;
   }
+
+  Future<void> requestPasswordReset(String email) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password');
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'email': email.trim()}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(parseApiError(response, 'Failed to send reset instructions'));
+    }
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/auth/reset-password');
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'token': token.trim(), 'newPassword': newPassword}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message']?.toString() ?? 'Failed to reset password');
+    }
+  }
 }
 
 class ComplaintApi {

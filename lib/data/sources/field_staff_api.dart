@@ -4,7 +4,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import 'package:garbo_swms/core/constants/api_constants.dart';
+import 'package:garbo_swms/data/sources/auth_api.dart' show parseApiError;
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/models/bin_report_result.dart';
+import 'package:garbo_swms/presentation/field_staff/suggestions/models/bin_suggestion_model.dart';
 
 typedef AuthHeadersProvider = Future<Map<String, String>> Function();
 typedef TokenProvider = Future<String> Function();
@@ -44,7 +47,7 @@ class FieldStaffApi {
     }
   }
 
-  Future<bool> reportBinStatus({
+  Future<BinReportResult> reportBinStatus({
     required String binId,
     required Map<String, dynamic> reportData,
     String? photoPath,
@@ -81,9 +84,9 @@ class FieldStaffApi {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> body = json.decode(response.body);
-        return body['success'] == true;
+        return BinReportResult.fromJson(body);
       } else {
-        return false;
+        return const BinReportResult(success: false);
       }
     } catch (e) {
       throw Exception('Error reporting bin status: $e');
@@ -107,5 +110,68 @@ class FieldStaffApi {
     } catch (e) {
       throw Exception('Error undoing bin report: $e');
     }
+  }
+
+  Future<List<BinSuggestionModel>> getMyBinSuggestions() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/bin-suggestions/my');
+    final headers = await authHeadersProvider();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load bin suggestions: ${response.statusCode}');
+    }
+    final decoded = json.decode(response.body);
+    final List<dynamic> items;
+    if (decoded is List) {
+      items = decoded;
+    } else if (decoded is Map && decoded['data'] is List) {
+      items = decoded['data'] as List<dynamic>;
+    } else {
+      items = [];
+    }
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(BinSuggestionModel.fromJson)
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> createBinSuggestion(Map<String, dynamic> payload) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/bin-suggestions');
+    final headers = await authHeadersProvider();
+    final response = await client.post(
+      url,
+      headers: headers,
+      body: json.encode(payload),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        parseApiError(response, 'Failed to create bin suggestion (${response.statusCode})'),
+      );
+    }
+    final body = json.decode(response.body);
+    if (body is Map<String, dynamic>) {
+      return body;
+    }
+    return {'success': true};
+  }
+
+  Future<String> uploadBinSuggestionImage(File imageFile) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/bin-suggestions/upload-image');
+    final token = await tokenProvider();
+    final request = http.MultipartRequest('POST', url);
+    if (token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(await http.MultipartFile.fromPath('photo', imageFile.path));
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to upload image: ${response.statusCode}');
+    }
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    final imageUrl = body['imageUrl'] ?? body['photoUrl'];
+    if (imageUrl == null || imageUrl.toString().isEmpty) {
+      throw Exception('Upload succeeded but no image URL returned');
+    }
+    return imageUrl.toString();
   }
 }

@@ -7,8 +7,13 @@ import 'package:garbo_swms/presentation/field_staff/bins/bin_map_page.dart';
 
 class BinDetailsOverlay extends StatelessWidget {
   final BinModel bin;
+  final VoidCallback? onUpdateStatus;
 
-  const BinDetailsOverlay({super.key, required this.bin});
+  const BinDetailsOverlay({
+    super.key,
+    required this.bin,
+    this.onUpdateStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,16 +69,16 @@ class BinDetailsOverlay extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: ShapeDecoration(
-                          color: _getBadgeBgColor(),
+                          color: _getBadgeBgColor(bin.displayStatus),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         child: Text(
-                          bin.status.label.toUpperCase(),
+                          bin.displayStatus.label.toUpperCase(),
                           style: AppTypography.captionSm.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: _getStatusTextColor(),
+                            color: _getStatusTextColor(bin.displayStatus),
                           ),
                         ),
                       ),
@@ -99,14 +104,49 @@ class BinDetailsOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
+              if (bin.hasDiscrepancy) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.amberSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.amber600.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.amberDark,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'A status discrepancy was reported and is visible to admin.',
+                          style: AppTypography.bodySm.copyWith(
+                            color: AppColors.amberDark,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
               // Status Large Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: ShapeDecoration(
-                  color: _getCardBgColor(),
+                  color: _getCardBgColor(bin.displayStatus),
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1.27, color: _getCardBorderColor()),
+                    side: BorderSide(width: 1.27, color: _getCardBorderColor(bin.displayStatus)),
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
@@ -116,21 +156,21 @@ class BinDetailsOverlay extends StatelessWidget {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _getCardTextColor(),
+                        color: _getCardTextColor(bin.displayStatus),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
                       child: Icon(
-                        _getStatusIcon(),
+                        _getStatusIcon(bin.displayStatus),
                         color: Colors.white,
                         size: 36,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      bin.status.label,
+                      bin.displayStatus.label,
                       style: AppTypography.h1.copyWith(
-                        color: _getCardTextColor(),
+                        color: _getCardTextColor(bin.displayStatus),
                       ),
                     ),
                   ],
@@ -144,7 +184,50 @@ class BinDetailsOverlay extends StatelessWidget {
               _buildDetailRow('Last Checked', bin.timeAgo),
               Divider(color: AppColors.grey100, height: 32),
               _buildDetailRow('Assigned To', bin.assignedToName ?? 'Unassigned'),
-              const SizedBox(height: 32),
+              if (bin.fillLevel != null) ...[
+                Divider(color: AppColors.grey100, height: 32),
+                _buildDetailRow('Fill level', '${bin.fillLevel}%'),
+              ],
+              const SizedBox(height: 24),
+
+              if (onUpdateStatus != null)
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onUpdateStatus!();
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      width: double.infinity,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: AppColors.green700,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.edit_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            bin.needsStatusCheck ? 'Verify Fill Level' : 'Update Status',
+                            style: AppTypography.titleSm.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              if (onUpdateStatus != null) const SizedBox(height: 12),
 
               // Bottom View Map Button
               Material(
@@ -211,8 +294,8 @@ class BinDetailsOverlay extends StatelessWidget {
 
   // --- Theme Helpers based on Status ---
 
-  Color _getBadgeBgColor() {
-    switch (bin.status) {
+  Color _getBadgeBgColor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey100; // Grey
       case BinStatus.full:
@@ -224,8 +307,8 @@ class BinDetailsOverlay extends StatelessWidget {
     }
   }
 
-  Color _getStatusTextColor() {
-    switch (bin.status) {
+  Color _getStatusTextColor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey600; // Dark Grey
       case BinStatus.full:
@@ -237,8 +320,8 @@ class BinDetailsOverlay extends StatelessWidget {
     }
   }
 
-  Color _getCardBgColor() {
-    switch (bin.status) {
+  Color _getCardBgColor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey50;
       case BinStatus.full:
@@ -250,8 +333,8 @@ class BinDetailsOverlay extends StatelessWidget {
     }
   }
 
-  Color _getCardBorderColor() {
-    switch (bin.status) {
+  Color _getCardBorderColor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.grey200;
       case BinStatus.full:
@@ -263,8 +346,8 @@ class BinDetailsOverlay extends StatelessWidget {
     }
   }
 
-  Color _getCardTextColor() {
-    switch (bin.status) {
+  Color _getCardTextColor(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return AppColors.citizenGrey500;
       case BinStatus.full:
@@ -276,8 +359,8 @@ class BinDetailsOverlay extends StatelessWidget {
     }
   }
 
-  IconData _getStatusIcon() {
-    switch (bin.status) {
+  IconData _getStatusIcon(BinStatus status) {
+    switch (status) {
       case BinStatus.notChecked:
         return Icons.help_outline;
       case BinStatus.full:

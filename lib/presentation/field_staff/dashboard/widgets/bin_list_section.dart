@@ -12,9 +12,9 @@ class BinListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Filter for bins that need checking (notChecked) and take top 3
+    // Bins needing a mentor check: never checked, empty after collection, or flagged discrepancy
     final pendingBins = bins
-        .where((b) => b.status == BinStatus.notChecked)
+        .where((b) => b.needsStatusCheck || b.hasDiscrepancy)
         .take(3)
         .toList();
 
@@ -97,13 +97,17 @@ class BinListSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  bin.status.label.toUpperCase(),
+                  bin.displayStatus.label.toUpperCase(),
                   style: AppTypography.overline.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.blue600,
+                    color: _statusColor(bin.displayStatus),
                   ),
                 ),
               ),
+              if (bin.hasDiscrepancy) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.warning_amber_rounded, size: 16, color: AppColors.amberDark),
+              ],
             ],
           ),
           const SizedBox(height: 8),
@@ -139,7 +143,7 @@ class BinListSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Report Fill Level',
+                    bin.needsStatusCheck ? 'Verify Fill Level' : 'Update Status',
                     style: AppTypography.titleSm.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -152,5 +156,18 @@ class BinListSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _statusColor(BinStatus status) {
+    switch (status) {
+      case BinStatus.full:
+        return AppColors.red500;
+      case BinStatus.half:
+        return AppColors.yellowDark;
+      case BinStatus.empty:
+        return AppColors.green700;
+      case BinStatus.notChecked:
+        return AppColors.blue600;
+    }
   }
 }
