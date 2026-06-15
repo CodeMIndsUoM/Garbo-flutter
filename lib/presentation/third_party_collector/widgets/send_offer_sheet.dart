@@ -591,7 +591,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: picked ? AppColors.emerald50 : AppColors.grey50,
+                color: picked ? AppColors.emerald50 : AppColors.inputFill,
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
@@ -643,7 +643,7 @@ class _SendOfferSheetState extends State<SendOfferSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.grey200),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
@@ -14,13 +15,14 @@ class BinMapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
     // Fallback coordinates (e.g. Colombo) if none exist
     final lat = bin.latitude ?? 6.9271;
     final lng = bin.longitude ?? 79.8612;
     final center = LatLng(lat, lng);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.grey900),

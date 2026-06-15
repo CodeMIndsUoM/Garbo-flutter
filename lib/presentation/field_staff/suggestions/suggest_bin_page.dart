@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
@@ -216,6 +217,7 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
 
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
     return CitizenStickyTabLayout(
       onRefresh: _loadSuggestions,
       tabBar: SegmentedButton<_SuggestView>(
@@ -263,7 +265,7 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
           value: _category,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.grey50,
+            fillColor: AppColors.inputFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.grey200),
@@ -294,7 +296,7 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
           decoration: InputDecoration(
             hintText: 'Why is a bin needed here?',
             filled: true,
-            fillColor: AppColors.grey50,
+            fillColor: AppColors.inputFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.grey200),
@@ -420,7 +422,7 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200),
       ),

@@ -283,7 +283,7 @@ class _BinsPageState extends State<BinsPage> {
     }
 
     return Container(
-      color: AppColors.grey50,
+      color: AppColors.background,
       child: Column(
         children: [
           // Static header containing Search Bar & Filter Chips

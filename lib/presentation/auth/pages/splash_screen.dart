@@ -3,7 +3,6 @@ import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/router/auth_routes.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
-import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:garbo_swms/presentation/shared/widgets/garbo_logo.dart';
@@ -32,8 +31,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<Offset> _logoSlide;
   late final Animation<double> _lineOpacity;
   late final Animation<double> _lineWidth;
-  late final Animation<double> _taglineOpacity;
-  late final Animation<Offset> _taglineSlide;
   late final Animation<double> _loaderOpacity;
   late final Animation<double> _exitFade;
   late final Animation<Offset> _exitLogoShift;
@@ -88,23 +85,6 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    _taglineOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.48, 0.72, curve: detailCurve),
-      ),
-    );
-
-    _taglineSlide = Tween<Offset>(
-      begin: const Offset(0, 0.18),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.48, 0.72, curve: detailCurve),
-      ),
-    );
-
     _loaderOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _introController,
@@ -148,29 +128,46 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startIntro() async {
+    final hasStoredSession = await AuthProvider.hasStoredSession();
+
     await Future<void>.delayed(const Duration(milliseconds: 120));
     if (!mounted) return;
 
     await _introController.forward();
     if (!mounted) return;
 
-    await Future<void>.delayed(_holdBeforeExit);
+    await Future<void>.delayed(
+      hasStoredSession ? const Duration(milliseconds: 180) : _holdBeforeExit,
+    );
     if (!mounted) return;
 
     await _exitController.forward();
     if (!mounted) return;
 
+    await _navigateFromSession();
+  }
+
+  Future<void> _navigateFromSession() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     final role = prefs.getString('role');
+    final lastRoute = prefs.getString('lastRoute');
 
     if (token != null && token.isNotEmpty) {
       try {
         if (!mounted) return;
         final authProvider = context.read<AuthProvider>();
-        final restored = await authProvider.restoreSessionFromStorage();
-        if (restored && mounted) {
-          final nextRoute = AppRouter.routeForSession(token: token, role: role);
+        if (!authProvider.isAuthenticated) {
+          await authProvider.restoreSessionFromStorage();
+        }
+
+        final nextRoute = AppRouter.routeForSession(
+          token: token,
+          role: role,
+          lastRoute: lastRoute,
+        );
+
+        if (nextRoute != AppRouter.login && mounted) {
           Navigator.of(context).pushReplacementNamed(nextRoute);
           return;
         }
@@ -237,24 +234,6 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             color: AppColors.emerald200,
                             borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FadeTransition(
-                        opacity: _taglineOpacity,
-                        child: SlideTransition(
-                          position: _taglineSlide,
-                          child: Opacity(
-                            opacity: 1 - _exitFade.value,
-                            child: Text(
-                              'Smart Waste Management',
-                              style: AppTypography.bodyMd.copyWith(
-                                color: AppColors.white70,
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
                           ),
                         ),
                       ),

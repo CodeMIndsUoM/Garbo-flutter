@@ -21,7 +21,7 @@ class SettingsPageState extends State<CitizenSettingsPage> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           CitizenHeader(name: 'Menu'),

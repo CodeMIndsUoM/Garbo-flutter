@@ -59,7 +59,7 @@ abstract final class BinStatusTheme {
   static Color cardBackground(BinStatus status) {
     switch (status) {
       case BinStatus.notChecked:
-        return AppColors.grey50;
+        return AppColors.surface;
       case BinStatus.full:
         return AppColors.redSurface2;
       case BinStatus.half:
@@ -117,7 +117,7 @@ abstract final class BinStatusTheme {
       case BinStatus.full:
         return AppColors.red50;
       case BinStatus.notChecked:
-        return AppColors.grey50;
+        return AppColors.surfaceVariant;
     }
   }
 }

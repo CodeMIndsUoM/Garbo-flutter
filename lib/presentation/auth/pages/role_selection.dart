@@ -16,7 +16,7 @@ class RoleSelection extends StatelessWidget {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(

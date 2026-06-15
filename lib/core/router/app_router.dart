@@ -30,26 +30,24 @@ class AppRouter {
   static const String thirdParty = '/third-party';
 
   static String? routeForRole(String? rawRole) {
-    final normalizedRole = rawRole?.trim().toUpperCase();
-    if (normalizedRole == null || normalizedRole.isEmpty) {
+    if (rawRole == null || rawRole.trim().isEmpty) {
       return null;
     }
 
+    var normalizedRole = rawRole.trim().toUpperCase().replaceAll('-', '_');
+    if (normalizedRole.startsWith('ROLE_')) {
+      normalizedRole = normalizedRole.substring(5);
+    }
+
     switch (normalizedRole) {
-      case 'ROLE_CITIZEN':
       case 'CITIZEN':
         return citizenHome;
-      case 'ROLE_BIN_COLLECTOR':
       case 'BIN_COLLECTOR':
-      case 'ROLE_COLLECTOR':
       case 'COLLECTOR':
         return collectorDashboard;
-      case 'ROLE_FIELD_MENTOR':
       case 'FIELD_MENTOR':
-      case 'ROLE_FIELD_STAFF':
       case 'FIELD_STAFF':
         return fieldStaff;
-      case 'ROLE_THIRD_PARTY_COLLECTOR':
       case 'THIRD_PARTY_COLLECTOR':
         return thirdParty;
       default:
@@ -57,12 +55,28 @@ class AppRouter {
     }
   }
 
-  static String routeForSession({String? token, String? role}) {
+  static String routeForSession({
+    String? token,
+    String? role,
+    String? lastRoute,
+  }) {
     if (token == null || token.isEmpty) {
       return login;
     }
 
-    return routeForRole(role) ?? login;
+    final route = routeForRole(role);
+    if (route != null) {
+      return route;
+    }
+
+    if (lastRoute != null &&
+        lastRoute.isNotEmpty &&
+        lastRoute != login &&
+        lastRoute != splash) {
+      return lastRoute;
+    }
+
+    return login;
   }
 
   static Widget pageForRoute(String routeName) {
