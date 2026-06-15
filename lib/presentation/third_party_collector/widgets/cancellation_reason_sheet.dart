@@ -141,7 +141,7 @@ class CancellationReasonSheet extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: Material(
-                              color: AppColors.grey50,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(16),
                               child: InkWell(
                                 onTap: () => Navigator.of(context).pop(reason),

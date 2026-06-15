@@ -44,7 +44,7 @@ class LeafletNavigationPage extends StatelessWidget {
     final point = LatLng(latitude, longitude);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         foregroundColor: AppColors.grey900,

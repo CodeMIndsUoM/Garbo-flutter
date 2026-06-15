@@ -21,7 +21,7 @@ class ProfilePageBody extends StatelessWidget {
     syncAppColorsFromContext(context);
 
     return Container(
-      color: AppColors.grey50,
+      color: AppColors.surface,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

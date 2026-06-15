@@ -61,7 +61,7 @@ class _ForgotpasswordState extends State<Forgotpassword> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -79,16 +79,6 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                       fontSize: 36,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 6,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Center(
-                  child: Text(
-                    'Smart Waste Management',
-                    style: AppTypography.bodySm.copyWith(
-                      color: AppColors.grey500,
-                      letterSpacing: 1,
                     ),
                   ),
                 ),
@@ -164,7 +154,7 @@ class _ForgotpasswordState extends State<Forgotpassword> {
                             ),
                           ),
                           filled: true,
-                          fillColor: AppColors.grey50,
+                          fillColor: AppColors.inputFill,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 14,

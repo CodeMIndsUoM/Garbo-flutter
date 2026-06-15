@@ -181,10 +181,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
-        final prefs = await SharedPreferences.getInstance();
 
         final empId = body['empId'];
-        final empName = body['empName'];
 
         if (empId == null) {
           setState(() => _isLoading = false);
@@ -198,34 +196,29 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           return;
         }
 
-        // Save login data
-        await prefs.setString('empId', empId.toString());
-        await prefs.setString('empName', empName?.toString() ?? '');
-        await prefs.setString('email', email);
-        await prefs.setString('token', body['token'] ?? '');
         final role = body['role']?.toString() ?? '';
-        await prefs.setString('role', role);
-        final council = body['council']?.toString();
-        if (council != null && council.isNotEmpty) {
-          await prefs.setString('council', council);
-        }
         final mustChangePassword = body['mustChangePassword'] ?? false;
 
-        // Save credentials if remember me is checked
-        await _saveCredentials();
-
         // Bridge: sync AuthProvider state so collection team providers work
+        AuthProvider? authProvider;
         if (mounted) {
           try {
-            final authProvider = context.read<AuthProvider>();
+            authProvider = context.read<AuthProvider>();
             authProvider.setUserFromLoginResponse(body);
           } catch (e) {
             debugPrint('AuthProvider bridge skipped: $e');
           }
         }
 
+        // Save credentials if remember me is checked
+        await _saveCredentials();
+
         // If password change is required, redirect to change password
         if (mustChangePassword) {
+          await authProvider?.persistSessionFromLogin(
+            Map<String, dynamic>.from(body as Map),
+            email: email,
+          );
           if (mounted) {
             Navigator.pushNamedAndRemoveUntil(
               context,
@@ -249,6 +242,12 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             );
             return;
           }
+
+          await authProvider?.persistSessionFromLogin(
+            Map<String, dynamic>.from(body as Map),
+            email: email,
+            homeRoute: nextRoute,
+          );
 
           // Play success transition
           await _playSuccessTransition();
@@ -402,7 +401,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       ),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: AppColors.inputFill,
       border: fieldBorder,
       enabledBorder: fieldBorder,
       focusedBorder: OutlineInputBorder(
@@ -486,21 +485,6 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const GarboLogo(height: 108),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Smart Waste Management',
-                            style: AppTypography.bodySm.copyWith(
-                              color: Colors.white.withValues(alpha: 0.92),
-                              letterSpacing: 1,
-                              shadows: const [
-                                Shadow(
-                                  color: Color(0x4D000000),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),

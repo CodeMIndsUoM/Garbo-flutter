@@ -135,7 +135,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         borderSide: const BorderSide(color: AppColors.green700, width: 1.5),
       ),
       filled: true,
-      fillColor: AppColors.grey50,
+      fillColor: AppColors.inputFill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
@@ -145,7 +145,7 @@ class _ChangePasswordState extends State<ChangePassword> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(

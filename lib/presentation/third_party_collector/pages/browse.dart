@@ -250,7 +250,7 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
 
     final results = _filteredRequests;
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       extendBody: true,
       body: Column(
         children: [

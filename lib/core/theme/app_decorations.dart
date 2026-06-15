@@ -39,6 +39,7 @@ abstract final class AppDecorations {
     Widget? prefixIcon,
     Widget? suffixIcon,
     EdgeInsetsGeometry? contentPadding,
+    bool filled = false,
   }) {
     return InputDecoration(
       hintText: hintText,
@@ -52,9 +53,38 @@ abstract final class AppDecorations {
       disabledBorder: InputBorder.none,
       errorBorder: InputBorder.none,
       focusedErrorBorder: InputBorder.none,
-      filled: false,
+      filled: filled,
+      fillColor: filled ? AppColors.inputFill : null,
       isDense: true,
       contentPadding: contentPadding,
+    );
+  }
+
+  /// Standard filled text field decoration for forms.
+  static InputDecoration fieldInput({
+    required String label,
+    Widget? suffixIcon,
+    String? hintText,
+  }) {
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: AppColors.border),
+    );
+
+    return InputDecoration(
+      labelText: label,
+      hintText: hintText,
+      labelStyle: AppTypography.bodyMd.copyWith(color: AppColors.textSecondary),
+      hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: AppColors.inputFill,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: BorderSide(color: AppColors.green700, width: 1.2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 

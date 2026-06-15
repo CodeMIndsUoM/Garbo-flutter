@@ -61,6 +61,57 @@ class AuthProvider extends ChangeNotifier {
     _webSocketService = WebSocketService();
   }
 
+  /// Call once at app startup before [runApp] so the session is ready immediately.
+  Future<void> bootstrap() async {
+    await restoreSessionFromStorage();
+  }
+
+  /// Whether a previously saved login session exists in local storage.
+  static Future<bool> hasStoredSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final empId = prefs.getString('empId');
+    return token != null &&
+        token.isNotEmpty &&
+        empId != null &&
+        empId.isNotEmpty;
+  }
+
+  /// Persist login payload after a successful sign-in.
+  Future<void> persistSessionFromLogin(
+    Map<String, dynamic> body, {
+    required String email,
+    String? homeRoute,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final empId = body['empId'];
+    if (empId == null) return;
+
+    final role = _normalizeRole(body['role']?.toString() ?? '');
+    await prefs.setString('empId', empId.toString());
+    await prefs.setString('empName', body['empName']?.toString() ?? '');
+    await prefs.setString('email', email);
+    await prefs.setString('token', body['token']?.toString() ?? '');
+    await prefs.setString('role', role);
+
+    final council = body['council']?.toString();
+    if (council != null && council.isNotEmpty) {
+      await prefs.setString('council', council);
+    }
+
+    if (homeRoute != null && homeRoute.isNotEmpty) {
+      await prefs.setString('lastRoute', homeRoute);
+    }
+  }
+
+  static String _normalizeRole(String rawRole) {
+    var role = rawRole.trim().toUpperCase().replaceAll('-', '_');
+    if (role.startsWith('ROLE_')) {
+      role = role.substring(5);
+    }
+    return role;
+  }
+
   /// Login with email/username and password
   Future<void> login(String email, String password) async {
     _setLoading(true);
@@ -185,6 +236,16 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     _isAuthenticated = false;
     _errorMessage = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('empId');
+    await prefs.remove('empName');
+    await prefs.remove('email');
+    await prefs.remove('role');
+    await prefs.remove('council');
+    await prefs.remove('lastRoute');
+
     notifyListeners();
   }
 

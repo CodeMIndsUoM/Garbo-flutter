@@ -93,8 +93,8 @@ class CitizenSearchFilterBar extends StatelessWidget {
                         width: 16,
                         height: 16,
                         alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
                           shape: BoxShape.circle,
                         ),
                         child: Text(
