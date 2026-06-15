@@ -12,6 +12,7 @@ import 'package:garbo_swms/presentation/auth/pages/forgot_password.dart';
 import 'package:garbo_swms/presentation/auth/pages/register.dart';
 import 'package:garbo_swms/presentation/auth/pages/collector_register.dart';
 import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
+import 'package:garbo_swms/presentation/shared/widgets/garbo_logo.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
 import 'package:garbo_swms/presentation/providers/auth_provider.dart';
 import 'package:http/http.dart' as http;
@@ -156,7 +157,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   }
 
   void _handleLogin() async {
-    final email = _usernameController.text.trim();
+    final email = _usernameController.text.trim().toLowerCase();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
@@ -484,21 +485,8 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'GARBO',
-                            style: AppTypography.displayLg.copyWith(
-                              color: Colors.white,
-                              letterSpacing: 6,
-                              shadows: const [
-                                Shadow(
-                                  color: Color(0x59000000),
-                                  blurRadius: 16,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 6),
+                          const GarboLogo(height: 108),
+                          const SizedBox(height: 8),
                           Text(
                             'Smart Waste Management',
                             style: AppTypography.bodySm.copyWith(

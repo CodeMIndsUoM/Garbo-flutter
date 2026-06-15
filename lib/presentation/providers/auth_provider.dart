@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/sources/websocket_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// User entity model for authentication state
 class AppUser {
@@ -145,6 +146,37 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider bridge error: $e');
     }
+  }
+
+  /// Restore session from SharedPreferences after app restart.
+  Future<bool> restoreSessionFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final empIdStr = prefs.getString('empId');
+    final role = prefs.getString('role') ?? 'COLLECTOR';
+    if (token == null || token.isEmpty || empIdStr == null) {
+      return false;
+    }
+
+    final empId = int.tryParse(empIdStr);
+    if (empId == null || empId <= 0) {
+      return false;
+    }
+
+    _currentUser = AppUser(
+      empId: empId,
+      empName: prefs.getString('empName') ?? '',
+      email: prefs.getString('email') ?? '',
+      role: role,
+      onDuty: false,
+      rewardPoints: 0,
+    );
+    _isAuthenticated = true;
+    _errorMessage = null;
+
+    await _connectWebSocket(empId);
+    notifyListeners();
+    return true;
   }
 
   /// Logout and disconnect WebSocket

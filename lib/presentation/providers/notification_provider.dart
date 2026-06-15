@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:garbo_swms/core/router/app_navigator.dart';
+import 'package:garbo_swms/presentation/widgets/notification_detail_page.dart';
 import 'package:garbo_swms/core/services/firebase_bootstrap.dart';
 import 'package:garbo_swms/core/services/firebase_messaging_service.dart';
 import 'package:garbo_swms/data/models/app_notification_model.dart';
@@ -27,6 +31,7 @@ class NotificationProvider extends ChangeNotifier {
   String? _error;
   String? _fcmToken;
   StreamSubscription<AppNotificationModel>? _incomingSub;
+  StreamSubscription<dynamic>? _wsSub;
   bool _initialized = false;
   bool _wasAuthenticated = false;
 
@@ -45,6 +50,7 @@ class NotificationProvider extends ChangeNotifier {
     if (isFirebaseAvailable) {
       await messagingService.initialize(
         onForegroundMessage: _prependNotification,
+        onNotificationTap: _handleNotificationTapPayload,
       );
 
       _incomingSub =
@@ -54,6 +60,8 @@ class NotificationProvider extends ChangeNotifier {
         _fcmToken = token;
         _registerTokenIfAuthenticated(token);
       });
+
+      await messagingService.setupOpenedMessageHandlers(_handleRemoteMessage);
     }
 
     if (authProvider.isAuthenticated) {
@@ -85,9 +93,12 @@ class NotificationProvider extends ChangeNotifier {
       }
     }
     await refresh();
+    _attachWebSocketInbox();
   }
 
   Future<void> onUserLoggedOut() async {
+    _wsSub?.cancel();
+    _wsSub = null;
     final empId = authProvider.currentUser?.empId;
     final token = _fcmToken;
     if (empId != null && token != null && token.isNotEmpty) {
@@ -163,6 +174,45 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _attachWebSocketInbox() {
+    _wsSub?.cancel();
+    _wsSub = authProvider.webSocketService.messageStream.listen((message) {
+      if (message.type != 'NOTIFICATION_CREATED') return;
+      final payload = message.payload;
+      if (payload == null || payload.isEmpty) return;
+      _prependNotification(AppNotificationModel.fromJson(payload));
+    });
+  }
+
+  void _handleRemoteMessage(RemoteMessage message) {
+    final model = messagingService.messageToModel(message);
+    _prependNotification(model);
+    _openNotificationNavigation(model);
+  }
+
+  void _handleNotificationTapPayload(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    try {
+      final data = jsonDecode(payload);
+      if (data is! Map<String, dynamic>) return;
+      final model = AppNotificationModel.fromRemoteMessage(
+        messageId: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: data['title']?.toString() ?? 'Notification',
+        body: data['body']?.toString() ?? '',
+        data: data,
+      );
+      _openNotificationNavigation(model);
+    } catch (e) {
+      debugPrint('Notification tap payload error: $e');
+    }
+  }
+
+  void _openNotificationNavigation(AppNotificationModel model) {
+    final context = appNavigatorKey.currentContext;
+    if (context == null) return;
+    openNotificationDetail(context, model);
+  }
+
   Future<void> _registerTokenIfAuthenticated(String token) async {
     final empId = authProvider.currentUser?.empId;
     if (empId == null || !authProvider.isAuthenticated) return;
@@ -177,6 +227,7 @@ class NotificationProvider extends ChangeNotifier {
   @override
   void dispose() {
     _incomingSub?.cancel();
+    _wsSub?.cancel();
     messagingService.dispose();
     super.dispose();
   }

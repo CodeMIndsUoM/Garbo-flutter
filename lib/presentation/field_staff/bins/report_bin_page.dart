@@ -9,7 +9,10 @@ import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/core/utils/location_helper.dart';
 import 'package:garbo_swms/presentation/shared/widgets/location_submit_actions.dart';
 import 'package:garbo_swms/presentation/shared/widgets/submission_success.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/providers/gamification_tasks_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReportBinPage extends StatefulWidget {
@@ -99,6 +102,13 @@ class _ReportBinPageState extends State<ReportBinPage> {
       return;
     }
 
+    if (widget.bin.wouldReportDiscrepancy(_selectedStatus!)) {
+      final confirmed = await _confirmDiscrepancyReport(_selectedStatus!);
+      if (confirmed != true) {
+        return;
+      }
+    }
+
     // Use captured location, or try GPS at submit time as fallback.
     final position = _reportLocation ?? await _tryGetCurrentPosition();
     if (!mounted) return;
@@ -124,18 +134,27 @@ class _ReportBinPageState extends State<ReportBinPage> {
         "longitude": reportLng,
       };
 
-      final success = await _apiService.reportBinStatus(
+      final result = await _apiService.reportBinStatus(
         binId: widget.bin.id,
         reportData: payload,
         photoPath: _selectedImage?.path,
       );
 
       if (mounted) {
-        if (success) {
+        if (result.success) {
           await _updateDayStreak();
+          final userId = int.tryParse(widget.empId);
+          if (userId != null && mounted) {
+            await context.read<GamificationTasksProvider>().reloadUserTasks(
+              userId,
+            );
+          }
           if (!mounted) return;
           setState(() => _isSubmitting = false);
-          await showSubmissionSuccess(context, message: 'Report submitted');
+          final message = result.discrepancy
+              ? 'Report submitted. Admin has been notified of the status mismatch.'
+              : 'Report submitted';
+          await showSubmissionSuccess(context, message: message);
           if (!mounted) return;
           Navigator.of(context).pop(true);
         } else {
@@ -156,6 +175,30 @@ class _ReportBinPageState extends State<ReportBinPage> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: AppColors.red500),
+    );
+  }
+
+  Future<bool?> _confirmDiscrepancyReport(BinStatus selectedStatus) {
+    final reportedLabel = selectedStatus.label;
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Status mismatch'),
+        content: Text(
+          'This bin is marked Empty (e.g. after collection), but you are reporting it as $reportedLabel.\n\n'
+          'The admin will be notified to review this discrepancy. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Submit anyway'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -308,6 +351,16 @@ class _ReportBinPageState extends State<ReportBinPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  _buildCurrentStatusCard(),
+
+                  if (_selectedStatus != null &&
+                      widget.bin.wouldReportDiscrepancy(_selectedStatus!)) ...[
+                    const SizedBox(height: 16),
+                    _buildDiscrepancyWarning(_selectedStatus!),
+                  ],
+
                   const SizedBox(height: 32),
 
                   // Select Fill Level
@@ -317,8 +370,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.empty,
                     label: 'Empty',
                     description: 'Bin is empty or near empty',
-                    color: AppColors.green700,
-                    bgColor: AppColors.emerald50,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.empty),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.empty),
                     icon: Icons.sentiment_satisfied_alt,
                   ),
                   const SizedBox(height: 12),
@@ -326,8 +379,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.half,
                     label: 'Half Full',
                     description: 'Bin is about halfway filled',
-                    color: AppColors.amber600,
-                    bgColor: AppColors.amberSurface,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.half),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.half),
                     icon: Icons.sentiment_neutral,
                   ),
                   const SizedBox(height: 12),
@@ -335,8 +388,8 @@ class _ReportBinPageState extends State<ReportBinPage> {
                     status: BinStatus.full,
                     label: 'Full',
                     description: 'Bin is full or overflowing',
-                    color: AppColors.red500,
-                    bgColor: AppColors.red50,
+                    color: BinStatusTheme.reportOptionColor(BinStatus.full),
+                    bgColor: BinStatusTheme.reportOptionBackground(BinStatus.full),
                     icon: Icons.sentiment_very_dissatisfied,
                   ),
 
@@ -475,6 +528,95 @@ class _ReportBinPageState extends State<ReportBinPage> {
   Widget _buildSectionTitle(String title) {
     return Text(title, style: AppTypography.titleLg);
   }
+
+  Widget _buildCurrentStatusCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Current system status',
+            style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(_statusIcon(widget.bin.status), color: _statusColor(widget.bin.status)),
+              const SizedBox(width: 10),
+              Text(
+                widget.bin.status.label,
+                style: AppTypography.titleLg.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: _statusColor(widget.bin.status),
+                ),
+              ),
+              if (widget.bin.fillLevel != null) ...[
+                const SizedBox(width: 8),
+                Text(
+                  '(${widget.bin.fillLevel}%)',
+                  style: AppTypography.bodySm.copyWith(color: AppColors.grey600),
+                ),
+              ],
+            ],
+          ),
+          if (widget.bin.status == BinStatus.empty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'If the bin is not actually empty, report Half or Full — admin will be notified.',
+              style: AppTypography.bodySm.copyWith(color: AppColors.amberDark),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiscrepancyWarning(BinStatus selectedStatus) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.amberSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.amber600.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: AppColors.amberDark, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Reporting ${selectedStatus.label} while the bin is Empty will flag a discrepancy for admin review.',
+              style: AppTypography.bodySm.copyWith(color: AppColors.amberDark2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _statusIcon(BinStatus status) {
+    switch (status) {
+      case BinStatus.full:
+        return Icons.sentiment_very_dissatisfied;
+      case BinStatus.half:
+        return Icons.sentiment_neutral;
+      case BinStatus.empty:
+        return Icons.sentiment_satisfied_alt;
+      case BinStatus.notChecked:
+        return Icons.help_outline;
+    }
+  }
+
+  Color _statusColor(BinStatus status) => BinStatusTheme.reportOptionColor(status);
 
   Widget _buildStatusOption({
     required BinStatus status,

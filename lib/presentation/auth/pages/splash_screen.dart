@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:garbo_swms/core/router/app_router.dart';
+import 'package:garbo_swms/core/router/auth_routes.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
-import 'package:garbo_swms/core/router/auth_routes.dart';
 import 'package:garbo_swms/presentation/auth/widgets/auth_hero_background.dart';
+import 'package:garbo_swms/presentation/providers/auth_provider.dart';
+import 'package:garbo_swms/presentation/shared/widgets/garbo_logo.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -153,6 +158,27 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     await _exitController.forward();
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final role = prefs.getString('role');
+
+    if (token != null && token.isNotEmpty) {
+      try {
+        if (!mounted) return;
+        final authProvider = context.read<AuthProvider>();
+        final restored = await authProvider.restoreSessionFromStorage();
+        if (restored && mounted) {
+          final nextRoute = AppRouter.routeForSession(token: token, role: role);
+          Navigator.of(context).pushReplacementNamed(nextRoute);
+          return;
+        }
+      } catch (e) {
+        debugPrint('Session restore failed: $e');
+      }
+    }
+
     if (mounted) {
       Navigator.of(context).pushReplacement(AuthRoutes.splashToLogin());
     }
@@ -198,15 +224,7 @@ class _SplashScreenState extends State<SplashScreen>
                           position: AlwaysStoppedAnimation(logoShift),
                           child: ScaleTransition(
                             scale: _logoScale,
-                            child: Text(
-                              'GARBO',
-                              style: AppTypography.displayLg.copyWith(
-                                color: Colors.white,
-                                fontSize: 52,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 10,
-                              ),
-                            ),
+                            child: const GarboLogo(height: 132),
                           ),
                         ),
                       ),

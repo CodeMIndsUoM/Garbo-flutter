@@ -8,6 +8,21 @@ import 'package:garbo_swms/core/constants/api_constants.dart';
 typedef AuthHeadersProvider = Future<Map<String, String>> Function();
 typedef TokenProvider = Future<String> Function();
 
+String parseApiError(http.Response response, String fallback) {
+  try {
+    final decoded = json.decode(response.body);
+    if (decoded is Map<String, dynamic>) {
+      final error = decoded['error'] ?? decoded['message'];
+      if (error != null && error.toString().trim().isNotEmpty) {
+        return error.toString();
+      }
+    }
+  } catch (_) {
+    // Ignore malformed error bodies.
+  }
+  return fallback;
+}
+
 class AuthApi {
   final http.Client client;
   final AuthHeadersProvider authHeadersProvider;
@@ -62,6 +77,34 @@ class AuthApi {
     }
     return body;
   }
+
+  Future<void> requestPasswordReset(String email) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password');
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'email': email.trim()}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(parseApiError(response, 'Failed to send reset instructions'));
+    }
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/auth/reset-password');
+    final response = await client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'token': token.trim(), 'newPassword': newPassword}),
+    );
+    final body = json.decode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200 || body['success'] != true) {
+      throw Exception(body['message']?.toString() ?? 'Failed to reset password');
+    }
+  }
 }
 
 class ComplaintApi {
@@ -98,7 +141,7 @@ class ComplaintApi {
       body: json.encode(payload),
     );
     if (response.statusCode != 200) {
-      throw Exception('Failed to submit report');
+      throw Exception(parseApiError(response, 'Failed to submit report'));
     }
     return json.decode(response.body) as Map<String, dynamic>;
   }
@@ -179,7 +222,7 @@ class EventApi {
       body: json.encode(payload),
     );
     if (response.statusCode != 200) {
-      throw Exception('Failed to suggest event');
+      throw Exception(parseApiError(response, 'Failed to suggest event'));
     }
     return json.decode(response.body) as Map<String, dynamic>;
   }

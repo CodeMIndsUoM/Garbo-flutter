@@ -81,35 +81,38 @@ class CitizenHomePageState extends State<CitizenHomePage> {
       children: [
         Text('Quick Actions', style: AppTypography.h2),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: buildActionCard(
-                icon: Icons.report_problem_rounded,
-                title: 'Report Issue',
-                subtitle: 'File a complaint',
-                routeName: AppRouter.citizenReport,
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: buildActionCard(
+                  icon: Icons.report_problem_rounded,
+                  title: 'Report Issue',
+                  subtitle: 'File a complaint',
+                  routeName: AppRouter.citizenReport,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: buildActionCard(
-                icon: Icons.local_shipping_rounded,
-                title: 'Request Pickup',
-                subtitle: 'Schedule collection',
-                routeName: AppRouter.citizenRequest,
+              const SizedBox(width: 12),
+              Expanded(
+                child: buildActionCard(
+                  icon: Icons.local_shipping_rounded,
+                  title: 'Request Pickup',
+                  subtitle: 'Schedule collection',
+                  routeName: AppRouter.citizenRequest,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: buildActionCard(
-                icon: Icons.event_rounded,
-                title: 'Browse Events',
-                subtitle: 'Join community',
-                routeName: AppRouter.citizenEvents,
+              const SizedBox(width: 12),
+              Expanded(
+                child: buildActionCard(
+                  icon: Icons.event_rounded,
+                  title: 'Browse Events',
+                  subtitle: 'Join community',
+                  routeName: AppRouter.citizenEvents,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -130,29 +133,33 @@ class CitizenHomePageState extends State<CitizenHomePage> {
             Navigator.pushNamed(context, routeName);
           }
         },
-        child: CitizenSurfaceCard(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: AppColors.green700, size: 22),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.titleSm.copyWith(fontSize: 12, height: 1.2),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.captionSm.copyWith(height: 1.2),
-              ),
-            ],
+        child: SizedBox(
+          width: double.infinity,
+          child: CitizenSurfaceCard(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(icon, color: AppColors.green700, size: 22),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.titleSm.copyWith(fontSize: 12, height: 1.2),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.captionSm.copyWith(height: 1.2),
+                ),
+              ],
+            ),
           ),
         ),
       ),

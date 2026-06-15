@@ -12,6 +12,7 @@ class JobsFilterBar extends StatelessWidget {
   final List<CollectionOfferModel> Function(OfferStatus) offersByStatus;
   final int activeFilterCount;
   final VoidCallback onOpenFilters;
+  final bool showFilterButton;
 
   const JobsFilterBar({
     super.key,
@@ -19,6 +20,7 @@ class JobsFilterBar extends StatelessWidget {
     required this.offersByStatus,
     required this.activeFilterCount,
     required this.onOpenFilters,
+    this.showFilterButton = true,
   });
 
   @override
@@ -106,8 +108,10 @@ class JobsFilterBar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          _buildFilterIconButton(),
+          if (showFilterButton) ...[
+            const SizedBox(width: 8),
+            _buildFilterIconButton(),
+          ],
         ],
       ),
     );

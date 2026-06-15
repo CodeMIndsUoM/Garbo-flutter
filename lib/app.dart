@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:garbo_swms/core/router/app_navigator.dart';
 import 'package:garbo_swms/core/router/app_router.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
@@ -54,6 +55,7 @@ class App extends StatelessWidget {
 
     return MaterialApp(
       title: 'Garbo SWMS',
+      navigatorKey: appNavigatorKey,
       debugShowCheckedModeBanner: false,
       themeAnimationDuration: Duration.zero,
       themeAnimationCurve: Curves.linear,
