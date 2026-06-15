@@ -30,14 +30,14 @@ class BinFilterChips extends StatelessWidget {
       child: Row(
         children: filters.map((filter) {
           final isSelected = filter.label == selectedFilter;
-          Color chipBgColor = AppColors.grey50;
+          Color chipBgColor = AppColors.surfaceVariant;
           Color chipTextColor = AppColors.grey600;
 
           if (isSelected) {
             chipBgColor = AppColors.green700;
             chipTextColor = Colors.white;
           } else {
-            chipBgColor = AppColors.grey100;
+            chipBgColor = AppColors.surfaceVariant;
             chipTextColor = AppColors.grey600;
           }
 

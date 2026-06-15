@@ -89,7 +89,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           _buildHeader(context),
@@ -423,7 +423,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
               decoration: BoxDecoration(
                 color: readOnly
                     ? AppColors.grey100
-                    : (focused ? AppColors.surface : AppColors.grey50),
+                    : (focused ? AppColors.surface : AppColors.inputFill),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: focused && !readOnly
@@ -673,7 +673,7 @@ class _ThirdPartyEditProfilePageState extends State<ThirdPartyEditProfilePage> {
     required ImageSource source,
   }) {
     return Material(
-      color: AppColors.grey50,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),

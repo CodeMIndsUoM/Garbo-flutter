@@ -12,7 +12,7 @@ class LeaderboardPage extends StatelessWidget {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         foregroundColor: AppColors.grey900,
         elevation: 0,

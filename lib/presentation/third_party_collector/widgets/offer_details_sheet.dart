@@ -232,7 +232,7 @@ class OfferDetailsSheet extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.grey200, width: 1),
       ),
@@ -297,7 +297,7 @@ class OfferDetailsSheet extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.grey50,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -417,7 +417,7 @@ class OfferDetailsSheet extends StatelessWidget {
         'Prepare for the scheduled pickup. Contact the citizen if you need to coordinate.',
       ),
       OfferStatus.rejected => (
-        AppColors.grey50,
+        AppColors.surfaceVariant,
         AppColors.grey200,
         AppColors.grey600,
         Icons.lightbulb_outline_rounded,

@@ -142,7 +142,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       extendBody: true,
       body: Column(
         children: [
@@ -246,7 +246,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.grey100, width: 1),
       ),
@@ -303,7 +303,7 @@ class _ThirdPartyHomeState extends State<ThirdPartyHome> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.grey100, width: 1),
       ),
@@ -729,7 +729,7 @@ class _AllCompletedCollectionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         foregroundColor: AppColors.grey900,
         elevation: 0,

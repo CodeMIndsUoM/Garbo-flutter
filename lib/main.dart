@@ -18,11 +18,14 @@ Future<void> main() async {
 
   await bootstrapFirebase();
 
+  final authProvider = AuthProvider();
+  await authProvider.bootstrap();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
 
         ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
           create: (context) {

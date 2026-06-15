@@ -156,7 +156,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
     return Container(
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.grey200),
       ),

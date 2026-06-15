@@ -400,7 +400,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   hintText: 'Enter your name',
                   hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.grey500),
                   filled: true,
-                  fillColor: AppColors.grey50,
+                  fillColor: AppColors.inputFill,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
