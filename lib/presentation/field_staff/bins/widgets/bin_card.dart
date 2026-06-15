@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/widgets/bin_details_overlay.dart';
 
@@ -44,7 +45,7 @@ class BinCard extends StatelessWidget {
             Container(
               height: 4,
               width: double.infinity,
-              color: _statusLineColorFor(bin.displayStatus),
+              color: BinStatusTheme.accent(bin.displayStatus),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -127,12 +128,12 @@ class BinCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: bin.displayStatus == BinStatus.notChecked
                 ? Colors.transparent
-                : _statusTextColorFor(bin.displayStatus).withValues(alpha: 0.05),
+                : BinStatusTheme.text(bin.displayStatus).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: bin.displayStatus == BinStatus.notChecked
                   ? Colors.transparent
-                  : _statusTextColorFor(bin.displayStatus).withValues(alpha: 0.2),
+                  : BinStatusTheme.text(bin.displayStatus).withValues(alpha: 0.2),
               width: 1.2,
             ),
           ),
@@ -140,7 +141,7 @@ class BinCard extends StatelessWidget {
             bin.displayStatus.label,
             style: AppTypography.labelSm.copyWith(
               fontWeight: FontWeight.bold,
-              color: _statusTextColorFor(bin.displayStatus),
+              color: BinStatusTheme.text(bin.displayStatus),
             ),
           ),
         ),
@@ -246,33 +247,5 @@ class BinCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // ── Status-based colors ──
-
-  Color _statusLineColorFor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey300;
-      case BinStatus.full:
-        return AppColors.red500;
-      case BinStatus.half:
-        return AppColors.yellow400;
-      case BinStatus.empty:
-        return AppColors.green700;
-    }
-  }
-
-  Color _statusTextColorFor(BinStatus status) {
-    switch (status) {
-      case BinStatus.notChecked:
-        return AppColors.grey500;
-      case BinStatus.full:
-        return AppColors.red500;
-      case BinStatus.half:
-        return AppColors.yellowDark;
-      case BinStatus.empty:
-        return AppColors.green700;
-    }
   }
 }

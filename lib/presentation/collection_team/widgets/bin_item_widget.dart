@@ -325,7 +325,7 @@ class _FillStatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isFull ? AppColors.red500 : AppColors.orange600,
+        color: isFull ? AppColors.red500 : AppColors.yellow400,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(

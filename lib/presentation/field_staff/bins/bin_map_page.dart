@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
+import 'package:garbo_swms/presentation/field_staff/bins/bin_status_theme.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
 
 class BinMapPage extends StatelessWidget {
@@ -86,7 +87,7 @@ class BinMapPage extends StatelessWidget {
         markerIcon = Icons.sentiment_very_dissatisfied;
         break;
       case BinStatus.half:
-        markerColor = AppColors.yellow400;
+        markerColor = BinStatusTheme.accent(BinStatus.half);
         markerIcon = Icons.sentiment_neutral;
         break;
       case BinStatus.empty:
