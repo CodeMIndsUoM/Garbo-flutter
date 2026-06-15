@@ -118,6 +118,13 @@ abstract final class AppColors {
   /// Card / input outlines.
   static Color get border => grey200;
 
+  /// Text fields, dropdowns, and nested search bars.
+  static Color get inputFill =>
+      _dark ? const Color(0xFF2A2A2A) : const Color(0xFFF8FAFC);
+
+  /// Default page / tab canvas — same as [background]; prefer [background] for scaffolds.
+  static Color get canvas => background;
+
   /// Hairline dividers.
   static Color get divider => grey100;
 

@@ -128,29 +128,46 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _startIntro() async {
+    final hasStoredSession = await AuthProvider.hasStoredSession();
+
     await Future<void>.delayed(const Duration(milliseconds: 120));
     if (!mounted) return;
 
     await _introController.forward();
     if (!mounted) return;
 
-    await Future<void>.delayed(_holdBeforeExit);
+    await Future<void>.delayed(
+      hasStoredSession ? const Duration(milliseconds: 180) : _holdBeforeExit,
+    );
     if (!mounted) return;
 
     await _exitController.forward();
     if (!mounted) return;
 
+    await _navigateFromSession();
+  }
+
+  Future<void> _navigateFromSession() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     final role = prefs.getString('role');
+    final lastRoute = prefs.getString('lastRoute');
 
     if (token != null && token.isNotEmpty) {
       try {
         if (!mounted) return;
         final authProvider = context.read<AuthProvider>();
-        final restored = await authProvider.restoreSessionFromStorage();
-        if (restored && mounted) {
-          final nextRoute = AppRouter.routeForSession(token: token, role: role);
+        if (!authProvider.isAuthenticated) {
+          await authProvider.restoreSessionFromStorage();
+        }
+
+        final nextRoute = AppRouter.routeForSession(
+          token: token,
+          role: role,
+          lastRoute: lastRoute,
+        );
+
+        if (nextRoute != AppRouter.login && mounted) {
           Navigator.of(context).pushReplacementNamed(nextRoute);
           return;
         }

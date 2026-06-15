@@ -241,7 +241,7 @@ class _DashboardState extends State<Dashboard> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           StatHeader(title: _tabTitle()),

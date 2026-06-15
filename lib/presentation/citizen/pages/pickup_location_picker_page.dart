@@ -79,7 +79,7 @@ class _PickupLocationPickerPageState extends State<PickupLocationPickerPage> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         foregroundColor: AppColors.grey900,

@@ -74,7 +74,7 @@ class _RegistrationStatusState extends State<RegistrationStatus> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(

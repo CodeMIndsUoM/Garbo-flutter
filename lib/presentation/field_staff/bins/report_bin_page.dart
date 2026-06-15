@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
+import 'package:garbo_swms/core/theme/app_theme_sync.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
@@ -313,6 +314,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
   // Coordinates the fill-level option buttons, issues text field, photo attach selector, and submission actions.
   @override
   Widget build(BuildContext context) {
+    syncAppColorsFromContext(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -409,7 +411,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
                         color: AppColors.grey500,
                       ),
                       filled: true,
-                      fillColor: AppColors.grey50,
+                      fillColor: AppColors.inputFill,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: AppColors.grey200),
@@ -534,7 +536,7 @@ class _ReportBinPageState extends State<ReportBinPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200),
       ),
