@@ -1,0 +1,77 @@
+name: Build APK
+
+# Builds a release APK and uploads it as a GitHub Actions artifact.
+# Does NOT deploy to AWS — install the APK on phones manually.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - devops/platform
+
+env:
+  API_BASE: http://13.233.77.40/api
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.38.5"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE=${API_BASE} \
+            --android-skip-build-dependency-validation || true
+
+          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ] && \
+             [ -f android/app/build/outputs/flutter-apk/app-release.apk ]; then
+            mkdir -p build/app/outputs/flutter-apk
+            cp android/app/build/outputs/flutter-apk/app-release.apk \
+               build/app/outputs/flutter-apk/app-release.apk
+          fi
+
+          if [ ! -f build/app/outputs/flutter-apk/app-release.apk ] && \
+             [ ! -f android/app/build/outputs/flutter-apk/app-release.apk ]; then
+            echo "APK not found after build" >&2
+            find . -name "app-release.apk" 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Resolve APK path
+        id: apk
+        run: |
+          if [ -f build/app/outputs/flutter-apk/app-release.apk ]; then
+            echo "path=build/app/outputs/flutter-apk/app-release.apk" >> "$GITHUB_OUTPUT"
+          elif [ -f android/app/build/outputs/flutter-apk/app-release.apk ]; then
+            echo "path=android/app/build/outputs/flutter-apk/app-release.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "APK not found" >&2
+            find . -name "app-release.apk" 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: garbo-apk-${{ github.run_number }}-${{ github.sha }}
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 30
