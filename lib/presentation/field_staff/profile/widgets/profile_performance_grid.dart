@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:garbo_swms/core/theme/app_decorations.dart';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:provider/provider.dart';
 import 'package:garbo_swms/core/theme/colors.dart';
 import 'package:garbo_swms/core/theme/typography.dart';
 import 'package:garbo_swms/data/sources/api_service.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/models/bin_model.dart';
+import 'package:garbo_swms/presentation/providers/leaderboard_provider.dart';
 
 class ProfilePerformanceGrid extends StatelessWidget {
   const ProfilePerformanceGrid({super.key});
@@ -106,9 +108,14 @@ class ProfilePerformanceGrid extends StatelessWidget {
                         ? '--'
                         : '${stats.avgResponseMinutes!} mins',
                   ),
-                  _buildListRow(
-                    label: 'Team Rank',
-                    value: '--',
+                  Consumer<LeaderboardProvider>(
+                    builder: (context, leaderboardProvider, _) {
+                      final rank = leaderboardProvider.userRankEntry?.rank;
+                      return _buildListRow(
+                        label: 'Team Rank',
+                        value: rank != null ? '#$rank' : '--',
+                      );
+                    },
                   ),
                 ],
               ),

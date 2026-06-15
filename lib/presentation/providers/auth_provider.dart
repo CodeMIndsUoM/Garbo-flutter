@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:garbo_swms/core/constants/api_constants.dart';
 import 'package:garbo_swms/data/sources/websocket_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// User entity model for authentication state
 class AppUser {
@@ -58,6 +59,57 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     _webSocketService = WebSocketService();
+  }
+
+  /// Call once at app startup before [runApp] so the session is ready immediately.
+  Future<void> bootstrap() async {
+    await restoreSessionFromStorage();
+  }
+
+  /// Whether a previously saved login session exists in local storage.
+  static Future<bool> hasStoredSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final empId = prefs.getString('empId');
+    return token != null &&
+        token.isNotEmpty &&
+        empId != null &&
+        empId.isNotEmpty;
+  }
+
+  /// Persist login payload after a successful sign-in.
+  Future<void> persistSessionFromLogin(
+    Map<String, dynamic> body, {
+    required String email,
+    String? homeRoute,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final empId = body['empId'];
+    if (empId == null) return;
+
+    final role = _normalizeRole(body['role']?.toString() ?? '');
+    await prefs.setString('empId', empId.toString());
+    await prefs.setString('empName', body['empName']?.toString() ?? '');
+    await prefs.setString('email', email);
+    await prefs.setString('token', body['token']?.toString() ?? '');
+    await prefs.setString('role', role);
+
+    final council = body['council']?.toString();
+    if (council != null && council.isNotEmpty) {
+      await prefs.setString('council', council);
+    }
+
+    if (homeRoute != null && homeRoute.isNotEmpty) {
+      await prefs.setString('lastRoute', homeRoute);
+    }
+  }
+
+  static String _normalizeRole(String rawRole) {
+    var role = rawRole.trim().toUpperCase().replaceAll('-', '_');
+    if (role.startsWith('ROLE_')) {
+      role = role.substring(5);
+    }
+    return role;
   }
 
   /// Login with email/username and password
@@ -147,12 +199,53 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Restore session from SharedPreferences after app restart.
+  Future<bool> restoreSessionFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final empIdStr = prefs.getString('empId');
+    final role = prefs.getString('role') ?? 'COLLECTOR';
+    if (token == null || token.isEmpty || empIdStr == null) {
+      return false;
+    }
+
+    final empId = int.tryParse(empIdStr);
+    if (empId == null || empId <= 0) {
+      return false;
+    }
+
+    _currentUser = AppUser(
+      empId: empId,
+      empName: prefs.getString('empName') ?? '',
+      email: prefs.getString('email') ?? '',
+      role: role,
+      onDuty: false,
+      rewardPoints: 0,
+    );
+    _isAuthenticated = true;
+    _errorMessage = null;
+
+    await _connectWebSocket(empId);
+    notifyListeners();
+    return true;
+  }
+
   /// Logout and disconnect WebSocket
   Future<void> logout() async {
     await _webSocketService.disconnect();
     _currentUser = null;
     _isAuthenticated = false;
     _errorMessage = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('empId');
+    await prefs.remove('empName');
+    await prefs.remove('email');
+    await prefs.remove('role');
+    await prefs.remove('council');
+    await prefs.remove('lastRoute');
+
     notifyListeners();
   }
 

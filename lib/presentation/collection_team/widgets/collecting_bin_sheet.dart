@@ -156,7 +156,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
     return Container(
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.grey200),
       ),
@@ -191,7 +191,7 @@ class _CollectingBinSheetState extends State<CollectingBinSheet> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isFull ? AppColors.red500 : AppColors.orange600,
+                  color: isFull ? AppColors.red500 : AppColors.yellow400,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(

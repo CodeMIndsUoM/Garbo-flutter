@@ -91,7 +91,7 @@ class _ThirdPartySetPasswordPageState extends State<ThirdPartySetPasswordPage> {
     syncAppColorsFromContext(context);
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         foregroundColor: AppColors.grey900,
@@ -226,7 +226,7 @@ class _ThirdPartySetPasswordPageState extends State<ThirdPartySetPasswordPage> {
           cursorColor: AppColors.green700,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppColors.grey50,
+            fillColor: AppColors.inputFill,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,

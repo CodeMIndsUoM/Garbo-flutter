@@ -117,7 +117,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     if (_loading) {
       return Scaffold(
         extendBody: true,
-        backgroundColor: AppColors.grey50,
+        backgroundColor: AppColors.background,
         body: const Center(
           child: CircularProgressIndicator(color: AppColors.green700),
         ),
@@ -127,7 +127,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const ThirdPartyHeader(title: 'Profile', subtitle: ''),
@@ -275,7 +275,7 @@ class _ThirdPartyProfilePageState extends State<ThirdPartyProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.grey100, width: 1),
       ),

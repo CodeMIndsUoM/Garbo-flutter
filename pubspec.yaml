@@ -34,9 +34,22 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icons/app_icon.png
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: assets/icons/app_icon.png
+    background_color: "#1E823E"
+    theme_color: "#1E823E"
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/login-hero.jpg
+    - assets/images/garbo-logo.png
