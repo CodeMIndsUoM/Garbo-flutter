@@ -1,5 +1,5 @@
 class ApiConstants {
-  // Override at build time: --dart-define=API_BASE=http://13.233.77.40/api
+  // Override at build time: --dart-define=API_BASE=https://garboadmin.duckdns.org/api
   // Local dev defaults:
   //   USB Android (adb reverse) : http://127.0.0.1:8081/api
   //   Android Emulator        : http://10.0.2.2:8081/api
