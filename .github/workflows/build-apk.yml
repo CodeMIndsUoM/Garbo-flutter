@@ -10,7 +10,7 @@ on:
       - devops/platform
 
 env:
-  API_BASE: http://13.233.77.40/api
+  API_BASE: https://garboadmin.duckdns.org/api
 
 jobs:
   build-apk:
