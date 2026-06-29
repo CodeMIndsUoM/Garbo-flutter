@@ -35,11 +35,11 @@ class CollectionTeamProfile extends StatefulWidget {
 }
 
 class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
-  static const String _baseUrl = ApiConstants.baseUrl;
+  static final String _baseUrl = ApiConstants.baseUrl;
   static const Duration _performanceStatsTimeout = Duration(seconds: 20);
   final ApiService _apiService = ApiService();
 
-  bool _didInitProfile = false;
+  int? _primedUserId;
   bool _achievementsLoaded = false;
   bool _achievementsLoading = false;
   String? _avatarUrl;
@@ -56,32 +56,31 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_didInitProfile) {
-      return;
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+
+    if (user != null) {
+      if (_primedUserId != user.empId) {
+        _primedUserId = user.empId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+
+          _activeUserId = user.empId;
+          _loadPerformanceStats(user.empId);
+          _loadAvatar(user.empId);
+          context.read<LeaderboardProvider>().trackUser(
+            user.empId,
+            role: user.role,
+          );
+          _loadAchievementsIfNeeded();
+          _attachPerformanceRealtimeRefresh(context.read<WebSocketProvider>());
+        });
+      }
+    } else {
+      _primedUserId = null;
     }
-
-    _didInitProfile = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-
-      final authProvider = context.read<AuthProvider>();
-      final userId = authProvider.currentUser?.empId;
-
-      if (userId != null) {
-        _activeUserId = userId;
-        _loadPerformanceStats(userId);
-        _loadAvatar(userId);
-        context.read<LeaderboardProvider>().trackUser(
-          userId,
-          role: authProvider.currentUser?.role ?? 'COLLECTOR',
-        );
-        _loadAchievementsIfNeeded();
-      }
-
-      _attachPerformanceRealtimeRefresh(context.read<WebSocketProvider>());
-    });
   }
 
   Future<void> _loadAvatar(int userId) async {

@@ -1,12 +1,25 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiConstants {
   // Override at build time: --dart-define=API_BASE=https://garboadmin.duckdns.org/api
   // Local dev defaults:
   //   USB Android (adb reverse) : http://127.0.0.1:8081/api
   //   Android Emulator        : http://10.0.2.2:8081/api
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE',
-    defaultValue: 'http://127.0.0.1:8081/api',
-  );
+  static String get baseUrl {
+    const env = String.fromEnvironment('API_BASE', defaultValue: '');
+    if (env.isNotEmpty) return env;
+    if (kIsWeb) {
+      final host = Uri.base.host.isNotEmpty ? Uri.base.host : 'localhost';
+      return 'http://$host:8081/api';
+    }
+    try {
+      if (Platform.isAndroid) return 'http://127.0.0.1:8081/api';
+      return 'http://127.0.0.1:8081/api';
+    } catch (e) {
+      return 'http://127.0.0.1:8081/api';
+    }
+  }
 
   // Field Mentor Endpoints
   static const String fieldMentors = '/fieldmentors';

@@ -10,7 +10,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 /// GamificationTasksProvider manages user's gamification tasks and achievements
 class GamificationTasksProvider extends ChangeNotifier {
-  static const String _baseUrl = ApiConstants.baseUrl;
+  static final String _baseUrl = ApiConstants.baseUrl;
   static const Duration _tasksRequestTimeout = Duration(seconds: 20);
 
   List<UserTaskProgress> _userTasks = [];

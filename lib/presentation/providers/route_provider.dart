@@ -11,7 +11,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 /// RouteProvider manages real-time route data from WebSocket updates
 class RouteProvider extends ChangeNotifier {
   final WebSocketProvider webSocketProvider;
-  static const String _baseUrl = ApiConstants.baseUrl;
+  static final String _baseUrl = ApiConstants.baseUrl;
 
   RouteUpdatePayload? _currentRouteUpdate;
   List<VehicleRoute> _routes = [];
@@ -119,26 +119,26 @@ class RouteProvider extends ChangeNotifier {
         if (payload == null) {
           return;
         }
-
-        int? toInt(dynamic value) {
-          if (value is int) {
-            return value;
-          }
-          if (value is num) {
-            return value.toInt();
-          }
-          return int.tryParse(value?.toString() ?? '');
+        final binId = _toInt(payload['binId']);
+        if (binId > 0) {
+          _applyRemoteBinStatus(binId, BinCollectionStatus.collected);
         }
-
-        final binId = toInt(payload['binId']);
-        if (binId != null) {
-          _applyRemoteCollectedBin(binId);
+      } else if (message.type == 'BIN_STATUS_UPDATED') {
+        final payload = message.payload;
+        if (payload == null) {
+          return;
+        }
+        final binId = _toInt(payload['binId']);
+        final statusRaw = payload['status'];
+        if (binId > 0) {
+          final nextStatus = _parseRemoteStatus(statusRaw);
+          _applyRemoteBinStatus(binId, nextStatus);
         }
       }
     });
   }
 
-  void _applyRemoteCollectedBin(int binId) {
+  void _applyRemoteBinStatus(int binId, BinCollectionStatus nextStatus) {
     bool changed = false;
 
     for (final session in _routeHistory) {
@@ -155,9 +155,15 @@ class RouteProvider extends ChangeNotifier {
       );
       final current = statuses[binId];
 
-      if (current != BinCollectionStatus.collected) {
-        statuses[binId] = BinCollectionStatus.collected;
-        timestamps[binId] = DateTime.now();
+      if (current != nextStatus) {
+        statuses[binId] = nextStatus;
+        if (nextStatus == BinCollectionStatus.collected ||
+            nextStatus == BinCollectionStatus.skipped) {
+          timestamps[binId] = DateTime.now();
+        } else {
+          timestamps.remove(binId);
+          _reportedCompletedRoutes.remove(sessionId);
+        }
         changed = true;
       }
     }
@@ -165,6 +171,17 @@ class RouteProvider extends ChangeNotifier {
     if (changed) {
       notifyListeners();
     }
+  }
+
+  BinCollectionStatus _parseRemoteStatus(dynamic value) {
+    final raw = value?.toString().toUpperCase().trim();
+    if (raw == 'COLLECTED') {
+      return BinCollectionStatus.collected;
+    }
+    if (raw == 'SKIPPED') {
+      return BinCollectionStatus.skipped;
+    }
+    return BinCollectionStatus.pending;
   }
 
   /// Get bin sequence for a specific vehicle
@@ -698,6 +715,13 @@ class RouteProvider extends ChangeNotifier {
     }
 
     if (loadedSessionIds.isEmpty) {
+      if (sessionIds.isNotEmpty) {
+        // Do NOT wipe out existing local route state on network/timeout failure
+        debugPrint(
+          'Failed to load any assigned sessions from server. Preserving existing local route state.',
+        );
+        return null;
+      }
       _resetRouteState(keepBoundUser: true);
       _assignedSessionIds
         ..clear()
