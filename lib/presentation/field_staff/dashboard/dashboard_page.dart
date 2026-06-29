@@ -41,8 +41,7 @@ class _DashboardState extends State<Dashboard> {
   String _empId = '';
   bool _isLoading = true;
   bool _didAttachRealtimeListener = false;
-  bool _didPrimeGamification = false;
-  bool _didPrimeLeaderboard = false;
+  int? _primedUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
   _binStatusSocketSubscription;
   Timer? _dashboardRefreshDebounce;
@@ -62,24 +61,23 @@ class _DashboardState extends State<Dashboard> {
       _attachRealtimeDashboardRefresh(context.read<WebSocketProvider>());
     }
 
-    if (!_didPrimeGamification) {
-      _didPrimeGamification = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        _primeGamificationProviders();
-      });
-    }
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+    final userId = user?.empId ?? int.tryParse(_empId);
 
-    if (!_didPrimeLeaderboard) {
-      _didPrimeLeaderboard = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        _primeLeaderboardProvider();
-      });
+    if (userId != null) {
+      if (_primedUserId != userId) {
+        _primedUserId = userId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          _primeGamificationProviders();
+          _primeLeaderboardProvider();
+        });
+      }
+    } else {
+      _primedUserId = null;
     }
   }
 

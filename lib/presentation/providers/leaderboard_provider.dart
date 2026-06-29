@@ -10,7 +10,7 @@ import 'package:garbo_swms/presentation/providers/websocket_provider.dart';
 
 /// LeaderboardProvider manages real-time leaderboard data from WebSocket updates
 class LeaderboardProvider extends ChangeNotifier {
-  static const String _baseUrl = ApiConstants.baseUrl;
+  static final String _baseUrl = ApiConstants.baseUrl;
 
   final WebSocketProvider webSocketProvider;
 

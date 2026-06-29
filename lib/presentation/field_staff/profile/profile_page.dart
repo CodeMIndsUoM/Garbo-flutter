@@ -40,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String _joinedDate = '-';
   String? _avatarUrl;
   bool _uploadingPhoto = false;
-  bool _didInitProviders = false;
+  int? _primedUserId;
   bool _achievementsLoaded = false;
   int? _activeUserId;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>?
@@ -56,17 +56,24 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_didInitProviders) {
-      return;
-    }
-    _didInitProviders = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+    final userId = user?.empId ?? int.tryParse(_employeeId);
+
+    if (userId != null && userId > 0) {
+      if (_primedUserId != userId) {
+        _primedUserId = userId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          _initGamificationProviders();
+          _attachGamificationRealtimeRefresh(context.read<WebSocketProvider>());
+        });
       }
-      _initGamificationProviders();
-      _attachGamificationRealtimeRefresh(context.read<WebSocketProvider>());
-    });
+    } else {
+      _primedUserId = null;
+    }
   }
 
   void _initGamificationProviders() {
@@ -142,8 +149,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (empId.trim().isNotEmpty && mounted) {
         _activeUserId = int.tryParse(empId);
-        if (_didInitProviders) {
-          _initGamificationProviders();
+        final userId = _activeUserId;
+        if (userId != null && userId > 0) {
+          if (_primedUserId != userId) {
+            _primedUserId = userId;
+            _initGamificationProviders();
+            _attachGamificationRealtimeRefresh(context.read<WebSocketProvider>());
+          }
         }
       }
 
