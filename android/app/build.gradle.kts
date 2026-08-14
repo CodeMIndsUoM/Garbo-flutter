@@ -6,10 +6,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+buildDir = file("../../build/app")
+
 android {
     namespace = "com.example.garbo_swms"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

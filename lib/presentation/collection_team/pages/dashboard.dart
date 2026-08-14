@@ -26,8 +26,7 @@ class CollectionTeamDashboard extends StatefulWidget {
 }
 
 class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
-  bool _didPrimeGamification = false;
-  bool _didPrimeLeaderboard = false;
+  int? _primedUserId;
 
   bool _isSameDay(DateTime value, DateTime reference) {
     return value.year == reference.year &&
@@ -38,38 +37,37 @@ class CollectionTeamDashboardState extends State<CollectionTeamDashboard> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_didPrimeGamification) {
-      _didPrimeGamification = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
 
-        final authProvider = context.read<AuthProvider>();
-        final gamificationProvider = context.read<GamificationTasksProvider>();
-        final user = authProvider.currentUser;
+    if (user != null) {
+      if (_primedUserId != user.empId) {
+        _primedUserId = user.empId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
 
-        if (user != null) {
+          final gamificationProvider = context.read<GamificationTasksProvider>();
+          final leaderboardProvider = context.read<LeaderboardProvider>();
+          final routeProvider = context.read<RouteProvider>();
+
           gamificationProvider.loadUserTasks(user.empId);
           gamificationProvider.loadAvailableTasks(user.role);
-        }
-      });
-    }
-
-    if (!_didPrimeLeaderboard) {
-      _didPrimeLeaderboard = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-
-        final authProvider = context.read<AuthProvider>();
-        final userId = authProvider.currentUser?.empId;
-        context.read<LeaderboardProvider>().trackUser(
-          userId,
-          role: authProvider.currentUser?.role,
-        );
-      });
+          leaderboardProvider.trackUser(
+            user.empId,
+            role: user.role,
+          );
+          routeProvider.loadAssignedRouteForCollector(user.empId).catchError(
+            (error) {
+              debugPrint('Failed to load assigned route for collector: $error');
+              return null;
+            },
+          );
+        });
+      }
+    } else {
+      _primedUserId = null;
     }
   }
 
