@@ -1,6 +1,8 @@
-# Ignore missing class warnings for androidx.window extensions and sidecar
+# Ignore missing class warnings for Play Core (deferred components) and androidx extensions
+-dontwarn com.google.android.play.core.**
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**
+-dontwarn androidx.**
 
 # Flutter ProGuard rules
 -keep class io.flutter.app.** { *; }
