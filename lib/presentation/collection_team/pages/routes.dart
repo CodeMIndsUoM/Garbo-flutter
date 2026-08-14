@@ -53,19 +53,23 @@ class CollectionTeamRoutesState extends State<CollectionTeamRoutes> {
     }
 
     final currentUserId = context.read<AuthProvider>().currentUser?.empId;
-    if (currentUserId != null && _loadedAssignedForUserId != currentUserId) {
-      _loadedAssignedForUserId = currentUserId;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        _routeProvider?.loadAssignedRouteForCollector(currentUserId).catchError(
-          (error) {
-            debugPrint('Failed to load assigned route for collector: $error');
-            return null;
-          },
-        );
-      });
+    if (currentUserId != null) {
+      if (_loadedAssignedForUserId != currentUserId) {
+        _loadedAssignedForUserId = currentUserId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          _routeProvider?.loadAssignedRouteForCollector(currentUserId).catchError(
+            (error) {
+              debugPrint('Failed to load assigned route for collector: $error');
+              return null;
+            },
+          );
+        });
+      }
+    } else {
+      _loadedAssignedForUserId = null;
     }
   }
 
