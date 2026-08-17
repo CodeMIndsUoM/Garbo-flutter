@@ -47,6 +47,10 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   String _reportStatusFilter = 'ALL';
   LatLng? _reportLocation;
   File? _photoFile;
+  String? _uploadedPhotoUrl;
+  bool _isUploadingPhoto = false;
+  String? _photoUploadError;
+  Future<String?>? _photoUploadFuture;
   List<Map<String, dynamic>> _reports = [];
 
   static const _issueTypes = [
@@ -127,14 +131,57 @@ class CitizenReportPageState extends State<CitizenReportPage> {
   }
 
   Future<void> _pickPhoto() async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1200,
-      imageQuality: 85,
-    );
-    if (picked != null && mounted) {
-      setState(() => _photoFile = File(picked.path));
+    try {
+      final picked = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 75,
+      );
+      if (picked != null && mounted) {
+        final file = File(picked.path);
+        if (await file.exists()) {
+          setState(() {
+            _photoFile = file;
+            _uploadedPhotoUrl = null;
+            _photoUploadError = null;
+            _isUploadingPhoto = true;
+          });
+          _startBackgroundUpload(file);
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not access the selected image. Please try again.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
     }
+  }
+
+  void _startBackgroundUpload(File file) {
+    final uploadFuture = _apiService.uploadComplaintImage(file);
+    _photoUploadFuture = uploadFuture;
+    uploadFuture.then((url) {
+      if (mounted && _photoFile?.path == file.path) {
+        setState(() {
+          _uploadedPhotoUrl = url;
+          _isUploadingPhoto = false;
+          _photoUploadError = null;
+        });
+      }
+    }).catchError((e) {
+      if (mounted && _photoFile?.path == file.path) {
+        setState(() {
+          _isUploadingPhoto = false;
+          _photoUploadError = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    });
   }
 
   Future<void> _submitReport() async {
@@ -153,9 +200,33 @@ class CitizenReportPageState extends State<CitizenReportPage> {
 
     setState(() => _submitting = true);
     try {
-      String? imageUrl;
+      String? imageUrl = _uploadedPhotoUrl;
       if (_photoFile != null) {
-        imageUrl = await _apiService.uploadComplaintImage(_photoFile!);
+        if (!await _photoFile!.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('The selected image was moved or deleted. Please choose the photo again.')),
+            );
+          }
+          return;
+        }
+
+        if (imageUrl == null) {
+          if (_photoUploadFuture != null) {
+            try {
+              imageUrl = await _photoUploadFuture;
+            } catch (uploadErr) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Image upload failed: $uploadErr. Please retry or re-pick photo.')),
+                );
+              }
+              return;
+            }
+          } else {
+            imageUrl = await _apiService.uploadComplaintImage(_photoFile!);
+          }
+        }
       }
 
       await _apiService.createComplaint({
@@ -181,14 +252,19 @@ class CitizenReportPageState extends State<CitizenReportPage> {
         selectedWasteType = null;
         _descriptionController.clear();
         _photoFile = null;
+        _uploadedPhotoUrl = null;
+        _photoUploadError = null;
+        _photoUploadFuture = null;
+        _isUploadingPhoto = false;
         _reportLocation = null;
         showMyReports = true;
       });
       await _loadReports();
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        final message = e.toString().replaceFirst('Exception: ', '');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit report')),
+          SnackBar(content: Text(message.isNotEmpty ? message : 'Failed to submit report')),
         );
       }
     } finally {
@@ -338,8 +414,55 @@ class CitizenReportPageState extends State<CitizenReportPage> {
           OutlinedButton.icon(
             onPressed: _pickPhoto,
             icon: const Icon(Icons.photo_camera_outlined),
-            label: Text(_photoFile == null ? 'Add Photo (Optional)' : 'Photo Selected'),
+            label: Text(_photoFile == null ? 'Add Photo (Optional)' : 'Change Photo'),
           ),
+          if (_photoFile != null) ...[
+            const SizedBox(height: 12),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(_photoFile!, height: 140, width: double.infinity, fit: BoxFit.cover),
+                ),
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isUploadingPhoto) ...[
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text('Uploading...', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        ] else if (_uploadedPhotoUrl != null) ...[
+                          const Icon(Icons.check_circle, size: 14, color: AppColors.green700),
+                          const SizedBox(width: 4),
+                          const Text('Uploaded', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        ] else if (_photoUploadError != null) ...[
+                          const Icon(Icons.error_outline, size: 14, color: AppColors.red500),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () => _startBackgroundUpload(_photoFile!),
+                            child: const Text('Retry', style: TextStyle(color: AppColors.red500, fontSize: 12, decoration: TextDecoration.underline)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ] else ...[
           Text(
             'Report location *',

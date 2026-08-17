@@ -147,6 +147,10 @@ class ComplaintApi {
   }
 
   Future<String?> uploadComplaintImage(File imageFile) async {
+    if (!await imageFile.exists()) {
+      throw Exception('Selected photo was not found or was cleaned up. Please choose the photo again.');
+    }
+
     final url = Uri.parse('${ApiConstants.baseUrl}/complaints/upload-image');
     final token = await tokenProvider();
     final request = http.MultipartRequest('POST', url);
@@ -160,9 +164,13 @@ class ComplaintApi {
     final response = await http.Response.fromStream(streamedResponse);
     if (response.statusCode == 200) {
       final body = json.decode(response.body) as Map<String, dynamic>;
-      return body['photoUrl'] as String?;
+      final url = body['imageUrl'] ?? body['photoUrl'];
+      return url?.toString();
+    } else {
+      throw Exception(
+        parseApiError(response, 'Failed to upload complaint image (${response.statusCode})'),
+      );
     }
-    return null;
   }
 }
 

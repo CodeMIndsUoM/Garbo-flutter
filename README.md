@@ -48,7 +48,7 @@ Additional seeded demo accounts:
 |-------|--------|--------|--------|
 | Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |Colombo
 | Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |Kaduwela
-| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdParty123` | Third-party collector home |Dehiwala-Mt. Lavinia,Kaduwela
+| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdP3arty123` | Third-party collector home |Dehiwala-Mt. Lavinia,Kaduwela
 | Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |Sri Jayewardenepura Kotte,Colombo
 
 ### Create Seed Users

@@ -93,12 +93,20 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
+        maxWidth: 1280,
+        maxHeight: 1280,
         imageQuality: 80,
       );
 
       if (image != null) {
+        final file = File(image.path);
+        if (!await file.exists()) {
+          _showSnackBar('Could not access the selected photo. Please try again.', isError: true);
+          return;
+        }
+
         setState(() {
-          _idPhotoFrontFile = File(image.path);
+          _idPhotoFrontFile = file;
           _uploadingFrontPhoto = true;
         });
 
@@ -125,12 +133,20 @@ class _CollectorRegisterState extends State<CollectorRegister> {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
+        maxWidth: 1280,
+        maxHeight: 1280,
         imageQuality: 80,
       );
 
       if (image != null) {
+        final file = File(image.path);
+        if (!await file.exists()) {
+          _showSnackBar('Could not access the selected photo. Please try again.', isError: true);
+          return;
+        }
+
         setState(() {
-          _idPhotoBackFile = File(image.path);
+          _idPhotoBackFile = file;
           _uploadingBackPhoto = true;
         });
 

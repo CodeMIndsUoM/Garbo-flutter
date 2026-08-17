@@ -76,11 +76,21 @@ class _ReportBinPageState extends State<ReportBinPage> {
 
   Future<void> _processImagePicker(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(source: source);
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 75,
+      );
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+        final file = File(image.path);
+        if (await file.exists()) {
+          setState(() {
+            _selectedImage = file;
+          });
+        } else if (mounted) {
+          _showError('Could not access the selected image. Please try again.');
+        }
       }
     } catch (e) {
       if (mounted) {
