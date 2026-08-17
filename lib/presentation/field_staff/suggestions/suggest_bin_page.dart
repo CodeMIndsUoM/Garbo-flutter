@@ -40,6 +40,10 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
   String _category = 'general';
   LatLng? _location;
   File? _selectedImage;
+  String? _uploadedImageUrl;
+  bool _isUploadingImage = false;
+  String? _imageUploadError;
+  Future<String>? _imageUploadFuture;
   bool _didAttachRealtimeListener = false;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? _socketSubscription;
 
@@ -108,9 +112,27 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final image = await _picker.pickImage(source: source);
+      final image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 75,
+      );
       if (image != null) {
-        setState(() => _selectedImage = File(image.path));
+        final file = File(image.path);
+        if (await file.exists()) {
+          setState(() {
+            _selectedImage = file;
+            _uploadedImageUrl = null;
+            _imageUploadError = null;
+            _isUploadingImage = true;
+          });
+          _startBackgroundUpload(file);
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not access the selected image. Please try again.')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -119,6 +141,27 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
         );
       }
     }
+  }
+
+  void _startBackgroundUpload(File file) {
+    final uploadFuture = _apiService.uploadBinSuggestionImage(file);
+    _imageUploadFuture = uploadFuture;
+    uploadFuture.then((url) {
+      if (mounted && _selectedImage?.path == file.path) {
+        setState(() {
+          _uploadedImageUrl = url;
+          _isUploadingImage = false;
+          _imageUploadError = null;
+        });
+      }
+    }).catchError((e) {
+      if (mounted && _selectedImage?.path == file.path) {
+        setState(() {
+          _isUploadingImage = false;
+          _imageUploadError = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    });
   }
 
   Future<void> _chooseOnMap() async {
@@ -165,9 +208,33 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
 
     setState(() => _submitting = true);
     try {
-      String? imageUrl;
+      String? imageUrl = _uploadedImageUrl;
       if (_selectedImage != null) {
-        imageUrl = await _apiService.uploadBinSuggestionImage(_selectedImage!);
+        if (!await _selectedImage!.exists()) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('The selected image was moved or deleted. Please choose the photo again.')),
+            );
+          }
+          return;
+        }
+
+        if (imageUrl == null) {
+          if (_imageUploadFuture != null) {
+            try {
+              imageUrl = await _imageUploadFuture;
+            } catch (uploadErr) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Image upload failed: $uploadErr. Please retry or change photo.')),
+                );
+              }
+              return;
+            }
+          } else {
+            imageUrl = await _apiService.uploadBinSuggestionImage(_selectedImage!);
+          }
+        }
       }
 
       await _apiService.createBinSuggestion({
@@ -189,6 +256,10 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
         _notesController.clear();
         _location = null;
         _selectedImage = null;
+        _uploadedImageUrl = null;
+        _imageUploadError = null;
+        _imageUploadFuture = null;
+        _isUploadingImage = false;
         _category = 'general';
         _view = _SuggestView.mySuggestions;
       });
@@ -328,9 +399,49 @@ class _SuggestBinPageState extends State<SuggestBinPage> {
         ),
         if (_selectedImage != null) ...[
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(_selectedImage!, height: 160, width: double.infinity, fit: BoxFit.cover),
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(_selectedImage!, height: 160, width: double.infinity, fit: BoxFit.cover),
+              ),
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.75),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isUploadingImage) ...[
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Uploading...', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ] else if (_uploadedImageUrl != null) ...[
+                        const Icon(Icons.check_circle, size: 14, color: AppColors.green700),
+                        const SizedBox(width: 4),
+                        const Text('Uploaded', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ] else if (_imageUploadError != null) ...[
+                        const Icon(Icons.error_outline, size: 14, color: AppColors.red500),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () => _startBackgroundUpload(_selectedImage!),
+                          child: const Text('Retry upload', style: TextStyle(color: AppColors.red500, fontSize: 12, decoration: TextDecoration.underline)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
         const SizedBox(height: 24),

@@ -322,6 +322,10 @@ class ThirdPartyCollectorApi {
   }
 
   Future<String> uploadThirdPartyNicPhoto(File imageFile) async {
+    if (!await imageFile.exists()) {
+      throw Exception('Selected NIC image file was not found. Please choose the photo again.');
+    }
+
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.thirdPartyRegister}/nic-photo',
     );
@@ -333,10 +337,6 @@ class ThirdPartyCollectorApi {
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
-
-    // Log response for debugging
-    print('Upload response status: ${response.statusCode}');
-    print('Upload response body: ${response.body}');
 
     if (response.body.isEmpty) {
       throw Exception('Server returned empty response');

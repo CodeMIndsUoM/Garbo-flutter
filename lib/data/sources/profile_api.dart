@@ -151,6 +151,9 @@ class ProfileApi {
 
   Future<String?> uploadProfilePicture(String userId, File imageFile) async {
     if (userId.isEmpty) return null;
+    if (!await imageFile.exists()) {
+      throw Exception('Selected photo was not found. Please choose the photo again.');
+    }
     final url = Uri.parse(
       '${ApiConstants.baseUrl}${ApiConstants.users}/$userId/avatar',
     );

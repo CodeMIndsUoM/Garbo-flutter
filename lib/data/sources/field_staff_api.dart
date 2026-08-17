@@ -155,6 +155,10 @@ class FieldStaffApi {
   }
 
   Future<String> uploadBinSuggestionImage(File imageFile) async {
+    if (!await imageFile.exists()) {
+      throw Exception('Selected photo was not found or was cleaned up. Please choose the photo again.');
+    }
+
     final url = Uri.parse('${ApiConstants.baseUrl}/bin-suggestions/upload-image');
     final token = await tokenProvider();
     final request = http.MultipartRequest('POST', url);
@@ -165,7 +169,9 @@ class FieldStaffApi {
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode != 200) {
-      throw Exception('Failed to upload image: ${response.statusCode}');
+      throw Exception(
+        parseApiError(response, 'Failed to upload image (${response.statusCode})'),
+      );
     }
     final body = json.decode(response.body) as Map<String, dynamic>;
     final imageUrl = body['imageUrl'] ?? body['photoUrl'];
