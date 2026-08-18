@@ -158,8 +158,14 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getMyComplaints() =>
       _complaintApi.getMyComplaints();
 
+  Future<List<Map<String, dynamic>>> getAssignedComplaints() =>
+      _complaintApi.getAssignedComplaints();
+
   Future<Map<String, dynamic>> createComplaint(Map<String, dynamic> payload) =>
       _complaintApi.createComplaint(payload);
+
+  Future<void> confirmComplaint(int complaintId, Map<String, dynamic> payload) =>
+      _complaintApi.confirmComplaint(complaintId, payload);
 
   Future<String?> uploadComplaintImage(File imageFile) =>
       _complaintApi.uploadComplaintImage(imageFile);

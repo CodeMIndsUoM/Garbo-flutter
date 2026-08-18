@@ -231,9 +231,10 @@ class _LeaderboardContentState extends State<LeaderboardContent> {
                                 Text(item.name, style: AppTypography.titleSm),
                                 const SizedBox(height: 2),
                                 Text(
-                                  item.role == 'COLLECTOR'
-                                      ? 'Bin Collector'
-                                      : 'Field Mentor',
+                                  item.councilName ??
+                                      (item.role == 'COLLECTOR'
+                                          ? 'Bin Collector'
+                                          : 'Field Mentor'),
                                   style: AppTypography.caption.copyWith(
                                     color: AppColors.grey600,
                                   ),

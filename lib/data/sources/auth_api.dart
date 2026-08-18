@@ -132,18 +132,36 @@ class ComplaintApi {
     return [];
   }
 
+  Future<List<Map<String, dynamic>>> getAssignedComplaints() async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/complaints/assigned-to-me');
+    final headers = await authHeadersProvider();
+    final response = await client.get(url, headers: headers);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load assigned complaints');
+    }
+    final decoded = json.decode(response.body);
+    if (decoded is List) {
+      return decoded.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
   Future<Map<String, dynamic>> createComplaint(Map<String, dynamic> payload) async {
     final url = Uri.parse('${ApiConstants.baseUrl}/complaints');
     final headers = await authHeadersProvider();
-    final response = await client.post(
-      url,
-      headers: headers,
-      body: json.encode(payload),
-    );
-    if (response.statusCode != 200) {
-      throw Exception(parseApiError(response, 'Failed to submit report'));
+    final response = await client.post(url, headers: headers, body: json.encode(payload));
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create complaint');
     }
     return json.decode(response.body) as Map<String, dynamic>;
+  }
+
+  Future<void> confirmComplaint(int complaintId, Map<String, dynamic> payload) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}/complaints/$complaintId/confirm');
+    final headers = await authHeadersProvider();
+    final response = await client.post(url, headers: headers, body: json.encode(payload));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to confirm complaint');
+    }
   }
 
   Future<String?> uploadComplaintImage(File imageFile) async {
