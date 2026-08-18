@@ -149,8 +149,8 @@ class ComplaintApi {
     final url = Uri.parse('${ApiConstants.baseUrl}/complaints');
     final headers = await authHeadersProvider();
     final response = await client.post(url, headers: headers, body: json.encode(payload));
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create complaint');
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to create complaint: ${response.statusCode}');
     }
     return json.decode(response.body) as Map<String, dynamic>;
   }
