@@ -12,6 +12,7 @@ import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/bin_list_s
 import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/achievement_list_section.dart';
 import 'package:garbo_swms/presentation/field_staff/dashboard/widgets/level_progress_card.dart';
 import 'package:garbo_swms/presentation/field_staff/shared/field_bottom_navigation.dart';
+import 'package:garbo_swms/presentation/field_staff/special_tasks/special_tasks_page.dart';
 import 'package:garbo_swms/presentation/field_staff/bins/bins_page.dart';
 import 'package:garbo_swms/presentation/field_staff/profile/profile_page.dart';
 import 'package:garbo_swms/presentation/field_staff/suggestions/suggest_bin_page.dart';
@@ -262,6 +263,8 @@ class _DashboardState extends State<Dashboard> {
       case 2:
         return 'Suggest Bin';
       case 3:
+        return 'Tasks';
+      case 4:
         return 'Profile';
       default:
         return 'Dashboard';
@@ -277,6 +280,8 @@ class _DashboardState extends State<Dashboard> {
       case 2:
         return const SuggestBinPage();
       case 3:
+        return const SpecialTasksPage();
+      case 4:
         return const ProfilePage();
       default:
         return _buildDashboardContent();

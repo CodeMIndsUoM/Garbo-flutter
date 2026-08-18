@@ -33,6 +33,11 @@ class FieldBottomNavigation extends StatelessWidget {
           label: 'Suggest',
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.assignment_outlined),
+          activeIcon: Icon(Icons.assignment),
+          label: 'Tasks',
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
           label: 'Profile',
