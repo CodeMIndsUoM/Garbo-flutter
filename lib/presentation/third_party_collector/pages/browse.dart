@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:garbo_swms/core/theme/app_theme_sync.dart';
+import 'package:garbo_swms/core/utils/distance_calculator.dart';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,7 +35,12 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
   bool _usingLiveLocation = false;
   String? _collectorId;
   List<CollectionRequestModel> _allRequests = const [];
+  Position? _collectorPosition;
   StreamSubscription<WebSocketMessage<Map<String, dynamic>>>? _marketplaceSub;
+
+  // Distance filter state
+  bool _distanceFilterEnabled = false;
+  double _maxDistanceKm = 10.0;
 
   static const List<String> _filters = [
     'All',
@@ -94,7 +100,12 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
       if (!mounted) return;
       setState(() {
         _allRequests = requests;
+        _collectorPosition = currentPosition;
         _usingLiveLocation = currentPosition != null;
+        // Auto-disable distance filter if GPS lost
+        if (currentPosition == null) {
+          _distanceFilterEnabled = false;
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -207,6 +218,20 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
   }
 
+  /// Computes the Haversine distance in km between the collector and a request.
+  /// Returns null if GPS is unavailable or request has no coordinates.
+  double? _distanceKmTo(CollectionRequestModel request) {
+    final pos = _collectorPosition;
+    if (pos == null) return null;
+    if (request.latitude == 0 && request.longitude == 0) return null;
+    return DistanceCalculator.distanceKm(
+      pos.latitude,
+      pos.longitude,
+      request.latitude,
+      request.longitude,
+    );
+  }
+
   List<CollectionRequestModel> get _filteredRequests {
     return _allRequests.where((r) {
       final prettyWasteType = r.wasteType.replaceAll('_', ' ').toLowerCase();
@@ -219,7 +244,19 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
           prettyWasteType.contains(q) ||
           r.addressLine.toLowerCase().contains(q) ||
           r.citizenName.toLowerCase().contains(q);
-      return matchesFilter && matchesQuery;
+
+      // Distance filter: only apply when toggle is on and GPS is available
+      bool matchesDistance = true;
+      if (_distanceFilterEnabled && _collectorPosition != null) {
+        final km = _distanceKmTo(r);
+        if (km == null) {
+          matchesDistance = false; // no coordinates → exclude
+        } else {
+          matchesDistance = km <= _maxDistanceKm;
+        }
+      }
+
+      return matchesFilter && matchesQuery && matchesDistance;
     }).toList();
   }
 
@@ -266,19 +303,11 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                 _buildSearchBar(),
                 const SizedBox(height: 14),
                 _buildFilterChips(),
-                const SizedBox(height: 18),
-                Text(
-                  '${results.length} request${results.length == 1 ? '' : 's'} available',
-                  style: AppTypography.bodySm,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _usingLiveLocation
-                      ? 'Using live GPS for nearby requests'
-                      : 'Location unavailable: showing general open requests',
-                  style: AppTypography.captionSm,
-                ),
                 const SizedBox(height: 12),
+                _buildNearbyAndCountRow(results.length),
+                if (_distanceFilterEnabled && _usingLiveLocation)
+                  _buildDistanceSlider(),
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -384,8 +413,138 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
     );
   }
 
+  // ── Nearby tick + request count row ──────────────────────────────────────
+
+  Widget _buildNearbyAndCountRow(int count) {
+    final gpsAvailable = _usingLiveLocation;
+
+    return Row(
+      children: [
+        // Left: Nearby checkbox/tick
+        InkWell(
+          onTap: gpsAvailable
+              ? () => setState(() => _distanceFilterEnabled = !_distanceFilterEnabled)
+              : null,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: Checkbox(
+                    value: _distanceFilterEnabled,
+                    activeColor: AppColors.green700,
+                    checkColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    side: BorderSide(
+                      color: gpsAvailable ? AppColors.grey400 : AppColors.grey300,
+                      width: 1.5,
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: gpsAvailable
+                        ? (val) => setState(() => _distanceFilterEnabled = val ?? false)
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Nearby',
+                  style: AppTypography.labelMd.copyWith(
+                    color: gpsAvailable
+                        ? (_distanceFilterEnabled ? AppColors.green700 : AppColors.grey700)
+                        : AppColors.grey400,
+                    fontWeight: _distanceFilterEnabled ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+                if (!gpsAvailable) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '(Needs GPS)',
+                    style: AppTypography.captionSm.copyWith(
+                      color: AppColors.grey400,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const Spacer(),
+        // Right: Request count
+        Text(
+          '$count request${count == 1 ? '' : 's'} available',
+          style: AppTypography.captionSm.copyWith(
+            color: AppColors.grey500,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Compact distance slider ──────────────────────────────────────────────
+
+  Widget _buildDistanceSlider() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.emerald50.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Text(
+              'Within ${_maxDistanceKm.round()} km',
+              style: AppTypography.captionSm.copyWith(
+                color: AppColors.green700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SliderTheme(
+                data: SliderThemeData(
+                  activeTrackColor: AppColors.green700,
+                  inactiveTrackColor: AppColors.grey200,
+                  thumbColor: AppColors.green700,
+                  overlayColor: AppColors.green700.withValues(alpha: 0.12),
+                  trackHeight: 2.5,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                ),
+                child: Slider(
+                  value: _maxDistanceKm,
+                  min: 1,
+                  max: 50,
+                  divisions: 49,
+                  label: '${_maxDistanceKm.round()} km',
+                  onChanged: (val) => setState(() => _maxDistanceKm = val),
+                ),
+              ),
+            ),
+            Text(
+              '50 km',
+              style: AppTypography.captionSm.copyWith(color: AppColors.grey500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Request card ─────────────────────────────────────────────────────────
+
   Widget _buildRequestCard(CollectionRequestModel request) {
     final wasteType = request.wasteType.replaceAll('_', ' ');
+    final distKm = _distanceKmTo(request);
+    final distLabel = distKm != null ? DistanceCalculator.formatDistance(distKm) : null;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -443,7 +602,51 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              // Distance info bar
+              if (distLabel != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.grey200, width: 0.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.straighten_rounded,
+                        color: AppColors.grey600,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Distance',
+                        style: AppTypography.captionSm.copyWith(
+                          color: AppColors.grey500,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        distLabel,
+                        style: AppTypography.labelMd.copyWith(
+                          color: AppColors.grey900,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'from your location',
+                        style: AppTypography.captionSm.copyWith(
+                          color: AppColors.grey400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
               Container(height: 1, color: AppColors.grey100),
               const SizedBox(height: 10),
               Row(
@@ -630,7 +833,9 @@ class _ThirdPartyBrowsePageState extends State<ThirdPartyBrowsePage> {
           Text('No requests found', style: AppTypography.titleMd),
           const SizedBox(height: 4),
           Text(
-            'Try a different filter or pull to refresh',
+            _distanceFilterEnabled
+                ? 'Try increasing the distance or disabling the filter'
+                : 'Try a different filter or pull to refresh',
             style: AppTypography.bodySm,
           ),
         ],
