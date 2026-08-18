@@ -367,7 +367,6 @@ class _CollectionTeamProfileState extends State<CollectionTeamProfile> {
           value: avgRouteTimeText,
         ),
         ProfileStatRow(label: 'Efficiency', value: efficiencyText),
-        ProfileStatRow(label: 'Duty Status', value: dutyStatus),
       ],
     );
   }
