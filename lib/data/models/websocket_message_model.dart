@@ -229,6 +229,7 @@ class LeaderboardEntryDto {
   final String name;
   final double rewardPoints;
   final String role;
+  final String? councilName;
   final int? rankChangeFromPrevious;
 
   LeaderboardEntryDto({
@@ -237,6 +238,7 @@ class LeaderboardEntryDto {
     required this.name,
     required this.rewardPoints,
     required this.role,
+    this.councilName,
     this.rankChangeFromPrevious,
   });
 
@@ -247,6 +249,7 @@ class LeaderboardEntryDto {
       name: json['name'] as String,
       rewardPoints: (json['rewardPoints'] as num).toDouble(),
       role: json['role'] as String,
+      councilName: json['councilName'] as String?,
       rankChangeFromPrevious: json['rankChangeFromPrevious'] as int?,
     );
   }
