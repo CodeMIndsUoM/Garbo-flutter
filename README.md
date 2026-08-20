@@ -12,14 +12,9 @@
 
 ## Table of Contents
 - [1. Mobile Application Overview](#1-mobile-application-overview)
-- [2. Multi-Role User Architecture](#2-multi-role-user-architecture)
+- [2. Multi-Role User Architecture & Purpose](#2-multi-role-user-architecture--purpose)
 - [3. Application Architecture & Data Flow](#3-application-architecture--data-flow)
 - [4. User Interface Showcase](#4-user-interface-showcase)
-  - [Authentication & Role Gateway](#authentication--role-gateway)
-  - [Role 1: Citizen Experience](#role-1-citizen-experience)
-  - [Role 2: Field Mentor Telemetry & Auditing](#role-2-field-mentor-telemetry--auditing)
-  - [Role 3: Bin Collector & Driver Navigation HUD](#role-3-bin-collector--driver-navigation-hud)
-  - [Role 4: Third-Party Specialized Recycler](#role-4-third-party-specialized-recycler)
 - [5. Technology Stack](#5-technology-stack)
 - [6. Project Structure](#6-project-structure)
 - [7. Getting Started & Setup](#7-getting-started--setup)
@@ -34,11 +29,11 @@ Garbo Mobile unifies all field-facing stakeholders in municipal solid waste oper
 * **For Citizens**: Empowers residents to report overflowing bins with geotagged photos, track complaint lifecycles, earn gamification points, compete on council leaderboards, and schedule specialized bulk pickups.
 * **For Field Mentors**: Provides IoT and manual bin fill-level telemetry auditing, QR code bin identification, discrepancy flagging, and on-ground verification.
 * **For Bin Collectors & Drivers**: Delivers turn-by-turn dynamic collection route navigation powered by Google OR-Tools optimization, real-time stop completion checklists, and capacity monitoring.
-* **For 3rd-Party Specialized Recyclers**: Offers a specialized marketplace to discover commercial and hazardous waste requests, submit competitive quotations, and manage fulfillment workflows.
+* **For Third-Party Collectors**: Offers a specialized marketplace to discover commercial, bulky, and hazardous waste requests, submit competitive quotations, and manage fulfillment workflows.
 
 ---
 
-## 2. Multi-Role User Architecture
+## 2. Multi-Role User Architecture & Purpose
 
 Upon authentication, the app dynamically adapts its entire user interface, navigation tree, and real-time listeners based on the authenticated user's assigned role:
 
@@ -46,25 +41,25 @@ Upon authentication, the app dynamically adapts its entire user interface, navig
 graph TD
     Auth["Authentication Gateway<br/>(JWT Token & Council Scoping)"] --> Router{"Role-Based Router"}
 
-    subgraph Citizen["Citizen Role Experience"]
-        R1["Citizen Dashboard"] --> R1_1["Geotagged Photo Complaints"]
+    subgraph Citizen["Role 1: Citizen Experience"]
+        R1["Citizen Home Dashboard"] --> R1_1["Geotagged Photo Complaints"]
         R1 --> R1_2["Gamification Tasks & Leaderboards"]
         R1 --> R1_3["Special Waste Pickup Requests"]
     end
 
-    subgraph Mentor["Field Mentor Telemetry & Auditing"]
-        R2["Mentor Dashboard"] --> R2_1["Bin Fill Audits & Photo Verification"]
+    subgraph Mentor["Role 2: Field Mentor Telemetry & Auditing"]
+        R2["Mentor Home Dashboard"] --> R2_1["Bin Fill Audits & Photo Verification"]
         R2 --> R2_2["Discrepancy & Overflow Flagging"]
         R2 --> R2_3["QR / Barcode Bin Scanner"]
     end
 
-    subgraph Driver["Bin Collector & Driver Operations"]
+    subgraph Driver["Role 3: Bin Collector & Driver Operations"]
         R3["Driver Navigation HUD"] --> R3_1["Turn-by-Turn Algorithmic Route HUD"]
         R3 --> R3_2["Interactive Bin Stop Checklist"]
         R3 --> R3_3["Vehicle Capacity & Offload Status"]
     end
 
-    subgraph Recycler["Third-Party Specialized Recycler"]
+    subgraph ThirdParty["Role 4: Third-Party Collector"]
         R4["Marketplace Portal"] --> R4_1["Browse Commercial & Bulk Requests"]
         R4 --> R4_2["Submit Quotations & Competitive Bids"]
         R4 --> R4_3["Active Pickup Tracking & Receipts"]
@@ -73,8 +68,33 @@ graph TD
     Router -->|CITIZEN| Citizen
     Router -->|FIELD_MENTOR| Mentor
     Router -->|BIN_COLLECTOR| Driver
-    Router -->|THIRD_PARTY_COLLECTOR| Recycler
+    Router -->|THIRD_PARTY_COLLECTOR| ThirdParty
 ```
+
+### Detailed Purpose & Responsibilities of Each Role
+
+#### 1. Citizen (Civic Engagement & Action)
+* **Incident & Overflow Reporting**: Capture photos of overflowing public bins, damaged containers, or illegal dumpsites with automatic GPS geotagging.
+* **Bin Placement Suggestions**: Propose new public bin locations and vote on community bin placement initiatives.
+* **Gamification & Leaderboard**: Earn eco-points for verified green reporting actions, complete sustainability challenges, and track ranking on the municipal council leaderboard.
+* **Specialized Collection Requests**: Request on-demand pickups for e-waste, large bulky items, recyclable cardboard, or hazardous household waste.
+
+#### 2. Field Mentor (Ground Telemetry & Auditing)
+* **Physical Bin Audits**: Perform routine ground inspections of municipal bins across designated urban zones.
+* **Telemetry Verification**: Report accurate fill percentages (0-100%), bin physical damage, lid issues, and overflow conditions.
+* **QR / Barcode Identification**: Instantly scan bin QR/RFID tags to retrieve bin metadata, history, and assigned council.
+* **Discrepancy Reporting**: Log and flag discrepancies between predicted IoT sensor readings and ground truth conditions to improve routing accuracy.
+
+#### 3. Bin Collector & Driver (Fleet Navigation & Stop Execution)
+* **Turn-by-Turn Navigation HUD**: Access optimal collection routes algorithmically generated by Google OR-Tools and OSRM based on live bin fill priorities.
+* **Stop Completion Checklist**: Mark bin collections in real-time, record skip reasons when bins are blocked/inaccessible, and log collection timestamps.
+* **Capacity Monitoring**: Track onboard truck volume and weight limits, receiving automated directions to the nearest municipal disposal facility when capacity is reached.
+
+#### 4. Third-Party Collector (Specialized Waste Marketplace)
+* **Licensed Private Operators**: Enables accredited private waste collectors and specialized recyclers to operate within the municipal ecosystem.
+* **Marketplace Request Discovery**: Browse specialized waste pickup requests posted by citizens and commercial entities (e-waste, scrap metal, construction debris).
+* **Quotation & Bidding Engine**: Submit competitive pricing, estimated pickup windows, and terms directly to request owners.
+* **Fulfillment & Receipts**: Navigate to pickup locations, execute collections, upload completion evidence, and generate digital service receipts.
 
 ---
 
@@ -85,7 +105,7 @@ Garbo Mobile adheres to **Clean Architecture** principles, decoupling presentati
 ```mermaid
 graph TB
     subgraph UI_Layer["Presentation Layer (Flutter)"]
-        Screens["Screens & Pages<br/>(Citizen, Mentor, Driver, Recycler)"]
+        Screens["Screens & Pages<br/>(Citizen, Mentor, Driver, Third-Party Collector)"]
         Widgets["Reusable Design System Widgets<br/>(Glassmorphism, Maps, Badges)"]
         State["State Management<br/>(Providers / ViewModels)"]
     end
@@ -129,12 +149,12 @@ The application automatically routes users upon authentication to their designat
 
 | Authentication Gateway | Role 1: Citizen Home | Role 2: Field Mentor Home |
 |:---:|:---:|:---:|
-| ![Login Screen](docs/screenshots/auth_login.png) | ![Citizen Home Screen](docs/screenshots/citizen_home.png) | ![Field Mentor Screen](docs/screenshots/mentor_home.png) |
+| ![Login Screen](docs/screenshots/auth_login.jpeg) | ![Citizen Home Screen](docs/screenshots/citizen_home.jpeg) | ![Field Mentor Screen](docs/screenshots/mentor_home.jpeg) |
 | *Role-aware JWT sign-in* | *Citizen map, complaints & task feed* | *Bin telemetry auditing & status report* |
 
-| Role 3: Bin Collector & Driver Home | Role 4: Third-Party Recycler Home |
+| Role 3: Bin Collector & Driver Home | Role 4: Third-Party Collector Home |
 |:---:|:---:|
-| ![Collector Navigation HUD](docs/screenshots/collector_home.png) | ![Recycler Marketplace](docs/screenshots/recycler_home.png) |
+| ![Collector Navigation HUD](docs/screenshots/collector_home.jpeg) | ![Third-Party Collector Portal](docs/screenshots/third_party_collector_home.jpeg) |
 | *Turn-by-turn algorithmic route navigation* | *Specialized waste request feed & bids* |
 
 ---
@@ -186,7 +206,7 @@ Garbo-flutter/
 │       ├── citizen/            # Citizen screens, complaints, and leaderboard
 │       ├── field_staff/        # Field mentor bin auditing and QR screens
 │       ├── collection_team/    # Collector navigation and stop checklist
-│       ├── third_party_collector/ # Recycler marketplace and bidding
+│       ├── third_party_collector/ # Third-party collector marketplace and bidding
 │       ├── providers/          # State management providers
 │       └── widgets/            # Reusable buttons, cards, dialogs, and inputs
 ├── test/                       # Unit and widget test suite
