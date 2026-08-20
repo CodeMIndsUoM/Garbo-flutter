@@ -8,6 +8,12 @@ on:
   push:
     branches:
       - devops/platform
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - '.env.example'
+      - 'LICENSE'
 
 env:
   API_BASE: https://garboadmin.duckdns.org/api

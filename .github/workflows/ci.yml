@@ -5,10 +5,22 @@ on:
     branches:
       - mergesa
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - '.env.example'
+      - 'LICENSE'
   push:
     branches:
       - devops/**
       - mergesa
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - '.env.example'
+      - 'LICENSE'
 
 jobs:
   analyze-and-test:
