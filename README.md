@@ -1,125 +1,240 @@
-# Garbo SWMS
+# Garbo Mobile Application (`Garbo-flutter`)
 
-Smart Waste Management System — A Flutter mobile application for managing urban waste collection across multiple user roles.
+[![Flutter](https://img.shields.io/badge/Flutter-3.x%20%7C%20Dart%203.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Android](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com/)
+[![Material 3](https://img.shields.io/badge/UI-Material%203-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white)](https://m3.material.io/)
+[![Google Maps](https://img.shields.io/badge/GIS-Google%20Maps%20%7C%20MapLibre-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white)](https://developers.google.com/maps)
+[![FCM](https://img.shields.io/badge/Push-Firebase%20FCM-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/docs/cloud-messaging)
 
-## Getting Started
+> **Garbo Mobile** is an intuitive, multi-role cross-platform mobile application built with **Flutter**. It provides seamless, real-time field operations, citizen crowdsourcing, telemetry auditing, and driver navigation for the **Garbo Smart Waste Management Ecosystem**.
+
+---
+
+## Table of Contents
+- [1. Mobile Application Overview](#1-mobile-application-overview)
+- [2. Multi-Role User Architecture](#2-multi-role-user-architecture)
+- [3. Application Architecture & Data Flow](#3-application-architecture--data-flow)
+- [4. User Interface Showcase](#4-user-interface-showcase)
+  - [Authentication & Role Gateway](#authentication--role-gateway)
+  - [Role 1: Citizen Experience](#role-1-citizen-experience)
+  - [Role 2: Field Mentor Telemetry & Auditing](#role-2-field-mentor-telemetry--auditing)
+  - [Role 3: Bin Collector & Driver Navigation HUD](#role-3-bin-collector--driver-navigation-hud)
+  - [Role 4: Third-Party Specialized Recycler](#role-4-third-party-specialized-recycler)
+- [5. Technology Stack](#5-technology-stack)
+- [6. Project Structure](#6-project-structure)
+- [7. Getting Started & Setup](#7-getting-started--setup)
+- [8. Build & CI/CD Pipelines](#8-build--cicd-pipelines)
+
+---
+
+## 1. Mobile Application Overview
+
+Garbo Mobile unifies all field-facing stakeholders in municipal solid waste operations into a single, cohesive, high-performance application:
+
+* **For Citizens**: Empowers residents to report overflowing bins with geotagged photos, track complaint lifecycles, earn gamification points, compete on council leaderboards, and schedule specialized bulk pickups.
+* **For Field Mentors**: Provides IoT and manual bin fill-level telemetry auditing, QR code bin identification, discrepancy flagging, and on-ground verification.
+* **For Bin Collectors & Drivers**: Delivers turn-by-turn dynamic collection route navigation powered by Google OR-Tools optimization, real-time stop completion checklists, and capacity monitoring.
+* **For 3rd-Party Specialized Recyclers**: Offers a specialized marketplace to discover commercial and hazardous waste requests, submit competitive quotations, and manage fulfillment workflows.
+
+---
+
+## 2. Multi-Role User Architecture
+
+Upon authentication, the app dynamically adapts its entire user interface, navigation tree, and real-time listeners based on the authenticated user's assigned role:
+
+```mermaid
+graph TD
+    Auth["Authentication Gateway<br/>(JWT Token & Council Scoping)"] --> Router{"Role-Based Router"}
+
+    subgraph Citizen["Citizen Role Experience"]
+        R1["Citizen Dashboard"] --> R1_1["Geotagged Photo Complaints"]
+        R1 --> R1_2["Gamification Tasks & Leaderboards"]
+        R1 --> R1_3["Special Waste Pickup Requests"]
+    end
+
+    subgraph Mentor["Field Mentor Telemetry & Auditing"]
+        R2["Mentor Dashboard"] --> R2_1["Bin Fill Audits & Photo Verification"]
+        R2 --> R2_2["Discrepancy & Overflow Flagging"]
+        R2 --> R2_3["QR / Barcode Bin Scanner"]
+    end
+
+    subgraph Driver["Bin Collector & Driver Operations"]
+        R3["Driver Navigation HUD"] --> R3_1["Turn-by-Turn Algorithmic Route HUD"]
+        R3 --> R3_2["Interactive Bin Stop Checklist"]
+        R3 --> R3_3["Vehicle Capacity & Offload Status"]
+    end
+
+    subgraph Recycler["Third-Party Specialized Recycler"]
+        R4["Marketplace Portal"] --> R4_1["Browse Commercial & Bulk Requests"]
+        R4 --> R4_2["Submit Quotations & Competitive Bids"]
+        R4 --> R4_3["Active Pickup Tracking & Receipts"]
+    end
+
+    Router -->|CITIZEN| Citizen
+    Router -->|FIELD_MENTOR| Mentor
+    Router -->|BIN_COLLECTOR| Driver
+    Router -->|THIRD_PARTY_COLLECTOR| Recycler
+```
+
+---
+
+## 3. Application Architecture & Data Flow
+
+Garbo Mobile adheres to **Clean Architecture** principles, decoupling presentation, business domain logic, and data sources:
+
+```mermaid
+graph TB
+    subgraph UI_Layer["Presentation Layer (Flutter)"]
+        Screens["Screens & Pages<br/>(Citizen, Mentor, Driver, Recycler)"]
+        Widgets["Reusable Design System Widgets<br/>(Glassmorphism, Maps, Badges)"]
+        State["State Management<br/>(Providers / ViewModels)"]
+    end
+
+    subgraph Domain_Layer["Domain Layer (Core Logic)"]
+        UseCases["Use Cases / Interactors"]
+        Entities["Domain Entities & Business Rules"]
+        RepoInterfaces["Repository Interfaces"]
+    end
+
+    subgraph Data_Layer["Data Layer (Infrastructure)"]
+        RepoImpl["Repository Implementations"]
+        RemoteSource["Remote REST API Client (Dio + Interceptors)"]
+        WebSocketClient["STOMP & WebSocket Client"]
+        LocalCache["Secure Storage & Cache (SharedPreferences)"]
+    end
+
+    subgraph Backend["Garbo Cloud Services"]
+        SpringBackend["Garbo Backend (Spring Boot 3.2)"]
+        FCMServer["Firebase Cloud Messaging (FCM)"]
+    end
+
+    Screens --> State
+    State --> UseCases
+    UseCases --> Entities
+    UseCases --> RepoInterfaces
+    RepoImpl -.-> RepoInterfaces
+    RepoImpl --> RemoteSource
+    RepoImpl --> WebSocketClient
+    RepoImpl --> LocalCache
+    RemoteSource -->|HTTPS / REST| SpringBackend
+    WebSocketClient -->|WSS / STOMP| SpringBackend
+    FCMServer -->|Push Notifications| UI_Layer
+```
+
+---
+
+## 4. User Interface Showcase
+
+The application automatically routes users upon authentication to their designated role-specific main home interface:
+
+| Authentication Gateway | Role 1: Citizen Home | Role 2: Field Mentor Home |
+|:---:|:---:|:---:|
+| ![Login Screen](docs/screenshots/auth_login.png) | ![Citizen Home Screen](docs/screenshots/citizen_home.png) | ![Field Mentor Screen](docs/screenshots/mentor_home.png) |
+| *Role-aware JWT sign-in* | *Citizen map, complaints & task feed* | *Bin telemetry auditing & status report* |
+
+| Role 3: Bin Collector & Driver Home | Role 4: Third-Party Recycler Home |
+|:---:|:---:|
+| ![Collector Navigation HUD](docs/screenshots/collector_home.png) | ![Recycler Marketplace](docs/screenshots/recycler_home.png) |
+| *Turn-by-turn algorithmic route navigation* | *Specialized waste request feed & bids* |
+
+---
+
+## 5. Technology Stack
+
+| Component | Library / Framework | Description |
+|---|---|---|
+| **Framework** | Flutter `3.x` / Dart `3.x` | Cross-platform compiled mobile engine |
+| **UI Design System** | Material 3 & Glassmorphic UI | Modern responsive mobile components & animations |
+| **State Management** | Provider / Riverpod / ChangeNotifier | Scalable reactive state management |
+| **HTTP & Networking** | Dio | HTTP client with JWT interceptors & token refresh |
+| **Real-Time Communication** | `stomp_dart_client` / `web_socket_channel` | Bi-directional STOMP pub/sub messaging |
+| **Mapping & Geolocation** | `google_maps_flutter` / `geolocator` | Real-time GPS tracking and interactive GIS maps |
+| **Push Notifications** | `firebase_messaging` / `flutter_local_notifications` | Background and foreground alert dispatch |
+| **Secure Storage** | `flutter_secure_storage` | Encrypted keychain/keystore token storage |
+| **Media & Camera** | `image_picker` / `camera` | High-resolution photo capture and compression |
+
+---
+
+## 6. Project Structure
+
+```text
+Garbo-flutter/
+├── android/                    # Native Android project configuration & Gradle scripts
+├── ios/                        # Native iOS Xcode workspace & Pods
+├── assets/                     # Icons, static images, and branding assets
+├── docs/
+│   └── screenshots/            # Showcase screenshots for documentation
+├── lib/
+│   ├── main.dart               # Application entrypoint & dependency bootstrap
+│   ├── core/                   # Shared cross-cutting modules
+│   │   ├── constants/          # API endpoints, colors, and layout constants
+│   │   ├── errors/             # Custom exception classes and failure models
+│   │   ├── map/                # Map marker utilities and polyline decoders
+│   │   ├── router/             # App routing and role-based guards
+│   │   ├── services/           # Token storage, location, and FCM services
+│   │   └── theme/              # Light & dark theme definitions
+│   ├── data/                   # Data layer
+│   │   ├── models/             # Serialization DTOs and JSON converters
+│   │   ├── repositories/       # Repository implementations
+│   │   └── sources/            # Remote HTTP and WebSocket data sources
+│   ├── domain/                 # Domain layer
+│   │   ├── entities/           # Pure Dart business models
+│   │   ├── repositories/       # Abstract repository contracts
+│   │   └── usecases/           # Specific business operation use cases
+│   └── presentation/           # UI & presentation layer
+│       ├── auth/               # Login, registration, and password recovery
+│       ├── citizen/            # Citizen screens, complaints, and leaderboard
+│       ├── field_staff/        # Field mentor bin auditing and QR screens
+│       ├── collection_team/    # Collector navigation and stop checklist
+│       ├── third_party_collector/ # Recycler marketplace and bidding
+│       ├── providers/          # State management providers
+│       └── widgets/            # Reusable buttons, cards, dialogs, and inputs
+├── test/                       # Unit and widget test suite
+├── pubspec.yaml                # Flutter package dependencies
+└── README.md                   # Project documentation
+```
+
+---
+
+## 7. Getting Started & Setup
 
 ### Prerequisites
+* **Flutter SDK**: `3.22+` (Dart `3.4+`)
+* **Android Studio** (with Android SDK 34+) or **Xcode** (for iOS macOS builds)
+* Running instance of [Garbo Backend](https://github.com/CodeMIndsUoM/Garbo_backend)
 
-- Flutter SDK (3.x or later)
-- Dart SDK
-- Android Studio / Xcode for emulator
-
-### Run the App
-
+### 1. Clone & Fetch Dependencies
 ```bash
+git clone https://github.com/CodeMIndsUoM/Garbo-flutter.git
+cd Garbo-flutter
 flutter pub get
-flutter run
 ```
 
-### Third-Party Completion Photo Upload
-
-Photo upload is handled by backend multipart API. Flutter does not require Cloudinary Dart defines.
-
-Team workflow:
-
-1. Start backend with Cloudinary environment variables.
-2. Run Flutter app normally.
-3. Complete collection flow will send photo file to backend, and backend uploads to Cloudinary.
-
-## Test Login Credentials
-
-These mobile test accounts are intended for shared team login testing.
-
-Important:
-- Start the backend first so the seed data is created.
-- `ROLE_SUPERADMIN` is only for the web dashboard, not the mobile app.
-
-| Mobile Role | Email | Password | Mobile Destination |
-|-------|--------|--------|--------|
-| Citizen | `citizen.one@garbo.com` | `Citizen123` | Citizen home |Moratuwa
-| Collection Team | `collector.test@garbo.com` | `Collector123` | Collection team dashboard |
-| Field Staff | `sasindu@gmail.com` | `Sj1234` | Field staff dashboard |
-| Third-Party Collector | `thirdparty.one@garbo.com` | `ThirdParty123` | Third-party collector home |Colombo,Moratuwa
-
-Additional seeded demo accounts:
-
-| Mobile Role | Email | Password | Mobile Destination |
-|-------|--------|--------|--------|
-| Citizen | `citizen.two@garbo.com` | `Citizen123` | Citizen home |Colombo
-| Citizen | `citizen.three@garbo.com` | `Citizen123` | Citizen home |Kaduwela
-| Third-Party Collector | `thirdparty.two@garbo.com` | `ThirdP3arty123` | Third-party collector home |Dehiwala-Mt. Lavinia,Kaduwela
-| Third-Party Collector | `thirdparty.three@garbo.com` | `ThirdParty123` | Third-party collector home |Sri Jayewardenepura Kotte,Colombo
-
-### Create Seed Users
-
-Run the backend once to create these accounts automatically:
-
+### 2. Configure Backend API Endpoint
+Pass the API base URL via `--dart-define` at runtime:
 ```bash
-cd ../Garbo_backend
-./run-local.sh
+# Local development against local backend
+flutter run --dart-define=API_BASE=http://10.0.2.2:8081
+
+# Connect to cloud production backend
+flutter run --dart-define=API_BASE=https://api.garbo.codeminds.lk
 ```
 
-Note: `run-local.sh` loads `.env` first, so Cloudinary-backed upload endpoints work correctly.
+---
 
-## Project Structure
+## 8. Build & CI/CD Pipelines
 
+### Generate Release APK
+```bash
+flutter build apk --release --dart-define=API_BASE=https://api.garbo.codeminds.lk
 ```
-lib/
-├── main.dart                         # App entry point
-├── app.dart                          # Root app widget
-├── core/                             # Shared app-level config and styling
-│   ├── constants/                    # API base URL and shared constants
-│   ├── errors/                       # Shared error placeholders / future expansion
-│   ├── router/                       # Central app routing
-│   ├── theme/                        # Colors and typography
-│   └── utils/                        # Shared utility placeholders / future expansion
-├── data/                             # API-facing models and services
-│   ├── models/                       # Request/offer/dashboard/websocket models
-│   ├── repositories/                 # Reserved for repository implementations
-│   └── sources/                      # REST and websocket services
-├── domain/                           # Reserved clean-architecture domain layer
-│   ├── entities/
-│   ├── repositories/
-│   └── usecases/
-└── presentation/                     # UI grouped by role and feature
-    ├── auth/                         # Login/register/forgot-password flow
-    │   ├── pages/
-    │   └── state/
-    ├── citizen/                      # Citizen request and reporting experience
-    │   ├── pages/
-    │   ├── state/
-    │   └── widgets/
-    ├── collection_team/              # Bin collector route and job screens
-    │   ├── pages/
-    │   ├── state/
-    │   └── widgets/
-    ├── field_staff/                  # Field mentor dashboard, bins, and profile
-    │   ├── bins/
-    │   ├── dashboard/
-    │   ├── profile/
-    │   ├── shared/
-    │   └── state/
-    ├── providers/                    # Cross-screen providers and app state
-    ├── third_party_collector/        # Feed, jobs, profile, and completion flow
-    │   ├── pages/
-    │   └── widgets/
-    └── widgets/                      # Shared presentation widgets
-```
+The compiled output is placed in `build/app/outputs/flutter-apk/app-release.apk`.
 
-## Architecture
+### Automated GitHub Actions Workflow
+* **Code Analysis & Linting**: Automatically validates static analysis on all pull requests.
+* **Continuous APK Build**: On push to `main` and `devops/platform`, GitHub Actions builds and archives production release artifacts.
 
-The codebase uses a mostly role-based presentation structure with lightweight layered separation:
+---
 
-| Layer | Folder | Responsibility |
-|-------|--------|----------------|
-| **Presentation** | `presentation/` | Role-specific pages, widgets, and providers |
-| **Data** | `data/` | API services, websocket services, and response models |
-| **Core** | `core/` | Routing, constants, and theme |
-| **Domain** | `domain/` | Reserved for domain abstractions and future use cases |
-
-## Resources
-
-- [Flutter Documentation](https://docs.flutter.dev/)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter Cookbook](https://docs.flutter.dev/cookbook)
+## Contributors & Maintainers
+Developed by the **CodeMinds UoM** Engineering Team.
